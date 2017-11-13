@@ -1,0 +1,4 @@
+.*.swp
+*.agdai
+sources/
+.*.vim
