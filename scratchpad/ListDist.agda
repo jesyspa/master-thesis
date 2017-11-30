@@ -53,20 +53,65 @@ Dist-right-id {A} {B} {a} {f} =
   f a 
   ∎
 
-uniform : (n : Nat) → Dist (Fin n)
+uniform : (n : Nat) → Dist (Fin (suc n))
 uniform n = map (λ x → x , 1 :/ suc n) fins
   where
   fins : ∀{m} → List (Fin m)
   fins {zero} = []
   fins {suc m} = zero ∷ map suc fins
 
+totalProbability : ∀{A} → Dist A → Rational
+totalProbability = sum ∘ map snd
+
 IsDist : ∀{A} → Dist A → Set
-IsDist xs = IsTrue $ isYes $ totalProb xs == one 
-  where
-  sum : List Rational → Rational
-  sum = foldr _+_ zro
-  totalProb : ∀{A} → Dist A → Rational
-  totalProb = sum ∘ map snd
+IsDist xs = IsTrue $ isYes $ totalProbability xs == one 
+
+uniform-special : totalProbability (uniform 0) ≡ one
+uniform-special =
+  sum (map snd [ (zero , 1 :/ 1) ])
+    ≡⟨ refl ⟩
+  sum [ 1 :/ 1 ]
+    ≡⟨ refl ⟩
+  1 :/ 1 + zro
+    ≡⟨ refl ⟩
+  one
+  ∎
+
+uniform-snd-lem : ∀{n} → map snd (uniform n) ≡ replicate (suc n) (1 :/ suc n)
+uniform-snd-lem = {!!}
+
+replicate-mul-lem : ∀{n k} → sum (replicate k (1 :/ suc n)) ≡ k :/ suc n
+replicate-mul-lem {n} {zero} =
+  sum (replicate 0 (1 :/ suc n))
+    ≡⟨ refl ⟩
+  sum []
+    ≡⟨ refl ⟩
+  zro
+    ≡⟨ sym zero-over-k-lem ⟩
+  zero :/ suc n
+  ∎
+replicate-mul-lem {n} {suc k} =
+  sum (replicate (suc k) (1 :/ suc n))
+    ≡⟨ refl ⟩
+  sum ((1 :/ suc n) ∷ replicate k (1 :/ suc n))
+    ≡⟨ refl ⟩
+  1 :/ suc n + sum (replicate k (1 :/ suc n))
+    ≡⟨ cong (λ x → 1 :/ suc n + x) replicate-mul-lem ⟩
+  1 :/ suc n + k :/ suc n
+    ≡⟨ {!!} ⟩
+  suc k :/ suc n
+  ∎
+
+uniform-lem : ∀{n} → totalProbability (uniform n) ≡ one
+uniform-lem {n} =
+  sum (map snd (uniform n))
+    ≡⟨ cong sum (uniform-snd-lem {n}) ⟩
+  sum (replicate (suc n) (1 :/ suc n))
+    ≡⟨ replicate-mul-lem ⟩
+  suc n :/ suc n
+    ≡⟨ k-over-k-lem ⟩
+  one
+  ∎
 
 uniformIsDist : ∀{n} → IsDist (uniform n)
 uniformIsDist {n} = {!!}

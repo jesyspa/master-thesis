@@ -11,7 +11,13 @@ open import Prelude.Nat public using(Nat; suc; zero; SemiringNat; NonZero; _+N_;
 open import Prelude.Fin public using(Fin; suc; zero)
 open import Prelude.List public using (List; []; _∷_; [_]; _++_; map; concat; foldr; concatMap; replicate)
 open import Numeric.Rational public using(Rational; mkratio; SemiringRational; EqRational; _*Q_)
+open import Numeric.Nat.Divide public using(_Divides_; factor)
+open import Numeric.Nat.GCD public using(gcd; gcd-res; IsGCD; is-gcd)
 open import Prelude.Semiring public using(Semiring)
 
 open Semiring {{...}} public
 open Eq {{...}} public
+open IsGCD {{...}} public
+
+sum : List Rational → Rational
+sum = foldr _+_ zro
