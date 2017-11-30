@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 module ListDist where
 
 open import MyPrelude
@@ -51,3 +52,21 @@ Dist-right-id {A} {B} {a} {f} =
     ≡⟨ map-weak-id-lem bh2-id-lem2 ⟩
   f a 
   ∎
+
+uniform : (n : Nat) → Dist (Fin n)
+uniform n = map (λ x → x , 1 :/ suc n) fins
+  where
+  fins : ∀{m} → List (Fin m)
+  fins {zero} = []
+  fins {suc m} = zero ∷ map suc fins
+
+IsDist : ∀{A} → Dist A → Set
+IsDist xs = IsTrue $ isYes $ totalProb xs == one 
+  where
+  sum : List Rational → Rational
+  sum = foldr _+_ zro
+  totalProb : ∀{A} → Dist A → Rational
+  totalProb = sum ∘ map snd
+
+uniformIsDist : ∀{n} → IsDist (uniform n)
+uniformIsDist {n} = {!!}
