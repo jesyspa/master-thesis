@@ -28,26 +28,13 @@ rat-one-lem {Rational.ratio p q {{nz}} prf} =
   nz' : NonZero (1 * q)
   nz' = transport NonZero (sym nat-one-lem) nz
 
-add-lem : ∀{k n} → k + 0 * n ≡ k
-add-lem {k} {n} =
-  k + 0 * n
-    ≡⟨ refl ⟩
-  k + 0
-    ≡⟨ nat-add-zero ⟩
-  k
-  ∎
-
 k-over-k-lem : ∀{k} → suc k :/ suc k ≡ one
 k-over-k-lem {k} = {!!} 
 
-zero-over-k-lem : ∀{k} → zero :/ suc k ≡ zro
-zero-over-k-lem {k} =
-  zero :/ suc k
-    ≡⟨ {!!} ⟩
-  {!!}
-    ≡⟨ {!!} ⟩
-  zro
-  ∎
+zero-over-k-lem : ∀{k} → {{_ : NonZero k}} → zero :/ k ≡ zro
+zero-over-k-lem {k} with gcd zero k 
+zero-over-k-lem {k} | gcd-res d isGCD with {!!} ofType d ≡ gcd! zero k
+... | x = {!!}
 
 common-denom-lem : ∀{p₁ p₂ q} → {{_ : NonZero q}} → p₁ :/ q + p₂ :/ q ≡ (p₁ + p₂) :/ q
 common-denom-lem {p₁} {p₂} {q} = {!!}

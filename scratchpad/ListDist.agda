@@ -55,10 +55,6 @@ Dist-right-id {A} {B} {a} {f} =
 
 uniform : (n : Nat) → Dist (Fin (suc n))
 uniform n = map (λ x → x , 1 :/ suc n) fins
-  where
-  fins : ∀{m} → List (Fin m)
-  fins {zero} = []
-  fins {suc m} = zero ∷ map suc fins
 
 totalProbability : ∀{A} → Dist A → Rational
 totalProbability = sum ∘ map snd
