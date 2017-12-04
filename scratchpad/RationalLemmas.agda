@@ -8,14 +8,16 @@ rat-one-lem-try2 : {x : Rational} → one * x ≡ x
 rat-one-lem-try2 {Rational.ratio p q {{nz}} prf} with one * Rational.ratio p q prf
 ... | Rational.ratio p2 q2 {{nz'}} prf' = {!!}
 
+NonZero-pi : ∀{x} → {p q : NonZero x} → p ≡ q
+NonZero-pi {zero} {()} {_}
+NonZero-pi {suc x} {tt} {tt} = refl
+
 rat-one-lem : {x : Rational} → one * x ≡ x
 rat-one-lem {Rational.ratio p q {{nz}} prf} = 
   mkratio 1 1 * Rational.ratio p q prf
     ≡⟨ refl ⟩
   Rational.ratio 1 1 refl * Rational.ratio p q prf
-    ≡⟨ refl ⟩
-  mkratio (1 * p) (1 * q) {{{!!}}} 
-    ≡⟨ {!!} ⟩
+    ≡⟨ cong {!!} NonZero-pi ⟩
   mkratio (1 * p) (1 * q) {{nz'}}
     ≡⟨ cong (λ x → mkratio x (1 * q) {{nz'}}) nat-one-lem ⟩
   mkratio p (1 * q) {{nz'}}
@@ -36,5 +38,5 @@ zero-over-k-lem {k} with gcd zero k
 zero-over-k-lem {k} | gcd-res d isGCD with {!!} ofType d ≡ gcd! zero k
 ... | x = {!!}
 
-common-denom-lem : ∀{p₁ p₂ q} → {{_ : NonZero q}} → p₁ :/ q + p₂ :/ q ≡ (p₁ + p₂) :/ q
-common-denom-lem {p₁} {p₂} {q} = {!!}
+common-denom-lem : (p₁ p₂ q : Nat) → {{_ : NonZero q}} → p₁ :/ q + p₂ :/ q ≡ (p₁ + p₂) :/ q
+common-denom-lem p₁ p₂ q = {!!}
