@@ -111,3 +111,6 @@ uniform-lem {n} =
 
 uniformIsDist : ∀{n} → IsDist (uniform n)
 uniformIsDist {n} = {!!}
+
+sample : ∀{a} → {{_ : Eq a}} → Dist a → a → Rational
+sample d a = sum $ map (λ { (a' , p) → if isYes (a == a') then p else zro }) $ d
