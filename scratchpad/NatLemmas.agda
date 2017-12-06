@@ -26,12 +26,20 @@ nat-assoc-lem : {k n m : Nat} → k + (n + m) ≡ (k + n) + m
 nat-assoc-lem {zero} {n} {m} = refl
 nat-assoc-lem {suc k} {n} {m} = cong suc (nat-assoc-lem {k})
 
-nat-commute-helper : {k n : Nat} → suc (k + n) ≡ n + suc k
-nat-commute-helper {k} {n} = {!!} 
+nat-commute-helper : {k n : Nat} → suc (k + n) ≡ k + suc n 
+nat-commute-helper {zero} {n} = refl
+nat-commute-helper {suc k} {n} = cong suc (nat-commute-helper {k})
 
 nat-commute-lem : {k n : Nat} → k + n ≡ n + k
 nat-commute-lem {zero} {n} = sym nat-add-zero
-nat-commute-lem {suc k} {n} = nat-commute-helper {k}
+-- (suc k) + n = suc (k + n) = suc (n + k) = (suc n + k)
+nat-commute-lem {suc k} {n} =
+  suc (k + n) 
+    ≡⟨ cong suc (nat-commute-lem {k} {n}) ⟩
+  suc (n + k)
+    ≡⟨ nat-commute-helper {n} {k} ⟩
+  n + suc k
+  ∎
 
 nat-dist-lem : (k n m : Nat) → k * n + k * m ≡ k * (n + m)
 nat-dist-lem zero n m = refl

@@ -52,7 +52,7 @@ private
     PP-mul (down p) (down q) = down (down (PP-mul p q))
     PP-mul (down p) (up q) = down (PP-avg p (PP-mul p q))
     PP-mul (up p) (down q) = down (PP-avg q (PP-mul p q))
-    PP-mul (up p) (up q) = PP-avg (up (PP-avg p q)) (down (PP-mul p q))
+    PP-mul (up p) (up q) = PP-avg (PP-avg p q) (up (PP-mul p q))
 
 -- Bounded addition (min p+q, 1)
 _+P_ : Prob → Prob → Prob
@@ -101,7 +101,7 @@ private
     pow2 (suc (suc n)) + repr p (weaken-bound db)
         ≡⟨ cong (λ x → pow2 (suc (suc n)) + x) (repr-lem {db = db}) ⟩
     pow2 (suc (suc n)) + 2 * repr {n} p db
-        ≡⟨ cong (λ x → x + 2 * repr {n} p db) {!!} ⟩
+        ≡⟨ refl ⟩ 
     2 * pow2 (suc n) + 2 * repr {n} p db
         ≡⟨ nat-dist-lem 2 (pow2 (suc n)) (repr p db) ⟩
     2 * (pow2 (suc n) + repr {n} p db)
@@ -118,7 +118,11 @@ private
     2 * repr (down p) (down-step db)
     ∎
 
-{-
+  PPDepthBound-pi : ∀{n} → (p : ProbPath) → (ppa ppb : PPDepthBound n p) → ppa ≡ ppb
+  PPDepthBound-pi (down p) (down-step ppa) (down-step ppb) = cong down-step (PPDepthBound-pi p ppa ppb)
+  PPDepthBound-pi (up p) (up-step ppa) (up-step ppb) = cong up-step (PPDepthBound-pi p ppa ppb)
+  PPDepthBound-pi halfway end-depth end-depth = refl
+
   repr-avg-lem : ∀{p q n}
     → {pp : PPDepthBound n p} → {pq : PPDepthBound n q} → {ppq : PPDepthBound n (PP-avg p q)}
     → repr {n} p pp + repr {n} q pq ≡ 2 * repr {n} (PP-avg p q) ppq
@@ -127,7 +131,9 @@ private
     repr {n} halfway pp + repr {n} (up q) (up-step x)
       ≡⟨ {!!} ⟩ 
     repr {suc n} (up (down q)) (up-step (down-step x))
-      ≡⟨ {!!} ⟩
+      ≡⟨ cong (λ e → repr {suc n} (up (down q)) e) (PPDepthBound-pi (up (down q)) (up-step (down-step x)) (weaken-bound ppq)) ⟩
+    repr {suc n} (up (down q)) (weaken-bound ppq)
+      ≡⟨ repr-lem {db = ppq} ⟩
     2 * repr {n} (up (down q)) ppq
     ∎
   repr-avg-lem {halfway} {down q} {n} = {!!}
@@ -137,5 +143,3 @@ private
   repr-avg-lem {down p} {up q} = {!!}
   repr-avg-lem {up p} {down q} = {!!}
   repr-avg-lem {up p} {up q} = {!!}
-  -}
-

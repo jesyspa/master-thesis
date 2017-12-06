@@ -36,7 +36,7 @@ mul p Halfway         = Down p
 mul (Down p) (Down q) = Down $ Down $ mul p q
 mul (Down p) (Up q)   = Down $ p `avg` mul p q
 mul (Up p) (Down q)   = Down $ q `avg` mul p q
-mul (Up p) (Up q)     = Up (avg p q) `avg` Down (mul p q)
+mul (Up p) (Up q)     = avg p q `avg` Up (mul p q)
 
 prop_avg_dist :: Int -> Int -> Bool
 prop_avg_dist a b = rep at + rep bt == 2 * rep (at `avg` bt)
