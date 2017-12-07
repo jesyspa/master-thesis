@@ -8,10 +8,6 @@ rat-one-lem-try2 : {x : Rational} → one * x ≡ x
 rat-one-lem-try2 {Rational.ratio p q {{nz}} prf} with one * Rational.ratio p q prf
 ... | Rational.ratio p2 q2 {{nz'}} prf' = {!!}
 
-NonZero-pi : ∀{x} → {p q : NonZero x} → p ≡ q
-NonZero-pi {zero} {()} {_}
-NonZero-pi {suc x} {tt} {tt} = refl
-
 rat-one-lem : {x : Rational} → one * x ≡ x
 rat-one-lem {Rational.ratio p q {{nz}} prf} = 
   mkratio 1 1 * Rational.ratio p q prf

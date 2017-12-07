@@ -38,6 +38,11 @@ mul (Down p) (Up q)   = Down $ p `avg` mul p q
 mul (Up p) (Down q)   = Down $ q `avg` mul p q
 mul (Up p) (Up q)     = avg p q `avg` Up (mul p q)
 
+neg :: ProbPath -> ProbPath
+neg (Down p) = Up (neg p)
+neg (Up p) = Down (neg p)
+neg Halfway = Halfway
+
 prop_avg_dist :: Int -> Int -> Bool
 prop_avg_dist a b = rep at + rep bt == 2 * rep (at `avg` bt)
     where
@@ -49,3 +54,7 @@ prop_mul_dist a b = rep at * rep bt == rep (at `mul` bt)
     where
         at = fn a
         bt = fn b
+
+prop_neg_dist :: Int -> Bool
+prop_neg_dist a = rep at + rep (neg at) == 1
+    where at = fn a
