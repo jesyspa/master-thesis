@@ -179,6 +179,8 @@ postulate
   never-left-plus-unit-lem : (p : Prob) → p ≡ never +P p
   always-right-mul-unit-lem : (p : Prob) → p ≡ p *P always
   always-left-mul-unit-lem : (p : Prob) → p ≡ always *P p
+  never-right-mul-zero-lem : (p : Prob) → never ≡ p *P never
+  never-left-mul-zero-lem : (p : Prob) → never ≡ never *P p
 
   probpath-avg-comm : (p q : ProbPath) → PP-avg p q ≡ PP-avg q p
   probpath-mul-comm : (p q : ProbPath) → PP-mul p q ≡ PP-mul q p
@@ -186,8 +188,8 @@ postulate
   prob-mul-comm : (p q : Prob) → p *P q ≡ q *P p
 
   probpath-mul-assoc : (p q r : ProbPath) → PP-mul (PP-mul p q) r ≡ PP-mul p (PP-mul q r)
-  prob-plus-assoc : (p q r : Prob) → (p +P q) +P r ≡ p +P (q +P r)
-  prob-mul-assoc : (p q r : Prob) → (p *P q) *P r ≡ p *P (q *P r)
+  prob-plus-assoc : (p q r : Prob) → p +P (q +P r) ≡ (p +P q) +P r
+  prob-mul-assoc : (p q r : Prob) → p *P (q *P r) ≡ (p *P q) *P r
 
   prob-nat-mul-dist : (n k : Nat) → (p : Prob) 
                     → n *NP p +P k *NP p ≡ (n +N k) *NP p
@@ -198,3 +200,4 @@ instance
   one {{ProbSemiring}} = always
   _+_ {{ProbSemiring}} = _+P_
   _*_ {{ProbSemiring}} = _*P_
+

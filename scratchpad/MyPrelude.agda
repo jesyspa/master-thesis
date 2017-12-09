@@ -11,6 +11,7 @@ open import Prelude.Ord public
 open import Prelude.Nat public
 open import Prelude.Fin public
 open import Prelude.List public
+open import Prelude.Vec public
 open import Numeric.Rational public
 open import Numeric.Nat.Divide public
 open import Numeric.Nat.GCD public
