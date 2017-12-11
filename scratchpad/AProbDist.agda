@@ -8,18 +8,22 @@ open import Monoid
 open import MonoidInstances
 open import MonoidLemmas
 open import AbstractHelpers
+open import Preorder
 
 sumSnd : ∀{A n} → List (A × Fixed n) → XFixed 
 sumSnd = sumF ∘ map snd
+
+IsSubDist : ∀{A n} → List (A × Fixed n) → Set
+IsSubDist = XIsProb ∘ sumSnd
 
 sumSnd-simplify : ∀{A n} → (a : A) → (v : Fixed n) → (xs : List (A × Fixed n)) 
                 → sumSnd ((a , v) ∷ xs) ≡ toXFixed v +XF sumSnd xs
 sumSnd-simplify a v xs = refl
 
 data SubDist (A : Set) : Set where
-  subdist : (xs : List (A × Prob)) → XIsProb (sumSnd xs) → SubDist A
+  subdist : (xs : List (A × Prob)) → IsSubDist xs → SubDist A
 
-return-subdist-lem : ∀{A} → (a : A) → XIsProb (sumSnd [ a , 1F ])
+return-subdist-lem : ∀{A} → (a : A) → IsSubDist [ a , 1F ]
 return-subdist-lem a rewrite sumSnd-simplify a 1F [] | sym (0XF-+XF-right-identity (zero , 1F)) = x-identity 1F
 
 return : ∀{A} → A → SubDist A
@@ -31,6 +35,7 @@ _withEquiv_ : ∀{A B : Set}
        → B
 a withEquiv refl = a
 
+-- TODO: Any better way to do this thing?
 bind-helper-2 : {B : Set} → Prob → B × Prob → B × Prob 
 bind-helper-2 p (b , q) = b , p *F q withEquiv sym (cong Fixed (mul-bs-zero-left-identity zero))
 
@@ -38,14 +43,29 @@ bind-helper : {A B : Set} → (A → SubDist B) → A × Prob → List (B × Pro
 bind-helper {A} {B} f (a , p) with f a
 ... | subdist xs _ = map (bind-helper-2 p) xs
 
+bind-subdist-lem-2 : ∀{A B} → (f : A → SubDist B) → (xs : List (A × Prob))
+                   → sumSnd (concatMap (bind-helper f) xs) ≤XF sumSnd xs
+bind-subdist-lem-2 f xs =
+  sumF (map snd (concatMap (bind-helper f) xs))
+    ≤⟨ {!!} ⟩
+  {!!}
+    ≤⟨ {!!} ⟩
+  sumF (map snd xs)
+  [ Preorder-XF ]∎
+
+bind-subdist-lem : ∀{A B} → (f : A → SubDist B) → (xs : List (A × Prob))
+                 → IsSubDist xs
+                 → IsSubDist (concatMap (bind-helper f) xs)
+bind-subdist-lem f xs p = bounded-by-prob (bind-subdist-lem-2 f xs) p
+
 _>>=_ : ∀{A B} → SubDist A → (A → SubDist B) → SubDist B
-_>>=_ {A} {B} (subdist xs _) f = subdist (concatMap (bind-helper f) xs) {!!}
+_>>=_ {A} {B} (subdist xs p) f = subdist (concatMap (bind-helper f) xs) (bind-subdist-lem f xs p)
 
 {-
 bh2-id-lem2 : {B : Set} → (bq : B × Prob) → bq ≡ bind-helper-2 1F bq
 bh2-id-lem2 (b , q) = refl
     
-Dist-right-id : ∀{A B} → {a : A} → {f : A → Dist B} → f a ≡ return a >>= f
+Dist-right-id : ∀{A B} → {a : A} → {f : A → SubDist B} → f a ≡ return a >>= f
 Dist-right-id {A} {B} {a} {f} =
   f a
     ≡⟨ map-weak-id-lem (bind-helper-2 1F) (f a) bh2-id-lem2 ⟩

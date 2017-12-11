@@ -7,7 +7,6 @@ open import Prelude.Sum public
 open import Prelude.Product public
 open import Prelude.Function public
 open import Prelude.Equality public
-open import Prelude.Ord hiding (max) public
 open import Prelude.Nat public
 open import Prelude.Fin public
 open import Prelude.List public
@@ -20,7 +19,6 @@ open import Tactic.Nat public
 
 open Semiring {{...}} public
 open Eq {{...}} public
-open Ord {{...}} public
 open IsGCD {{...}} public
 
 pow2 : Nat → Nat

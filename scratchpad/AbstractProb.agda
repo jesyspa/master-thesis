@@ -1,6 +1,7 @@
 module AbstractProb where
 
 open import MyPrelude
+open import Preorder
 
 -- I want to figure out what kind of requirements I can/must place on
 -- probabilities for them to be usable.
@@ -104,6 +105,15 @@ infix 4 _≤FR_ _≤F_
 abstract
   data _≤FR_ {n} : Fixed n → Fixed n → Set where
 
+-- FR is a preorder
+postulate
+  ≤FR-refl : ∀ {n} → (a : Fixed n) → a ≤FR a
+  ≤FR-trans : ∀ {n} → (a b c : Fixed n) → a ≤FR b → b ≤FR c → a ≤FR c
+
+instance
+  Preorder-FR : ∀ n → Preorder (Fixed n)
+  Preorder-FR n = record { _≤_ = _≤FR_ {n} ; ≤-refl = ≤FR-refl ; ≤-trans = ≤FR-trans }
+
 data _≤F_ {n k} : Fixed n → Fixed k → Set where
   embed-≤F : {a : Fixed n} → {b : Fixed k}
            → inj (left-≤max n k) a ≤FR inj (right-≤max n k) b
@@ -185,6 +195,15 @@ data _≤XF_ : XFixed → XFixed → Set where
             → a ≤F b
             → toXFixed a ≤XF toXFixed b
 
+-- XF is also a preorder
+postulate
+  ≤XF-refl : (a : XFixed) → a ≤XF a
+  ≤XF-trans : (a b c : XFixed) → a ≤XF b → b ≤XF c → a ≤XF c
+
+instance
+  Preorder-XF : Preorder XFixed
+  Preorder-XF = record { _≤_ = _≤XF_ ; ≤-refl = ≤XF-refl ; ≤-trans = ≤XF-trans }
+
 postulate
   0XF : XFixed
   1XF : XFixed
@@ -212,3 +231,5 @@ XIsProb : XFixed → Set
 XIsProb = XConvertible zero 
 
 -- I need some lemmas to prove things are probabilities.
+postulate
+  bounded-by-prob : {p q : XFixed} → p ≤XF q → XIsProb q → XIsProb p
