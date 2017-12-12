@@ -25,27 +25,21 @@ map-weak-id-lem f xs p = map-id-lem xs ⟨≡⟩ map-equiv-lem id f xs p
 map-append-dist-lem : ∀{A B : Set}
                     → (f : A → B)
                     → (xs ys : List A)
-                    → map f xs ++ map f ys ≡ map f (xs ++ ys)
+                    → map f (xs ++ ys) ≡ map f xs ++ map f ys 
 map-append-dist-lem f [] ys = refl
-map-append-dist-lem f (x ∷ xs) ys =
-  f x ∷ map f xs ++ map f ys
-    ≡⟨ cong (λ e → f x ∷ e) (map-append-dist-lem f xs ys) ⟩ 
-  f x ∷ map f (xs ++ ys)
-    ≡⟨ refl ⟩
-  map f (x ∷ xs ++ ys)
-  ∎
+map-append-dist-lem f (x ∷ xs) ys = cong (λ e → f x ∷ e) (map-append-dist-lem f xs ys)
 
 map-concatmap-swap-lem : ∀{A B C : Set}
                        → (f : B → C) → (g : A → List B) 
                        → (xs : List A)
-                       → concatMap (map f ∘ g) xs ≡ map f (concatMap g xs)
+                       → map f (concatMap g xs) ≡ concatMap (map f ∘ g) xs
 map-concatmap-swap-lem f g [] = refl
 map-concatmap-swap-lem f g (x ∷ xs) =
-  map f (g x) ++ concatMap (map f ∘ g) xs
-    ≡⟨ cong (λ e → map f (g x) ++ e) (map-concatmap-swap-lem f g xs) ⟩
-  map f (g x) ++ map f (concatMap g xs)
-    ≡⟨ map-append-dist-lem f (g x) (concatMap g xs) ⟩
   map f (g x ++ concatMap g xs)
+    ≡⟨ map-append-dist-lem f (g x) (concatMap g xs) ⟩
+  map f (g x) ++ map f (concatMap g xs)
+    ≡⟨ cong (λ e → map f (g x) ++ e) (map-concatmap-swap-lem f g xs) ⟩
+  map f (g x) ++ concatMap (map f ∘ g) xs
   ∎
 
 foldr-append-lem : ∀{A : Set}
@@ -61,3 +55,4 @@ map-compose-lem : ∀{A B C : Set}
                 → map (f ∘ g) xs ≡ map f (map g xs)
 map-compose-lem f g [] = refl
 map-compose-lem f g (x ∷ xs) = cong (λ e → f (g x) ∷ e) (map-compose-lem f g xs)
+

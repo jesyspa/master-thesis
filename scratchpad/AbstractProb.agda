@@ -2,6 +2,7 @@ module AbstractProb where
 
 open import MyPrelude
 open import Preorder
+open import Monoid
 
 -- I want to figure out what kind of requirements I can/must place on
 -- probabilities for them to be usable.
@@ -216,6 +217,23 @@ postulate
   0XF-*XF-left-nil       : (a : XFixed) → 0XF ≡ 0XF *XF a
   0XF-*XF-right-nil      : (a : XFixed) → 0XF ≡ a   *XF 0XF
 
+instance
+  AddMonoid-XF : Monoid XFixed
+  AddMonoid-XF = record { mempty = 0XF
+                        ; _<>_ = _+XF_
+                        ; assoc = +XF-assoc
+                        ; left-identity = 0XF-+XF-left-identity
+                        ; right-identity = 0XF-+XF-right-identity
+                        }
+
+  MulMonoid-XF : Monoid XFixed
+  MulMonoid-XF = record { mempty = 1XF
+                        ; _<>_ = _*XF_
+                        ; assoc = *XF-assoc
+                        ; left-identity = 1XF-*XF-left-identity
+                        ; right-identity = 1XF-*XF-right-identity
+                        }
+
 -- This isn't proof-irrelevant; that's a bit of a bummer.
 -- I should define a < relation (or use Ulf's LessNat) and rephrase it that way.
 -- It's kind of nasty to have both < and ≤ here, though. :/
@@ -226,6 +244,11 @@ data XConvertible : Nat → XFixed → Set where
   x-reducible : ∀{n k} → (le : n ≤N k) → (a : Fixed k)
               → Reducible le a
               → XConvertible n (k , a) 
+
+postulate
+  0XF-convertible-zero : XConvertible 0 0XF
+  1XF-convertible-zero : XConvertible 0 1XF
+  2^nXF-convertible-n : ∀ n → XConvertible n 2^ n XF 
 
 XIsProb : XFixed → Set
 XIsProb = XConvertible zero 

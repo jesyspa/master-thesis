@@ -12,11 +12,15 @@ record Preorder (A : Set) : Set₁ where
 open Preorder {{...}} public
 
 infix 1 _[_]∎
-infixr 0 leqReasoningStep
+infixr 0 leqReasoningStep leqRewriteReasoningStep
 
-syntax leqReasoningStep x q p = x ≤⟨ p ⟩ q
-leqReasoningStep : ∀{A} → {{_ : Preorder A}} → {a b c : A} → a ≤ b → b ≤ c → a ≤ c
-leqReasoningStep {A} {{P}} {a} {b} {c} p q = ≤-trans a b c p q
+syntax leqReasoningStep a q p = a ≤⟨ p ⟩ q
+leqReasoningStep : ∀{A} {{_ : Preorder A}} (a : A) {b c : A} → a ≤ b → b ≤ c → a ≤ c
+leqReasoningStep {A} {{P}} a {b} {c} p q = ≤-trans a b c p q
+
+syntax leqRewriteReasoningStep a q p = a ≤⟨≡, p ⟩ q
+leqRewriteReasoningStep : ∀{A} {{_ : Preorder A}} (a : A) {b c : A} → b ≤ c → a ≡ b → a ≤ c
+leqRewriteReasoningStep a p refl = p
 
 _[_]∎ : ∀{A} → (a : A) → (P : Preorder A) → _≤_ {{P}} a a
 _[_]∎ {A} a P = ≤-refl {{P}} a

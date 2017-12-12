@@ -110,7 +110,7 @@ Dist-bind da f pda pf =
   mconcat (map mconcat (map (map snd ∘ bind-helper f) da))
     ≡⟨ sym (mconcat-concat-swap-lem (map (map snd ∘ bind-helper f) da)) ⟩
   mconcat (concat (map (map snd ∘ bind-helper f) da))
-    ≡⟨ cong mconcat (map-concatmap-swap-lem snd (bind-helper f) da) ⟩
+    ≡⟨ cong mconcat (sym (map-concatmap-swap-lem snd (bind-helper f) da)) ⟩
   mconcat (map snd (concatMap (bind-helper f) da))
     ≡⟨ refl ⟩
   mconcat (map snd (da >>= f))
