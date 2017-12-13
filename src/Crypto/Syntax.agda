@@ -23,9 +23,9 @@ bind-CE (returnCE x) f = f x
 bind-CE (uniformCE n x) f = uniformCE n (λ z → bind-CE (x z) f)
 
 instance
-  CryptoExprFunctor : Functor CryptoExpr
-  CryptoExprFunctor = record { fmap = fmap-CE }
-  CryptoExprApplicative : Applicative CryptoExpr
-  CryptoExprApplicative = record { pure = returnCE ; _<*>_ = ap-CE }
-  CryptoExprMonad : Monad CryptoExpr 
-  CryptoExprMonad = record { _>>=_ = bind-CE }
+  FunctorCryptoExpr : Functor CryptoExpr
+  FunctorCryptoExpr = record { fmap = fmap-CE }
+  ApplicativeCryptoExpr : Applicative CryptoExpr
+  ApplicativeCryptoExpr = record { pure = returnCE ; _<*>_ = ap-CE }
+  MonadCryptoExpr : Monad CryptoExpr 
+  MonadCryptoExpr = record { _>>=_ = bind-CE }

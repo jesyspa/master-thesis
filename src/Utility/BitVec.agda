@@ -11,3 +11,4 @@ postulate
     EqBitVec : ∀{n} → Eq (BitVec n)
 
   bitvec-xor : ∀{n} → BitVec n → BitVec n → BitVec n
+  all-bitvecs : ∀ n → List (BitVec n)
