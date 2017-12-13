@@ -3,3 +3,7 @@
 sources/
 .*.vim
 *~
+*.agda-lib
+.#*
+*agda#
+
