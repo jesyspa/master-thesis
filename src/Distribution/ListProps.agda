@@ -3,21 +3,28 @@ module Distribution.ListProps where
 open import ThesisPrelude
 open import Distribution.List
 open import Algebra.Functor
+open import Algebra.Monoid
 open import Carrier.Class
-
--- C for Carrier was inconvenient so now it's Q for... Quarrier.
-
-fmap-LD-id : ∀{A Q} (v : ListDist Q A)
-           → v ≡ fmap-LD id v
-fmap-LD-id [] = refl
-fmap-LD-id ((a , q) ∷ v) rewrite sym (fmap-LD-id v) = refl
-
-fmap-LD-comp : ∀{A B C Q} (g : B → C) (f : A → B) (v : ListDist Q A)
-             → fmap (g ∘′ f) v ≡ fmap g (fmap f v)
-fmap-LD-comp g f [] = refl
-fmap-LD-comp g f ((a , q) ∷ v) rewrite fmap-LD-comp g f v = refl
+open import Utility.ListLemmas
+open import Utility.Writer
 
 instance
   FunctorPropsListDist : ∀{Q} → FunctorProps (ListDist Q)
-  FunctorPropsListDist = record { fmap-id = fmap-LD-id ; fmap-comp = fmap-LD-comp }
+  FunctorPropsListDist {Q} = functor-prop-composition List (Writer Q)
 
+module _ {Q} {{QC : Carrier Q}} where
+  --  <*>-identity : ∀{A} (v : F A) → v ≡ (pure id <*> v)
+  --  <*>-composition : ∀{A B C} (u : F (B → C)) (v : F (A → B)) (w : F A)
+  --                  → (u <*> (v <*> w)) ≡ (pure _∘′_ <*> u <*> v <*> w)
+  --  <*>-homomorphism : ∀{A B} (f : A → B) (x : A) → Applicative.pure AP (f x) ≡ (pure f <*> pure x)
+  --  <*>-interchange : ∀{A B} (u : F (A → B)) (x : A) → (u <*> pure x) ≡ (pure (λ f → f x) <*> u)
+  --  overlap {{super}} : FunctorProps F
+  --  fmap-is-pure-<*> : ∀{A B} (f : A → B) (v : F A) → fmap f v ≡ (pure f <*> v)
+  ap-LD-identity : ∀{A} (v : ListDist Q A) → v ≡ (pure-LD id <*> v)
+  ap-LD-identity v =
+    v
+      ≡⟨ {!!} ⟩
+    map (ap-LD-H2 id one) v
+      ≡⟨ unit-right (map (ap-LD-H2 id one) v) ⟩
+    map (ap-LD-H2 id one) v ++ []
+    ∎

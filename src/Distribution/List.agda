@@ -3,46 +3,51 @@ module Distribution.List where
 open import ThesisPrelude
 open import Distribution.Class
 open import Carrier.Class
+open import Algebra.Functor
 open import Utility.BitVec
+open import Utility.Writer
 
-ListDist : ∀ (C : Set) (A : Set) → Set
-ListDist C A = List (A × C)
-
-fmap-LD : ∀{C A B} → (A → B) → ListDist C A → ListDist C B
-fmap-LD f = map λ { (a , c) → f a , c }
+ListDist : ∀ (Q A : Set) → Set
+ListDist Q = List ∘′ Writer Q
 
 instance
-  FunctorListDist : ∀{C} → Functor (ListDist C)
-  FunctorListDist = record { fmap = fmap-LD }
+  FunctorListDist : ∀{Q} → Functor (ListDist Q)
+  FunctorListDist {Q} = functor-composition List (Writer Q)
 
-module _ {C : Set} {{_ : Carrier C}} where
-  pure-LD : ∀{A} → A → ListDist C A
+module _ {Q : Set} {{_ : Carrier Q}} where
+  pure-LD : ∀{A} → A → ListDist Q A
   pure-LD a = [ a , one ]
   
-  bind-LD : ∀{A B} → ListDist C A → (A → ListDist C B) → ListDist C B
-  bind-LD xs f = concatMap (λ { (a , c) → map (λ { (b , d) → b , c * d }) (f a) }) xs
-  
-  ap-LD : ∀{A B} → ListDist C (A → B) → ListDist C A → ListDist C B
-  ap-LD xs ys = bind-LD xs λ x → bind-LD ys λ y → pure-LD (x y)
+  ap-LD-H2 : ∀{A B : Set} → (A → B) → Q → (A × Q) → B × Q 
+  ap-LD-H2 f q (x , p) = f x , q * p
 
+  ap-LD-H1 : ∀{A B} → ListDist Q A → (A → B) × Q → ListDist Q B
+  ap-LD-H1 v (f , q) = map (ap-LD-H2 f q) v
+
+  ap-LD : ∀{A B} → ListDist Q (A → B) → ListDist Q A → ListDist Q B
+  ap-LD xs ys = concatMap (ap-LD-H1 ys) xs 
+
+  bind-LD : ∀{A B} → ListDist Q A → (A → ListDist Q B) → ListDist Q B
+  bind-LD xs f = concatMap (λ { (a , q) → map (λ { (b , p) → b , q * p }) (f a) }) xs
+  
   instance
-    ApplicativeListDist : Applicative (ListDist C)
+    ApplicativeListDist : Applicative (ListDist Q)
     ApplicativeListDist = record { pure = pure-LD ; _<*>_ = ap-LD }
-    MonadListDist : Monad (ListDist C)
+    MonadListDist : Monad (ListDist Q)
     MonadListDist = record { _>>=_ = bind-LD }
 
-  uniform-LD : (n : Nat) → ListDist C (BitVec n)
+  uniform-LD : (n : Nat) → ListDist Q (BitVec n)
   uniform-LD n = map (λ xs → xs , negpow2 n) (all-bitvecs n)
   
-  sample-LD : ∀{A} {{_ : Eq A}} → ListDist C A → A → C
+  sample-LD : ∀{A} {{_ : Eq A}} → ListDist Q A → A → Q
   sample-LD dist a = sum (map snd (filter (λ { (a' , _) → isYes (a == a')}) dist)) 
   
   infix 4 _≡LD_
-  data _≡LD_ {A} {{_ : Eq A}} : ListDist C A → ListDist C A → Set where
-    sample-equiv : {da db : ListDist C A}
+  data _≡LD_ {A} {{_ : Eq A}} : ListDist Q A → ListDist Q A → Set where
+    sample-equiv : {da db : ListDist Q A}
                  → ((a : A) → sample-LD da a ≡ sample-LD db a)
                  → da ≡LD db
 
   instance
-    DistMonadListDist : DistMonad (ListDist C)
-    DistMonadListDist = record { carrier = C ; uniform = uniform-LD ; sample = sample-LD ; _≡D_ = _≡LD_ }
+    DistMonadListDist : DistMonad (ListDist Q)
+    DistMonadListDist = record { carrier = Q ; uniform = uniform-LD ; sample = sample-LD ; _≡D_ = _≡LD_ }
