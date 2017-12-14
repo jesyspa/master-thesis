@@ -40,7 +40,7 @@ module _ {Q : Set} {{_ : Carrier Q}} where
   uniform-LD n = map (λ xs → xs , negpow2 n) (all-bitvecs n)
   
   sample-LD : ∀{A} {{_ : Eq A}} → ListDist Q A → A → Q
-  sample-LD dist a = sum (map snd (filter (λ { (a' , _) → isYes (a == a')}) dist)) 
+  sample-LD dist a = sum (map snd (filter (isYes ∘ (_==_ a) ∘ fst) dist)) 
   
   infix 4 _≡LD_
   data _≡LD_ {A} {{_ : Eq A}} : ListDist Q A → ListDist Q A → Set where
