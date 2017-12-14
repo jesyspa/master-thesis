@@ -1,8 +1,11 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 module Distribution.ListProps where
 
 open import ThesisPrelude
 open import Distribution.List
 open import Algebra.Functor
+open import Algebra.Applicative
+open import Algebra.Monad
 open import Algebra.Monoid
 open import Carrier.Class
 open import Utility.ListLemmas
@@ -28,3 +31,7 @@ module _ {Q} {{QC : Carrier Q}} where
       ≡⟨ unit-right (map (ap-LD-H2 id one) v) ⟩
     map (ap-LD-H2 id one) v ++ []
     ∎
+
+  postulate
+    ApplicativePropsListDist : ApplicativeProps (ListDist Q)
+    MonadPropsListDist : MonadProps (ListDist Q)

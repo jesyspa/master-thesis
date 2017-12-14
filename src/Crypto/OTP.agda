@@ -3,8 +3,10 @@ module Crypto.OTP where
 open import ThesisPrelude
 open import Crypto.Syntax
 open import Utility.BitVec
+open import Algebra.Monad
 open import Distribution.Class
 open import Distribution.List
+open import Distribution.ListProps
 open import Crypto.Valuation
 open import Carrier.Class
 
@@ -23,11 +25,11 @@ otp-goal-list {C} n xs = sample-equiv λ a →
   sample-LD (eval expr-A n xs as ListDist C) a
     ≡⟨ refl ⟩
   sample-LD (uniform-LD n >>= (λ ys → return (bitvec-xor xs ys))) a
-    ≡⟨ {!!} ⟩ -- x >>= (return . f) ≡ f <$> x, yet to prove.
+    ≡⟨ cong (λ e → sample-LD e a) (sym (return-simplify {{_}} {{MonadPropsListDist}} (bitvec-xor xs) (uniform-LD n))) ⟩
   sample-LD (fmap (bitvec-xor xs) (uniform-LD n)) a
     ≡⟨ {!!} ⟩ -- this is the hard part
   sample-LD (uniform-LD n) a
-    ≡⟨ {!!} ⟩ -- monad laws
+    ≡⟨ cong (λ e → sample-LD e a) (return->>=-right-id {{_}} {{MonadPropsListDist}} (uniform-LD n)) ⟩
   sample-LD (uniform-LD n >>= pure-LD) a
     ≡⟨ refl ⟩
   sample-LD (eval expr-B n as ListDist C) a

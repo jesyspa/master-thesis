@@ -19,7 +19,7 @@ open DistMonad {{...}} public
 
 record DistMonadProp (D : Set → Set) {{DM : DistMonad D}} : Set₂ where
   field
-    is-monad : MonadProp D
+    is-monad : MonadProps D
     uniform-is-uniform : ∀{n} (xs : BitVec n) → negpow2 n ≡ DistMonad.sample DM (DistMonad.uniform DM n) xs
 
 open DistMonadProp {{...}} public

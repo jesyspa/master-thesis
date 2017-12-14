@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 module Utility.ListLemmas where
 
 open import ThesisPrelude
