@@ -9,6 +9,7 @@ open import Prelude.Sum public
 open import Prelude.Product public
 open import Prelude.Function public
 open import Prelude.Equality public
+open import Prelude.Decidable public
 open import Prelude.Ord public
 open import Prelude.Nat public
 open import Prelude.Fin public
