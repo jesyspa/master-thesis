@@ -1,7 +1,6 @@
 module Utility.Elem where
 
 open import ThesisPrelude
-open import Utility.ListLemmas
 
 infix 20 _∈_
 data _∈_ {l} {A : Set l} : A → List A → Set l where
