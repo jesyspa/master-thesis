@@ -12,8 +12,8 @@ open MonoidProps {{...}} public
 
 record CommMonoidProps {l} (A : Set l) {{M : Monoid A}} : Set l where
   field
-    op-comm : (a b : A) → a <> b ≡ b <> a
     overlap {{super}} : MonoidProps A
+    op-comm : (a b : A) → a <> b ≡ b <> a
 
 open CommMonoidProps {{...}} public
 

@@ -12,5 +12,5 @@ xor-self-inverse false true = refl
 xor-self-inverse true false = refl
 xor-self-inverse true true = refl
 
-xor-Bij : (x : Bool) → Bijective Bool Bool (xor x)
+xor-Bij : (x : Bool) → Bijective (xor x)
 xor-Bij x = xor x , xor-self-inverse x , xor-self-inverse x 

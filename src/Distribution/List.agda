@@ -51,3 +51,4 @@ module _ {Q : Set} {{_ : Carrier Q}} where
   instance
     DistMonadListDist : DistMonad (ListDist Q)
     DistMonadListDist = record { carrier = Q ; uniform = uniform-LD ; sample = sample-LD ; _≡D_ = _≡LD_ }
+

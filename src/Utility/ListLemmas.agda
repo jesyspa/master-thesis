@@ -4,6 +4,8 @@ module Utility.ListLemmas where
 open import ThesisPrelude
 open import Algebra.Monoid
 open import Algebra.Functor
+open import Algebra.Function
+open import Algebra.Applicative
 
 list-++-assoc : ∀{l} {A : Set l} → (xs ys zs : List A) → xs ++ (ys ++ zs) ≡ (xs ++ ys) ++ zs 
 list-++-assoc [] ys zs = refl
@@ -42,6 +44,20 @@ map-append-dist : ∀{l} {A B : Set l}
                 → map f (xs ++ ys) ≡ map f xs ++ map f ys 
 map-append-dist f [] ys = refl
 map-append-dist f (x ∷ xs) ys rewrite sym (map-append-dist f xs ys) = refl
+
+filter-append-dist : ∀{l} {A : Set l}
+                   → (p : A → Bool)
+                   → (xs ys : List A)
+                   → filter p (xs ++ ys) ≡ filter p xs ++ filter p ys 
+filter-append-dist p [] ys = refl
+filter-append-dist p (x ∷ xs) ys with p x
+... | false = filter-append-dist p xs ys
+... | true = cong (_∷_ x) (filter-append-dist p xs ys)
+
+concat-retraction : ∀{l} {A : Set l}
+                  → Retraction concat {A = A} of map (λ x → x ∷ [])
+concat-retraction [] = refl
+concat-retraction (x ∷ xs) rewrite sym (concat-retraction xs) = refl
 
 map-concatmap-swap : ∀{l} {A B C : Set l}
                    → (f : B → C) → (g : A → List B) 
@@ -114,14 +130,40 @@ list-<*>-composition (x ∷ xs) ys zs rewrite sym (list-<*>-composition xs ys zs
   -}
 list-<*>-homomorphism : ∀{l} {A B : Set l} (f : A → B) (x : A)
                       → [ f x ] ≡ ([ f ] <*> [ x ])
-list-<*>-homomorphism  = {!!}
+list-<*>-homomorphism f x = refl
+
 list-<*>-interchange : ∀{l} {A B : Set l} (xs : List (A → B)) (y : A)
                      → (xs <*> [ y ]) ≡ ([ (λ f → f y) ] <*> xs)
-list-<*>-interchange  = {!!}
+list-<*>-interchange  xs y =
+  concatMap (λ f → f y ∷ []) xs
+    ≡⟨ cong concat (map-comp (λ x → x ∷ []) (λ f → f y) xs) ⟩
+  concat(map (λ x → x ∷ []) (map (λ f → f y) xs))
+    ≡⟨ concat-retraction (map (λ f → f y) xs) ⟩ʳ
+  map (λ f → f y) xs
+    ≡⟨ list-++-right-identity (map (λ f → f y) xs) ⟩
+  map (λ f → f y) xs ++ []
+  ∎
+
 list-fmap-is-pure-<*> : ∀{l} {A B : Set l} (f : A → B) (xs : List A)
                       → fmap f xs ≡ ([ f ] <*> xs)
-list-fmap-is-pure-<*>  = {!!}
+list-fmap-is-pure-<*> f xs rewrite sym (list-++-right-identity (fmap f xs)) = refl
 
 instance
   FunctorPropsList : ∀{l} → FunctorProps {l} List
   FunctorPropsList = record { fmap-ext = map-ext ; fmap-id = map-id ; fmap-comp = map-comp }
+
+  ApplicativePropsList : ∀{l} → ApplicativeProps {l} List
+  ApplicativePropsList = record
+                           { <*>-composition = list-<*>-composition
+                           ; <*>-homomorphism = list-<*>-homomorphism
+                           ; <*>-interchange = list-<*>-interchange
+                           ; fmap-is-pure-<*> = list-fmap-is-pure-<*>
+                           }
+
+filter-reduction-identity : ∀{l} {A B : Set l} (g : B → A) (f : A → B) (p : A → Bool) (xs : List A)
+                          → Retraction g of f
+                          → map f (filter p xs) ≡ filter (p ∘ g) (map f xs)
+filter-reduction-identity g f p [] pr = refl
+filter-reduction-identity g f p (x ∷ xs) pr rewrite sym (pr x) with p x
+... | false rewrite sym (filter-reduction-identity g f p xs pr) = refl
+... | true rewrite sym (filter-reduction-identity g f p xs pr) = refl

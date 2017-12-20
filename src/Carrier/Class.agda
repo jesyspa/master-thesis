@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 module Carrier.Class where
 
 open import ThesisPrelude
@@ -7,15 +8,19 @@ open import Algebra.Preorder
 -- A carrier is a Semiring that is also an Ord.
 -- Can we express that somehow?
 
-record Carrier (A : Set) : Set where
+record Carrier (A : Set) : Set₁ where
   field
+    overlap {{super-semiring}} : Semiring A
+    overlap {{super-ord}} : Ord A
     pow2 : Nat → A
     negpow2 : Nat → A
-    overlap {{super}} : Semiring A
 
 open Carrier {{...}} public
 
-record CarrierProps (A : Set) {{_ : Ord A}} {{C : Carrier A}} : Set where
+{-# DISPLAY Carrier.pow2 _ n = pow2 n #-}
+{-# DISPLAY Carrier.negpow2 _ n = negpow2 n #-}
+
+record CarrierProps (A : Set) {{C : Carrier A}} : Set where
   field
     +-is-comm-monoid    : CommMonoidProps A {{+-monoid}}
     *-is-monoid         : MonoidProps A {{*-monoid}}
@@ -26,9 +31,21 @@ record CarrierProps (A : Set) {{_ : Ord A}} {{C : Carrier A}} : Set where
     ≤-is-preorder       : PreorderProps A
     zro-minimum         : (a : A) → zro ≤ a
     -- TODO: Figure out why we need the 'Carrier.' here
-    pow2-add            : ∀ n → Carrier.pow2 C (suc n) ≡ pow2 n + pow2 n
-    negpow2-add         : ∀ n → Carrier.negpow2 C n ≡ negpow2 (suc n) + pow2 (suc n)
-    pow2-negpow2-cancel : ∀ n → one ≡ Carrier.pow2 C n * negpow2 n
-    pow2-zro-one        : one ≡ Carrier.pow2 C zro
+    pow2-add            : ∀ n → pow2 {{C}} (suc n) ≡ pow2 n + pow2 n
+    negpow2-add         : ∀ n → negpow2 {{C}} n ≡ negpow2 (suc n) + pow2 (suc n)
+    pow2-negpow2-cancel : ∀ n → one ≡ pow2 {{C}} n * negpow2 n
+    pow2-zro-one        : one ≡ pow2 {{C}} zro
+
+  negpow2-zro-one : one ≡ negpow2 {{C}} zro
+  negpow2-zro-one =
+    one
+      ≡⟨ pow2-negpow2-cancel zro ⟩
+    pow2 zro * negpow2 zro
+    -- should be
+    --   ≡⟨ sym (unit-left {{*-monoid}} {{*-is-monoid}} (negpow2 zro))
+    -- but I can't figure out how to get that to work.
+      ≡⟨ sym (unit-left {{{!!}}} {{{!!}}} (negpow2 zro)) ⟩
+    negpow2 zro
+    ∎
 
 open CarrierProps {{...}} public

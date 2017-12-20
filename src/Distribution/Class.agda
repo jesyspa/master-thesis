@@ -3,6 +3,7 @@ module Distribution.Class where
 open import ThesisPrelude
 open import Carrier.Class
 open import Utility.BitVec
+open import Algebra.Function
 open import Algebra.Monad
 
 record DistMonad (D : Set → Set) : Set₁ where
@@ -17,10 +18,13 @@ record DistMonad (D : Set → Set) : Set₁ where
 
 open DistMonad {{...}} public
 
-record DistMonadProp (D : Set → Set) {{DM : DistMonad D}} : Set₂ where
+record DistMonadProps (D : Set → Set) {{DM : DistMonad D}} : Set₂ where
   field
     is-monad : MonadProps D
-    uniform-is-uniform : ∀{n} (xs : BitVec n) → negpow2 n ≡ DistMonad.sample DM (DistMonad.uniform DM n) xs
+    uniform-is-uniform : ∀ n (xs : BitVec n) → negpow2 n ≡ sample {{DM}} (uniform n) xs
+    uniform-bijection-invariant : ∀ n (f : BitVec n → BitVec n)
+                                → Bijective f
+                                → uniform {{DM}} n ≡D fmap f (uniform n)
 
 -- The FPF paper/thesis suggests the following laws as well:
 -- Commutativity:
@@ -46,4 +50,4 @@ record DistMonadProp (D : Set → Set) {{DM : DistMonad D}} : Set₂ where
 -- speaking of distributions, they speak of distributions and steps.  Maybe
 -- that can be taken out to be a separate law?
 
-open DistMonadProp {{...}} public
+open DistMonadProps {{...}} public
