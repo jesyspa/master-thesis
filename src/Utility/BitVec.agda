@@ -1,6 +1,7 @@
 module Utility.BitVec where
 
 open import ThesisPrelude
+open import Algebra.Function
 open import Utility.VecFuns
 open import Utility.VecProps
 open import Utility.Elem
@@ -11,6 +12,15 @@ BitVec = Vec Bool
 
 bitvec-xor : ∀{n} → BitVec n → BitVec n → BitVec n
 bitvec-xor = vzip xor
+
+bitvec-xor-self-inverse : ∀{n} → (xs ys : BitVec n)
+                        → ys ≡ bitvec-xor xs (bitvec-xor xs ys) 
+bitvec-xor-self-inverse [] [] = refl
+bitvec-xor-self-inverse (x ∷ xs) (y ∷ ys) = cong₂ _∷_ (xor-self-inverse x y) (bitvec-xor-self-inverse xs ys)
+
+bitvec-xor-Bij : ∀{n} → (xs : BitVec n)
+               → Bijective (BitVec n) (BitVec n) (bitvec-xor xs)
+bitvec-xor-Bij xs = bitvec-xor xs , bitvec-xor-self-inverse xs , bitvec-xor-self-inverse xs
 
 all-bitvecs : ∀ n → List (BitVec n)
 all-bitvecs zero = [ [] ]
