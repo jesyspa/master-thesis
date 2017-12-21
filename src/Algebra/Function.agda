@@ -62,3 +62,43 @@ Bij-to-Surj : ∀{l} {A B : Set l}
             → Surjective f
 Bij-to-Surj f (g , pa , pb) = λ y → g y , pb y
 
+
+comp-Bijective : ∀{l} {A B C : Set l}
+                → (g : B → C) → (f : A → B)
+                → Bijective g
+                → Bijective f
+                → Bijective (g ∘′ f)
+comp-Bijective g f (gi , pgia , pgib) (fi , pfia , pfib) = fi ∘′ gi
+                                                         , (λ a → pfia a ⟨≡⟩ cong fi (pgia (f a)))
+                                                         , λ c → pgib c ⟨≡⟩ cong g (pfib (gi c))
+
+id-Bijective : ∀{l} {A : Set l}
+              → Bijective {A = A} id
+id-Bijective = (λ x → x) , (λ x → refl) , (λ x → refl)
+
+infix 2 _↔_
+_↔_ : ∀{l} (A B : Set l) → Set l
+A ↔ B = Σ (A → B) Bijective
+
+get-fun : ∀{l} {A B : Set l}
+        → A ↔ B → A → B
+get-fun = fst
+
+get-inv : ∀{l} {A B : Set l}
+        → A ↔ B → B → A
+get-inv = fst ∘ snd
+
+↔-refl : ∀{l} (A : Set l)
+       → A ↔ A
+↔-refl A = id , id-Bijective
+
+↔-sym : ∀{l} (A B : Set l)
+      → A ↔ B
+      → B ↔ A
+↔-sym A B (f , g , pfg , pgf) = g , f , pgf , pfg
+
+↔-trans : ∀{l} (A B C : Set l)
+        → A ↔ B → B ↔ C
+        → A ↔ C
+↔-trans A B C (f , pf) (g , pg) = g ∘′ f , comp-Bijective g f pg pf 
+

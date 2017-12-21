@@ -40,14 +40,32 @@ all-bitvecs-complete {suc n} (true ∷ v) =
     (map (_∷_ true) (all-bitvecs n))
     (map-preserves-in v (all-bitvecs n) (_∷_ true) (all-bitvecs-complete v))
 
-{- Interesting idea, but how do we do this?
+map-true-lem : ∀{n} (v : BitVec n) (xs : List (BitVec n))
+             → ¬ (true ∷ v ∈ map {A = BitVec n} {B = BitVec (suc n)} (λ x → _∷_ false x) xs)
+map-true-lem v [] () 
+map-true-lem v (x ∷ xs) (there ._ ._ ._ p) = map-true-lem v xs p
+
+map-false-lem : ∀{n} (v : BitVec n) (xs : List (BitVec n))
+              → ¬ (false ∷ v ∈ map {B = BitVec (suc n)} (λ x → _∷_ true x) xs)
+map-false-lem v [] () 
+map-false-lem v (x ∷ xs) (there ._ ._ ._ p) = map-false-lem v xs p
+
+drop-map-lem : ∀{n} (b : Bool) (v : BitVec n) (xs : List (BitVec n))
+             → b ∷ v ∈ map {B = BitVec (suc n)} (_∷_ b) xs
+             → v ∈ xs
+drop-map-lem b v [] ()
+drop-map-lem b v (.v ∷ xs) (here ._ ._) = here v xs
+drop-map-lem b v (x ∷ xs) (there ._ ._ ._ p) = there v x xs (drop-map-lem b v xs p)
+
 all-bitvecs-unique : ∀{n} → (v : BitVec n) → (p : v ∈ all-bitvecs n) → p ≡ all-bitvecs-complete v
-all-bitvecs-unique [] (here .[] .[]) = refl
-all-bitvecs-unique [] (there .[] .[] .[] ())
-all-bitvecs-unique (false ∷ v) p with all-bitvecs-complete v
-... | bvc = {!!}
-all-bitvecs-unique (true ∷ v) p = {!!}
--}
+all-bitvecs-unique {zero} [] (here .[] .[]) = refl
+all-bitvecs-unique {zero} [] (there .[] .[] .[] ())
+all-bitvecs-unique {suc n} (true ∷ v) p with in-some-++ (true ∷ v) (map (_∷_ false) (all-bitvecs n)) (map (_∷_ true) (all-bitvecs n)) p
+all-bitvecs-unique {suc n} (true ∷ v) p | left pl = ⊥-elim (map-true-lem v (all-bitvecs n) pl)
+all-bitvecs-unique {suc n} (true ∷ v) p | right pr rewrite sym (all-bitvecs-unique v (drop-map-lem true v (all-bitvecs n) pr)) = {!!}
+all-bitvecs-unique {suc n} (false ∷ v) p with in-some-++ (false ∷ v) (map (_∷_ false) (all-bitvecs n)) (map (_∷_ true) (all-bitvecs n)) p
+all-bitvecs-unique {suc n} (false ∷ v) p | left pl = {!!}
+all-bitvecs-unique {suc n} (false ∷ v) p | right pr = ⊥-elim (map-false-lem v (all-bitvecs n) pr)
 
 bitvec-filter-ff-helper : ∀{n} (xs : BitVec n)
                         → [ false ∷ xs ] ≡ filter (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ false) (all-bitvecs n))
