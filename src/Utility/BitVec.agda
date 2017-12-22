@@ -11,6 +11,10 @@ open import Utility.Bool
 BitVec : Nat → Set
 BitVec = Vec Bool
 
+∷-vec-Inj : ∀{l} {n : Nat} {A : Set l} (x : A)
+        → Injective (Vec._∷_ {A = A} {n = n} x)
+∷-vec-Inj x xs .xs refl = refl
+
 bitvec-xor : ∀{n} → BitVec n → BitVec n → BitVec n
 bitvec-xor = vzip xor
 
@@ -33,12 +37,12 @@ all-bitvecs-complete {suc n} (false ∷ v) =
   in-++-left (false ∷ v)
     (map (_∷_ false) (all-bitvecs n))
     (map (_∷_ true) (all-bitvecs n))
-    (map-preserves-in v (all-bitvecs n) (_∷_ false) (all-bitvecs-complete v))
+    (map-preserves-in (_∷_ false) v (all-bitvecs n) (all-bitvecs-complete v))
 all-bitvecs-complete {suc n} (true ∷ v) =
   in-++-right (true ∷ v)
     (map (_∷_ false) (all-bitvecs n))
     (map (_∷_ true) (all-bitvecs n))
-    (map-preserves-in v (all-bitvecs n) (_∷_ true) (all-bitvecs-complete v))
+    (map-preserves-in (_∷_ true) v (all-bitvecs n) (all-bitvecs-complete v))
 
 map-true-lem : ∀{n} (v : BitVec n) (xs : List (BitVec n))
              → ¬ (true ∷ v ∈ map {A = BitVec n} {B = BitVec (suc n)} (λ x → _∷_ false x) xs)
@@ -50,22 +54,45 @@ map-false-lem : ∀{n} (v : BitVec n) (xs : List (BitVec n))
 map-false-lem v [] () 
 map-false-lem v (x ∷ xs) (there ._ ._ ._ p) = map-false-lem v xs p
 
-drop-map-lem : ∀{n} (b : Bool) (v : BitVec n) (xs : List (BitVec n))
-             → b ∷ v ∈ map {B = BitVec (suc n)} (_∷_ b) xs
-             → v ∈ xs
-drop-map-lem b v [] ()
-drop-map-lem b v (.v ∷ xs) (here ._ ._) = here v xs
-drop-map-lem b v (x ∷ xs) (there ._ ._ ._ p) = there v x xs (drop-map-lem b v xs p)
-
 all-bitvecs-unique : ∀{n} → (v : BitVec n) → (p : v ∈ all-bitvecs n) → p ≡ all-bitvecs-complete v
 all-bitvecs-unique {zero} [] (here .[] .[]) = refl
 all-bitvecs-unique {zero} [] (there .[] .[] .[] ())
-all-bitvecs-unique {suc n} (true ∷ v) p with in-some-++ (true ∷ v) (map (_∷_ false) (all-bitvecs n)) (map (_∷_ true) (all-bitvecs n)) p
-all-bitvecs-unique {suc n} (true ∷ v) p | left pl = ⊥-elim (map-true-lem v (all-bitvecs n) pl)
-all-bitvecs-unique {suc n} (true ∷ v) p | right pr rewrite sym (all-bitvecs-unique v (drop-map-lem true v (all-bitvecs n) pr)) = {!!}
-all-bitvecs-unique {suc n} (false ∷ v) p with in-some-++ (false ∷ v) (map (_∷_ false) (all-bitvecs n)) (map (_∷_ true) (all-bitvecs n)) p
-all-bitvecs-unique {suc n} (false ∷ v) p | left pl = {!!}
-all-bitvecs-unique {suc n} (false ∷ v) p | right pr = ⊥-elim (map-false-lem v (all-bitvecs n) pr)
+all-bitvecs-unique {suc n} (true ∷ v) p
+  with in-some-++ (true ∷ v) (map (_∷_ false) (all-bitvecs n)) (map (_∷_ true) (all-bitvecs n)) p
+     | graphAt (in-some-++ (true ∷ v) (map (_∷_ false) (all-bitvecs n)) (map (_∷_ true) (all-bitvecs n))) p
+all-bitvecs-unique {suc n} (true ∷ v) p | left pl | _ = ⊥-elim (map-true-lem v (all-bitvecs n) pl)
+all-bitvecs-unique {suc n} (true ∷ v) p | right pr | ingraph pre
+  rewrite sym (all-bitvecs-unique v (drop-map-lem (_∷_ true) (∷-vec-Inj true) v (all-bitvecs n) pr))
+        | sym (map-preserves-Sec (_∷_ true) (∷-vec-Inj true) v (all-bitvecs n) pr)
+        = in-some-++-Inj (true ∷ v)
+                         (map (_∷_ false) (all-bitvecs n))
+                         (map (_∷_ true) (all-bitvecs n))
+                         p
+                         (in-++-right (true ∷ v) (map (_∷_ false) (all-bitvecs n)) (map (_∷_ true) (all-bitvecs n)) pr)
+                         (pre
+                            ⟨≡⟩
+                          in-some-++-right (true ∷ v)
+                                           (map (_∷_ false) (all-bitvecs n))
+                                           (map (_∷_ true) (all-bitvecs n))
+                                           pr)
+all-bitvecs-unique {suc n} (false ∷ v) p
+  with in-some-++ (false ∷ v) (map (_∷_ false) (all-bitvecs n)) (map (_∷_ true) (all-bitvecs n)) p
+     | graphAt (in-some-++ (false ∷ v) (map (_∷_ false) (all-bitvecs n)) (map (_∷_ true) (all-bitvecs n))) p
+all-bitvecs-unique {suc n} (false ∷ v) p | left pl | ingraph ple
+  rewrite sym (all-bitvecs-unique v (drop-map-lem (_∷_ false) (∷-vec-Inj false) v (all-bitvecs n) pl))
+        | sym (map-preserves-Sec (_∷_ false) (∷-vec-Inj false) v (all-bitvecs n) pl)
+        = in-some-++-Inj (false ∷ v)
+                         (map (_∷_ false) (all-bitvecs n))
+                         (map (_∷_ true) (all-bitvecs n))
+                         p
+                         (in-++-left (false ∷ v) (map (_∷_ false) (all-bitvecs n)) (map (_∷_ true) (all-bitvecs n)) pl)
+                         (ple
+                            ⟨≡⟩
+                          in-some-++-left (false ∷ v)
+                                          (map (_∷_ false) (all-bitvecs n))
+                                          (map (_∷_ true) (all-bitvecs n))
+                                          pl)
+all-bitvecs-unique {suc n} (false ∷ v) p | right pr | _ = ⊥-elim (map-false-lem v (all-bitvecs n) pr)
 
 bitvec-filter-ff-helper : ∀{n} (xs : BitVec n)
                         → [ false ∷ xs ] ≡ filter (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ false) (all-bitvecs n))

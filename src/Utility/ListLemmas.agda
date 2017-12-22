@@ -7,6 +7,10 @@ open import Algebra.Functor
 open import Algebra.Function
 open import Algebra.Applicative
 
+_∷_-Inj : ∀{l} {A : Set l} (x : A)
+        → Injective (_∷_ {A = A} x)
+_∷_-Inj x xs ys p = {!!}
+
 list-++-assoc : ∀{l} {A : Set l} → (xs ys zs : List A) → xs ++ (ys ++ zs) ≡ (xs ++ ys) ++ zs 
 list-++-assoc [] ys zs = refl
 list-++-assoc (x ∷ xs) ys zs rewrite list-++-assoc xs ys zs = refl
