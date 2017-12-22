@@ -1,6 +1,7 @@
 module Utility.Elem where
 
 open import ThesisPrelude
+open import Utility.ListLemmas
 open import Algebra.Function
 
 infix 4 _∈_
@@ -97,7 +98,17 @@ neq-there-lem : ∀{l} {A : Set l} (a x : A) (neq : ¬ (a ≡ x)) (xs : List A)
 neq-there-lem a .a neq xs (here .a .xs) = ⊥-elim (neq refl)
 neq-there-lem a x neq xs (there .a .x .xs p) = refl
 
--- The Eq A assumption is kind of weird
+
+drop-map-lem-helper : ∀{l} {A B : Set l} (f : A → B) (_ : Injective f) (a : A) (xs : List A) (ys : List B)
+                    → ys ≡ map f xs → f a ∈ ys
+                    → a ∈ xs
+drop-map-lem-helper f pf a [] .(f a ∷ ys) () (here .(f a) ys)
+drop-map-lem-helper f pf a (x ∷ xs) .(f a ∷ ys) eq (here .(f a) ys)
+  rewrite pf a x (cons-inj-head eq)
+        = here x xs
+drop-map-lem-helper f pf a [] .(y ∷ ys) () (there .(f a) y ys p)
+drop-map-lem-helper f pf a (x ∷ xs) .(y ∷ ys) eq (there .(f a) y ys p) = there a x xs (drop-map-lem-helper f pf a xs ys (cons-inj-tail eq) p)
+
 drop-map-lem : ∀{l} {A B : Set l} {{_ : Eq A}} (f : A → B) (_ : Injective f) (a : A) (xs : List A)
              → f a ∈ map f xs
              → a ∈ xs

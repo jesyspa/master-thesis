@@ -7,9 +7,9 @@ open import Algebra.Functor
 open import Algebra.Function
 open import Algebra.Applicative
 
-_∷_-Inj : ∀{l} {A : Set l} (x : A)
-        → Injective (_∷_ {A = A} x)
-_∷_-Inj x xs ys p = {!!}
+∷-list-Inj : ∀{l} {A : Set l} (x : A)
+        → Injective (List._∷_ {A = A} x)
+∷-list-Inj x xs .xs refl = refl
 
 list-++-assoc : ∀{l} {A : Set l} → (xs ys zs : List A) → xs ++ (ys ++ zs) ≡ (xs ++ ys) ++ zs 
 list-++-assoc [] ys zs = refl
@@ -76,7 +76,7 @@ list-<*>-composition [] ys zs = refl
 list-<*>-composition (x ∷ xs) ys zs rewrite sym (list-<*>-composition xs ys zs) =
   map x (concat (map (λ f → map f zs) ys)) ++ concat (map (λ f → map f (concat (map (λ g → map g zs) ys))) xs)
 
-    ≡⟨ {!!} ⟩
+    ≡⟨ ? ⟩
   concat
     (map (λ z → map z zs)
      (map (λ z x₁ → x (z x₁)) ys ++
@@ -171,3 +171,4 @@ filter-reduction-identity g f p [] pr = refl
 filter-reduction-identity g f p (x ∷ xs) pr rewrite sym (pr x) with p x
 ... | false rewrite sym (filter-reduction-identity g f p xs pr) = refl
 ... | true rewrite sym (filter-reduction-identity g f p xs pr) = refl
+

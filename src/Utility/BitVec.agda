@@ -94,21 +94,25 @@ all-bitvecs-unique {suc n} (false ∷ v) p | left pl | ingraph ple
                                           pl)
 all-bitvecs-unique {suc n} (false ∷ v) p | right pr | _ = ⊥-elim (map-false-lem v (all-bitvecs n) pr)
 
-bitvec-filter-ff-helper : ∀{n} (xs : BitVec n)
-                        → [ false ∷ xs ] ≡ filter (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ false) (all-bitvecs n))
-bitvec-filter-ff-helper {n} xs with all-bitvecs-complete xs
-... | p = {!!}
-
-bitvec-filter : ∀{n} (xs : BitVec n)
-              → [ xs ] ≡ filter (isYes ∘ (_==_ xs)) (all-bitvecs n)
-bitvec-filter [] = refl
-bitvec-filter {(suc n)} (false ∷ xs) =
-  [ false ∷ xs ]
-    ≡⟨ list-++-right-identity [ false ∷ xs ] ⟩
-  [ false ∷ xs ] ++ []
-    ≡⟨ cong₂ _++_ {!!} {!!} ⟩
-  filter (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ false) (all-bitvecs n)) ++ filter (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ true) (all-bitvecs n))
-    ≡⟨ filter-append-dist (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ false) (all-bitvecs n)) (map (_∷_ true) (all-bitvecs n)) ⟩ʳ
-  filter (isYes ∘ (_==_ (false ∷ xs))) (all-bitvecs (suc n))
-  ∎
-bitvec-filter {n} (true ∷ xs) = {!!}
+mutual
+  bitvec-filter-ff-helper : ∀{n} (xs : BitVec n)
+                          → [ false ∷ xs ] ≡ filter (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ false) (all-bitvecs n))
+  bitvec-filter-ff-helper {n} xs =
+    [ false ∷ xs ]
+      ≡⟨ {!!} ⟩
+    filter (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ false) (all-bitvecs n))
+    ∎
+  
+  bitvec-filter : ∀{n} (xs : BitVec n)
+                → [ xs ] ≡ filter (isYes ∘ (_==_ xs)) (all-bitvecs n)
+  bitvec-filter [] = refl
+  bitvec-filter {(suc n)} (false ∷ xs) =
+    [ false ∷ xs ]
+      ≡⟨ list-++-right-identity [ false ∷ xs ] ⟩
+    [ false ∷ xs ] ++ []
+      ≡⟨ cong₂ _++_ {!!} {!!} ⟩
+    filter (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ false) (all-bitvecs n)) ++ filter (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ true) (all-bitvecs n))
+      ≡⟨ filter-append-dist (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ false) (all-bitvecs n)) (map (_∷_ true) (all-bitvecs n)) ⟩ʳ
+    filter (isYes ∘ (_==_ (false ∷ xs))) (all-bitvecs (suc n))
+    ∎
+  bitvec-filter {n} (true ∷ xs) = {!!}
