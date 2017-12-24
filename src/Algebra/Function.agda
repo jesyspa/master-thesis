@@ -3,18 +3,18 @@ module Algebra.Function where
 open import ThesisPrelude
 
 Injective : ∀{l} {A B : Set l} → (A → B) → Set l
-Injective {A = A} f = (x y : A) → f x ≡ f y → x ≡ y
+Injective {A = A} f = {x y : A} → f x ≡ f y → x ≡ y
 
 comp-Injective : ∀{l} {A B C : Set l}
                → (g : B → C) → (f : A → B)
                → Injective g
                → Injective f
                → Injective (g ∘′ f)
-comp-Injective g f pg pf x y pe = pf x y (pg (f x) (f y) pe)
+comp-Injective g f pg pf {x} {y} pe = pf (pg {f x} {f y} pe)
 
 id-Injective : ∀{l} {A : Set l}
              → Injective {A = A} id
-id-Injective x y p = p 
+id-Injective p = p 
 
 Surjective : ∀{l} {A B : Set l} → (A → B) → Set l
 Surjective {A = A} {B = B} f = (y : B) → Σ A λ x → y ≡ f x
@@ -48,13 +48,13 @@ InjSurj-to-Bij : ∀{l} {A B : Set l}
                → Injective f
                → Surjective f
                → Bijective f
-InjSurj-to-Bij f pi ps = fst ∘ ps , (λ a → pi a (fst $ ps $ f a) (snd $ ps $ f a)) , snd ∘ ps
+InjSurj-to-Bij f pi ps = fst ∘ ps , (λ a → pi (snd $ ps $ f a)) , snd ∘ ps
 
 Bij-to-Inj : ∀{l} {A B : Set l}
            → (f : A → B)
            → Bijective f
            → Injective f
-Bij-to-Inj f (g , pa , pb) = λ x y p → pa x ⟨≡⟩ cong g p ⟨≡⟩ʳ pa y
+Bij-to-Inj f (g , pa , pb) {x} {y} = λ p → pa x ⟨≡⟩ cong g p ⟨≡⟩ʳ pa y
 
 Bij-to-Surj : ∀{l} {A B : Set l}
             → (f : A → B)
