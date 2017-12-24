@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 module Utility.BitVec where
 
 open import ThesisPrelude

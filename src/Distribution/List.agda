@@ -6,9 +6,10 @@ open import Carrier.Class
 open import Algebra.Functor
 open import Utility.BitVec
 open import Utility.Writer
+open import Utility.Lookup
 
 ListDist : ∀ (Q A : Set) → Set
-ListDist Q = List ∘′ Writer Q
+ListDist Q A = SearchList A Q
 
 instance
   FunctorListDist : ∀{Q} → Functor (ListDist Q)
@@ -28,7 +29,7 @@ module _ {Q : Set} {{_ : Carrier Q}} where
   ap-LD xs ys = concatMap (ap-LD-H1 ys) xs 
 
   bind-LD : ∀{A B} → ListDist Q A → (A → ListDist Q B) → ListDist Q B
-  bind-LD xs f = concatMap (λ { (a , q) → map (λ { (b , p) → b , q * p }) (f a) }) xs
+  bind-LD xs f = concatMap (λ { (a , q) → map (ap-LD-H2 id q) (f a) }) xs
   
   instance
     ApplicativeListDist : Applicative (ListDist Q)
@@ -37,10 +38,10 @@ module _ {Q : Set} {{_ : Carrier Q}} where
     MonadListDist = record { _>>=_ = bind-LD }
 
   uniform-LD : (n : Nat) → ListDist Q (BitVec n)
-  uniform-LD n = map (λ xs → xs , negpow2 n) (all-bitvecs n)
+  uniform-LD n = map (make-W (negpow2 n)) (all-bitvecs n)
   
   sample-LD : ∀{A} {{_ : Eq A}} → ListDist Q A → A → Q
-  sample-LD dist a = sum (map snd (filter (isYes ∘ (_==_ a) ∘ fst) dist)) 
+  sample-LD dist a = sum (filter-vals a dist) 
   
   infix 4 _≡LD_
   data _≡LD_ {A} {{_ : Eq A}} : ListDist Q A → ListDist Q A → Set where

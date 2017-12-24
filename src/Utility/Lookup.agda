@@ -5,6 +5,8 @@ open import Algebra.Function
 open import Algebra.Equality
 open import Utility.Elem
 open import Utility.ListLemmas
+open import Utility.Permutation
+open import Utility.Writer
 
 SearchList : ∀ {l} (A B : Set l) → Set l
 SearchList A B = List (A × B)
@@ -81,6 +83,16 @@ module _ {l} {A B : Set l} where
     filter-eq-idempotent a ((a′ , b) ∷ xs) with a == a′
     ... | yes refl rewrite yes-refl a | sym (filter-eq-idempotent a xs) = refl
     ... | no neq rewrite sym (filter-eq-idempotent a xs) = refl
+
+    annotate : (b : B) (xs : List A) → SearchList A B
+    annotate = map ∘′ make-W
+
+    comm-annotate : (a : A) (b : B) (xs : List A)
+                  → annotate b (filter (isYes ∘ (_==_ a)) xs) ≡ filter-eq a (annotate b xs)
+    comm-annotate a b [] = refl
+    comm-annotate a b (x ∷ xs) with a == x 
+    ... | yes eq rewrite comm-annotate a b xs = refl
+    ... | no neq rewrite comm-annotate a b xs = refl
 
     combine-els : ∀{r : Set l} (cmb : List B → r) (a : A) (xs : SearchList A B) → r
     combine-els cmb a = cmb ∘ map snd ∘ filter-eq a
