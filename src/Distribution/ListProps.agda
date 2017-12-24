@@ -14,6 +14,7 @@ open import Utility.ListLemmas
 open import Utility.Writer
 open import Utility.BitVec
 open import Utility.Product
+open import Utility.Lookup
 
 instance
   FunctorPropsListDist : ∀{Q} → FunctorProps (ListDist Q)
@@ -45,14 +46,14 @@ module _ {Q} {{QC : Carrier Q}} where
   filter-uniform-LD-singleton : ∀ n (xs : BitVec n)
                               → [ xs , negpow2 n ] ≡ filter (isYes ∘ (_==_ xs) ∘ fst) (uniform-LD {Q} n)
   filter-uniform-LD-singleton n xs =
-    map (λ xs₁ → xs₁ , negpow2 n) [ xs ]
-      ≡⟨ cong (map (λ xs₁ → xs₁ , negpow2 n)) {!!} ⟩
-    map (λ xs₁ → xs₁ , negpow2 n) (filter (isYes ∘ (_==_ xs)) (all-bitvecs n))
-      ≡⟨ filter-reduction-identity fst (λ xs₁ → xs₁ , negpow2 n)
+    annotate (negpow2 n) [ xs ]
+      ≡⟨ cong (annotate (negpow2 n)) {!!} ⟩
+    annotate (negpow2 n) (filter (isYes ∘ (_==_ xs)) (all-bitvecs n))
+      ≡⟨ filter-reduction-identity fst (make-W (negpow2 n)) 
                                    (isYes ∘ (_==_ xs))
                                    (all-bitvecs n)
                                    (fst-Retraction {A = Vec Bool n} (negpow2 {Q} n)) ⟩
-    filter (isYes ∘ (_==_ xs) ∘ fst) (map (λ xs₁ → xs₁ , negpow2 n) (all-bitvecs n))
+    filter (isYes ∘ (_==_ xs) ∘ fst) (annotate (negpow2 n) (all-bitvecs n))
     ∎
 
   uniform-LD-is-uniform : ∀ n (xs : BitVec n)
@@ -60,7 +61,9 @@ module _ {Q} {{QC : Carrier Q}} where
   uniform-LD-is-uniform n xs =
     {!!}
       ≡⟨ {!!} ⟩
-    sum (map snd (filter (isYes ∘ (_==_ xs) ∘ fst) (uniform-LD n))) 
+    combine-vals sum xs ([ xs , negpow2 n ])
+      ≡⟨ combine-vals-invariant sum {!!} xs ([ xs , negpow2 n ]) (annotate (negpow2 n) (all-bitvecs n)) {!!} ⟩
+    combine-vals sum xs (annotate (negpow2 n) (all-bitvecs n))
     ∎
 
   uniform-LD-bijection-invariant : ∀ n (f : BitVec n → BitVec n)

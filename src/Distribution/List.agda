@@ -38,10 +38,10 @@ module _ {Q : Set} {{_ : Carrier Q}} where
     MonadListDist = record { _>>=_ = bind-LD }
 
   uniform-LD : (n : Nat) → ListDist Q (BitVec n)
-  uniform-LD n = map (make-W (negpow2 n)) (all-bitvecs n)
+  uniform-LD n = annotate (negpow2 n) (all-bitvecs n)
   
   sample-LD : ∀{A} {{_ : Eq A}} → ListDist Q A → A → Q
-  sample-LD dist a = sum (filter-vals a dist) 
+  sample-LD dist a = combine-vals sum a dist
   
   infix 4 _≡LD_
   data _≡LD_ {A} {{_ : Eq A}} : ListDist Q A → ListDist Q A → Set where
@@ -52,4 +52,3 @@ module _ {Q : Set} {{_ : Carrier Q}} where
   instance
     DistMonadListDist : DistMonad (ListDist Q)
     DistMonadListDist = record { carrier = Q ; uniform = uniform-LD ; sample = sample-LD ; _≡D_ = _≡LD_ }
-

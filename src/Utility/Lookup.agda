@@ -2,6 +2,7 @@ module Utility.Lookup where
 
 open import ThesisPrelude
 open import Algebra.Function
+open import Algebra.Functor
 open import Algebra.Equality
 open import Utility.Elem
 open import Utility.ListLemmas
@@ -87,6 +88,9 @@ module _ {l} {A B : Set l} where
     annotate : (b : B) (xs : List A) → SearchList A B
     annotate = map ∘′ make-W
 
+    map-fst-annotate-Ret : (b : B) → Retraction map fst of annotate b
+    map-fst-annotate-Ret b xs = fmap-ext-id (fst ∘′ make-W b) (λ a → refl) xs ⟨≡⟩ map-comp fst (make-W b) xs
+
     comm-annotate : (a : A) (b : B) (xs : List A)
                   → annotate b (filter (isYes ∘ (_==_ a)) xs) ≡ filter-eq a (annotate b xs)
     comm-annotate a b [] = refl
@@ -94,6 +98,13 @@ module _ {l} {A B : Set l} where
     ... | yes eq rewrite comm-annotate a b xs = refl
     ... | no neq rewrite comm-annotate a b xs = refl
 
-    combine-els : ∀{r : Set l} (cmb : List B → r) (a : A) (xs : SearchList A B) → r
-    combine-els cmb a = cmb ∘ map snd ∘ filter-eq a
+    combine-vals : ∀{r : Set l} (cmb : List B → r) (a : A) (xs : SearchList A B) → r
+    combine-vals cmb a = cmb ∘ map snd ∘ filter-eq a
+
+    postulate
+      combine-vals-invariant : ∀{r : Set l} (cmb : List B → r) (_ : PermInvariant cmb) (a : A) (xs ys : SearchList A B)
+                             → (Index a xs ↔ Index a ys)
+                             → combine-vals cmb a xs ≡ combine-vals cmb a ys
+
+
 
