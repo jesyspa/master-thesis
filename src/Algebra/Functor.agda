@@ -1,8 +1,9 @@
 module Algebra.Functor where
 
 open import ThesisPrelude
+open import Algebra.Function
 
-record FunctorProps {l l'} (F : Set l → Set l') {{_ : Functor F}} : Set (lsuc l ⊔ l') where
+record FunctorProps {l l'} (F : Set l → Set l') {{FF : Functor F}} : Set (lsuc l ⊔ l') where
   field
     fmap-ext : ∀{A B} (f g : A → B)
              → (∀ a → f a ≡ g a)
@@ -16,6 +17,10 @@ record FunctorProps {l l'} (F : Set l → Set l') {{_ : Functor F}} : Set (lsuc 
               → (x : F A)
               → x ≡ fmap f x
   fmap-ext-id f p x = fmap-id x ⟨≡⟩ fmap-ext id f p x
+  fmap-lift-ret : ∀{A B} (g : B → A) (f : A → B)
+                → Retraction g of f
+                → Retraction fmap {{FF}} g of fmap f
+  fmap-lift-ret g f rp x = fmap-ext-id (g ∘′ f) rp x ⟨≡⟩ fmap-comp g f x
 
 open FunctorProps {{...}} public
 

@@ -3,12 +3,15 @@ module Utility.BitVec where
 
 open import ThesisPrelude
 open import Algebra.Function
+open import Algebra.Functor
+open import Algebra.Equality
 open import Utility.VecFuns
 open import Utility.VecProps
 open import Utility.ListLemmas
 open import Utility.Elem
 open import Utility.Lookup
 open import Utility.Bool
+open import Utility.Writer
 
 BitVec : Nat → Set
 BitVec = Vec Bool
@@ -91,7 +94,7 @@ all-bitvecs-unique {suc n} (false ∷ v) p | left pl | ingraph ple
 all-bitvecs-unique {suc n} (false ∷ v) p | right pr | _ = ⊥-elim (map-false-lem v (all-bitvecs n) pr)
 
 all-bitvecs-indexing-fun : ∀{n} {B : Set} (v : BitVec n) (b : B) → Index v [ v , b ] → Index v (annotate b (all-bitvecs n))
-all-bitvecs-indexing-fun {n} v b _ = ∈-to-Index v (annotate b (all-bitvecs n)) (transport (_∈_ v) (map-fst-annotate-Ret b (all-bitvecs n)) (all-bitvecs-complete v))
+all-bitvecs-indexing-fun {n} v b _ = ∈-to-annotate-Index v (all-bitvecs n) b (all-bitvecs-complete v)
 
 all-bitvecs-indexing-inv : ∀{n} {B : Set} (v : BitVec n) (b : B) → Index v (annotate b (all-bitvecs n)) → Index v [ v , b ]
 all-bitvecs-indexing-inv {n} v b _ = here v b []
@@ -103,36 +106,28 @@ all-bitvecs-indexing-Ret v b (there .v .(v , b) .[] ())
 
 all-bitvecs-indexing-Sec : ∀{n} {B : Set} (v : BitVec n) (b : B)
                          → Section all-bitvecs-indexing-inv v b of all-bitvecs-indexing-fun v b
-all-bitvecs-indexing-Sec {n} v b p
-  rewrite all-bitvecs-unique v (transport (_∈_ v)
-                                          (sym (map-fst-annotate-Ret b (all-bitvecs n)))
-                                          (Index-to-∈ v (annotate b (all-bitvecs n)) p))
-        = {!!}
+all-bitvecs-indexing-Sec {n} v b p = Index-to-∈-Inj v (annotate b (all-bitvecs n)) pk 
+  where p-ret : all-bitvecs n ≡ map fst (annotate b (all-bitvecs n))
+        p-ret = fmap-lift-ret fst (make-W b) (λ a → refl) (all-bitvecs n)
+        pk : Index-to-∈ v (annotate b (all-bitvecs n)) p ≡
+             Index-to-∈ v (annotate b (all-bitvecs n)) (∈-to-annotate-Index v (all-bitvecs n) b (all-bitvecs-complete v))
+        pk =
+          Index-to-∈ v (annotate b (all-bitvecs n)) p
+            ≡⟨ flip-transport (_∈_ v)
+                              p-ret
+                              (all-bitvecs-complete v)
+                              (Index-to-∈ v (annotate b (all-bitvecs n)) p)
+                              (sym (all-bitvecs-unique v (transport (_∈_ v) (sym p-ret) (Index-to-∈ v (annotate b (all-bitvecs n)) p))) ) ⟩ʳ
+          transport (_∈_ v) p-ret (all-bitvecs-complete v)
+            ≡⟨ Index-to-∈-Ret v (map (make-W b) (all-bitvecs n))
+                                (transport (_∈_ v) p-ret (all-bitvecs-complete v)) ⟩
+          Index-to-∈ v (annotate b (all-bitvecs n))
+                       (∈-to-Index v (annotate b (all-bitvecs n))
+                       (transport (_∈_ v) p-ret (all-bitvecs-complete v)))
+            ≡⟨ refl ⟩
+          Index-to-∈ v (annotate b (all-bitvecs n)) (∈-to-annotate-Index v (all-bitvecs n) b (all-bitvecs-complete v))
+          ∎
 
 all-bitvecs-indexing : ∀{n} {B : Set} (v : BitVec n) (b : B) → Index v [ v , b ] ↔ Index v (annotate b (all-bitvecs n))
 all-bitvecs-indexing v b = all-bitvecs-indexing-fun v b , all-bitvecs-indexing-inv v b , all-bitvecs-indexing-Ret v b , all-bitvecs-indexing-Sec v b
-{-
-mutual
-  bitvec-filter-ff-helper : ∀{n} (xs : BitVec n)
-                          → [ false ∷ xs ] ≡ filter (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ false) (all-bitvecs n))
-  bitvec-filter-ff-helper {n} xs =
-    [ false ∷ xs ]
-      ≡⟨ {!!} ⟩
-    filter (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ false) (all-bitvecs n))
-    ∎
-  
-  bitvec-filter : ∀{n} (xs : BitVec n)
-                → [ xs ] ≡ filter (isYes ∘ (_==_ xs)) (all-bitvecs n)
-  bitvec-filter [] = refl
-  bitvec-filter {(suc n)} (false ∷ xs) =
-    [ false ∷ xs ]
-      ≡⟨ list-++-right-identity [ false ∷ xs ] ⟩
-    [ false ∷ xs ] ++ []
-      ≡⟨ cong₂ _++_ {!!} {!!} ⟩
-    filter (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ false) (all-bitvecs n)) ++ filter (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ true) (all-bitvecs n))
-      ≡⟨ filter-append-dist (isYes ∘ (_==_ (false ∷ xs))) (map (_∷_ false) (all-bitvecs n)) (map (_∷_ true) (all-bitvecs n)) ⟩ʳ
-    filter (isYes ∘ (_==_ (false ∷ xs))) (all-bitvecs (suc n))
-    ∎
-  bitvec-filter {n} (true ∷ xs) = {!!}
 
--}
