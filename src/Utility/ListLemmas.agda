@@ -58,6 +58,14 @@ filter-append-dist p (x ∷ xs) ys with p x
 ... | false = filter-append-dist p xs ys
 ... | true = cong (_∷_ x) (filter-append-dist p xs ys)
 
+{-# DISPLAY foldr _++_ List.[] = concat #-}
+
+concat-append-dist : ∀{l} {A : Set l}
+                   → (xs ys : List (List A))
+                   → concat (xs ++ ys) ≡ concat xs ++ concat ys 
+concat-append-dist [] ys = refl
+concat-append-dist (x ∷ xs) ys rewrite concat-append-dist xs ys = op-assoc x (concat xs) (concat ys)
+
 concat-retraction : ∀{l} {A : Set l}
                   → Retraction concat {A = A} of map (λ x → x ∷ [])
 concat-retraction [] = refl
@@ -70,68 +78,77 @@ map-concatmap-swap : ∀{l} {A B C : Set l}
 map-concatmap-swap f g [] = refl
 map-concatmap-swap f g (x ∷ xs) rewrite sym (map-concatmap-swap f g xs) = map-append-dist f (g x) (concatMap g xs)
 
+map-concat-swap : ∀{l} {A B : Set l}
+                → (f : A → List (List B))
+                → (xs : List A)
+                → concat (map (concat ∘′ f) xs) ≡ concat (concat (map f xs))
+map-concat-swap f [] = refl
+map-concat-swap f (x ∷ xs) rewrite map-concat-swap f xs | concat-append-dist (f x) (concat (map f xs)) = refl
+
+list-<*>-composition-head : ∀{l} {A B C : Set l} (x : B → C) (ys : List (A → B)) (zs : List A)
+                          → map x (concat (map (λ f → map f zs) ys))
+                          ≡ concat (map (λ y → map y zs) (map (_∘′_ x) ys))
+list-<*>-composition-head x ys zs =
+  map x (concat (map (λ y → map y zs) ys))
+    ≡⟨ map-concatmap-swap x (λ y → map y zs) ys ⟩
+  concat (map (λ y → map x (map y zs)) ys)
+    ≡⟨ cong concat (map-ext (λ y → map x (map y zs)) (λ y → map (x ∘′ y) zs) (λ a → sym (map-comp x a zs)) ys) ⟩
+  concat (map (λ y → map (x ∘′ y) zs) ys)
+    ≡⟨ cong concat (map-comp (λ y → map y zs) (_∘′_ x) ys) ⟩
+  concat (map (λ y → map y zs) (map (_∘′_ x) ys))
+  ∎
+
+list-<*>-composition-tail : ∀{l} {A B C : Set l} (xs : List (B → C)) (ys : List (A → B)) (zs : List A)
+                          → concat (map (λ x → map x (concat (map (λ y → map y zs) ys))) xs)
+                          ≡ concat (map (λ z → map z zs) (concat (map (λ x → map x ys) (map _∘′_ xs))))
+list-<*>-composition-tail xs ys zs =
+  concat (map (λ x → map x (concat (map (λ y → map y zs) ys))) xs)
+    ≡⟨ cong concat
+            (map-ext (λ x → map x (concat (map (λ y → map y zs) ys)))
+                     (λ x → concat (map (λ y → map x (map y zs)) ys))
+                     (λ x → map-concatmap-swap x (λ y → map y zs) ys) xs) ⟩
+  concat (map (λ x → concat (map (λ y → map x (map y zs)) ys)) xs)
+    ≡⟨ map-concat-swap (λ x → map (λ y → map x (map y zs)) ys) xs ⟩
+  concat (concat (map (λ x → map (λ y → map x (map y zs)) ys) xs))
+    ≡⟨ cong (λ e → concat (concat e))
+       (map-ext (λ x → map (λ z → map x (map z zs)) ys)
+                ((map (λ y → map y zs)) ∘′ (λ x → map (_∘′_ x) ys))
+                (λ a →
+                  map (λ y → map a (map y zs)) ys
+                    ≡⟨ map-ext (λ y → map a (map y zs)) (λ y → map (a ∘′ y) zs) (λ a₁ → sym (map-comp a a₁ zs)) ys ⟩
+                  map (λ y → map (a ∘′ y) zs) ys
+                    ≡⟨ map-comp (λ y → map y zs) (_∘′_ a) ys ⟩
+                  map (λ y → map y zs) (map (_∘′_ a) ys)
+                  ∎)
+                xs) ⟩
+  concat (concat (map (map (λ f → map f zs) ∘′ (λ x → map (_∘′_ x) ys)) xs))
+    ≡⟨ cong concat (map-concatmap-swap (λ y → map y zs) (λ x → map (_∘′_ x) ys) xs) ⟩ʳ
+  concat (map (λ f → map f zs) (concat (map (λ x → map (_∘′_ x) ys) xs)))
+    ≡⟨ cong (λ e → concat (map (λ f → map f zs) (concat e))) (map-comp (λ x → map x ys) _∘′_ xs) ⟩
+  concat (map (λ f → map f zs) (concat (map (λ x → map x ys) (map _∘′_ xs))))
+  ∎
+
 list-<*>-composition : ∀{l} {A B C : Set l} (xs : List (B → C)) (ys : List (A → B)) (zs : List A)
                      → (xs <*> (ys <*> zs)) ≡ ([ _∘′_ ] <*> xs <*> ys <*> zs)
 list-<*>-composition [] ys zs = refl
-list-<*>-composition (x ∷ xs) ys zs rewrite sym (list-<*>-composition xs ys zs) =
+list-<*>-composition (x ∷ xs) ys zs
+  rewrite sym (list-<*>-composition xs ys zs) =
   map x (concat (map (λ f → map f zs) ys)) ++ concat (map (λ f → map f (concat (map (λ g → map g zs) ys))) xs)
+    ≡⟨ cong₂ (λ e f → e ++ f) 
+             (list-<*>-composition-head x ys zs)
+             (list-<*>-composition-tail xs ys zs)⟩
+  concat (map (λ z → map z zs) (map (_∘′_ x) ys)) ++ concat (map (λ z → map z zs) (concat (map (λ z → map z ys) (map _∘′_ xs))))
+    ≡⟨ cong (λ e → concat (map (λ z → map z zs) (map (_∘′_ x) ys))
+                          ++ concat (map (λ z → map z zs) (concat (map (λ z → map z ys) e))))
+            (list-++-right-identity (map _∘′_ xs)) ⟩
+  concat (map (λ z → map z zs) (map (_∘′_ x) ys)) ++ concat (map (λ z → map z zs) (concat (map (λ z → map z ys) (map _∘′_ xs ++ []))))
+    ≡⟨ concat-append-dist (map (λ z → map z zs) (map (_∘′_ x) ys))
+                          (map (λ z → map z zs) (concat (map (λ z → map z ys) (map _∘′_ xs ++ [])))) ⟩ʳ
+  concat (map (λ z → map z zs) (map (_∘′_ x) ys) ++ map (λ z → map z zs) (concat (map (λ z → map z ys) (map _∘′_ xs ++ []))))
+    ≡⟨ cong concat (map-append-dist (λ z → map z zs) (map (_∘′_ x) ys) (concat (map (λ z → map z ys) (map _∘′_ xs ++ [])))) ⟩ʳ
+  concat (map (λ z → map z zs) (map (_∘′_ x) ys ++ concat (map (λ z → map z ys) (map _∘′_ xs ++ []))))
+  ∎
 
-    ≡⟨ {!!} ⟩
-  concat
-    (map (λ z → map z zs)
-     (map (λ z x₁ → x (z x₁)) ys ++
-      concat
-      (map (λ z → map z ys) (map (λ z x₁ x₂ → z (x₁ x₂)) xs ++ []))))
---  concat (map (λ f → map f zs) (map (_∘′_ x) ys ++ concat (map (λ f → map f zs) (map _∘′_ xs ++ []))))
-  ∎
-{-
-  (x ∷ xs) <*> (ys <*> zs)
-    ≡⟨ refl ⟩
-  concatMap (λ f → map f (concatMap (λ g → map g zs) ys)) (x ∷ xs)
-    ≡⟨ refl ⟩
-  map x (concatMap (λ g → map g zs) ys) ++ concatMap (λ f → map f (concatMap (λ g → map g zs) ys)) xs
-    ≡⟨ cong (λ e → map x (concatMap (λ g → map g zs) ys) ++ e) (list-<*>-composition xs ys zs) ⟩
-  map x (concatMap (λ g → map g zs) ys) ++ concatMap (λ f → map f (concatMap (λ g → map g zs) ys)) xs
-    ≡⟨ {!!} ⟩
-  concat (concatMap (map (λ f → map f zs) ∘′ ((λ g → map g ys) ∘′ _∘′_)) (x ∷ xs))
-    ≡⟨ cong concat (sym (map-concatmap-swap (λ z → map z zs) (λ z → map (_∘′_ z) ys) (x ∷ xs))) ⟩
-  concatMap (λ f → map f zs) (concatMap ((λ g → map g ys) ∘′ _∘′_) (x ∷ xs))
-    ≡⟨ cong (λ e → concatMap (λ f → map f zs) (concat e)) (map-comp (λ g → map g ys) _∘′_ (x ∷ xs)) ⟩
-  concatMap (λ f → map f zs) (concatMap (λ g → map g ys) (map _∘′_ (x ∷ xs)))
-    ≡⟨ cong (λ e → concatMap (λ f → map f zs) (concatMap (λ g → map g ys) e)) (unit-right (map _∘′_ (x ∷ xs))) ⟩
-  concatMap (λ f → map f zs) (concatMap (λ g → map g ys) (map _∘′_ (x ∷ xs) ++ []))
-    ≡⟨ refl ⟩
-  concatMap (λ f → map f zs) (concatMap (λ g → map g ys) (concatMap (λ h → map h (x ∷ xs)) [ _∘′_ ]))
-    ≡⟨ refl ⟩
-  [ _∘′_ ] <*> (x ∷ xs) <*> ys <*> zs
-  ∎
-  -}
-{-
-  xs <*> (ys <*> zs)
-    ≡⟨ refl ⟩
-  concatMap (λ f → map f (concatMap (λ g → map g zs) ys)) xs
-    ≡⟨ {!!} ⟩
-  concatMap (λ f → {!!}) xs
-    ≡⟨ {!!} ⟩
-  concat (concatMap (λ a → map (λ f → map f zs) (map (_∘′_ a) ys)) xs)
-    ≡⟨ refl ⟩
-  concat (concatMap (λ a → map (λ f → map f zs) (((λ g → map g ys) ∘′ _∘′_) a)) xs)
-    ≡⟨ refl ⟩
-  concat (concatMap (λ a → (map (λ f → map f zs) ∘′ ((λ g → map g ys) ∘′ _∘′_)) a) xs)
-    ≡⟨ refl ⟩
-  concat (concatMap (map (λ f → map f zs) ∘′ ((λ g → map g ys) ∘′ _∘′_)) xs)
-    ≡⟨ cong concat (sym (map-concatmap-swap (λ z → map z zs) (λ z → map (_∘′_ z) ys) xs)) ⟩
-  concatMap (λ f → map f zs) (concatMap ((λ g → map g ys) ∘′ _∘′_) xs)
-    ≡⟨ cong (λ e → concatMap (λ f → map f zs) (concat e)) (map-comp (λ g → map g ys) _∘′_ xs) ⟩
-  concatMap (λ f → map f zs) (concatMap (λ g → map g ys) (map _∘′_ xs))
-    ≡⟨ cong (λ e → concatMap (λ f → map f zs) (concatMap (λ g → map g ys) e)) (unit-right (map _∘′_ xs)) ⟩
-  concatMap (λ f → map f zs) (concatMap (λ g → map g ys) (map _∘′_ xs ++ []))
-    ≡⟨ refl ⟩
-  concatMap (λ f → map f zs) (concatMap (λ g → map g ys) (concatMap (λ h → map h xs) [ _∘′_ ]))
-    ≡⟨ refl ⟩
-  [ _∘′_ ] <*> xs <*> ys <*> zs
-  ∎
-  -}
 list-<*>-homomorphism : ∀{l} {A B : Set l} (f : A → B) (x : A)
                       → [ f x ] ≡ ([ f ] <*> [ x ])
 list-<*>-homomorphism f x = refl

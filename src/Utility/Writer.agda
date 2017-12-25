@@ -2,6 +2,9 @@ module Utility.Writer where
 
 open import ThesisPrelude
 open import Algebra.Functor
+open import Algebra.Applicative
+open import Algebra.Monad
+open import Algebra.Monoid
 
 Writer : ∀ {l} (Q A : Set l) → Set l
 Writer Q A = A × Q
@@ -34,4 +37,71 @@ module _ {l} {Q : Set l} where
   
     FunctorPropsWriter : FunctorProps (Writer Q)
     FunctorPropsWriter = record { fmap-ext = fmap-W-ext ; fmap-id = fmap-W-id ; fmap-comp = fmap-W-comp }
+
+  module _ {{QM : Monoid Q}} where
+    ap-W : ∀{A B : Set l} → Writer Q (A → B) → Writer Q A → Writer Q B
+    ap-W (f , v₁) (a , v₂) = f a , v₁ <> v₂
+
+    pure-W : ∀{A : Set l} → A → Writer Q A
+    pure-W = make-W mempty
   
+    ApplicativeWriter : Applicative (Writer Q)
+    ApplicativeWriter = record { pure = pure-W ; _<*>_ = ap-W }
+    
+    bind-W : ∀{A B : Set l} → Writer Q A → (A → Writer Q B) → Writer Q B
+    bind-W (x , v) f with f x
+    ... | y , w = y , v <> w
+
+    MonadWriter : Monad (Writer Q)
+    MonadWriter = record { _>>=_ = bind-W ; super = ApplicativeWriter }
+
+    module _ {{QP : MonoidProps Q}} where
+      ap-W-composition : ∀{A B C} (u : Writer Q (B → C)) (v : Writer Q (A → B)) (w : Writer Q A)
+                      → ap-W u (ap-W v w) ≡ ap-W (ap-W (ap-W (pure-W _∘′_) u) v) w
+      ap-W-composition (f , a) (g , b) (h , c)
+        rewrite sym (unit-left a) | op-assoc a b c = refl
+  
+      ap-W-homomorphism : ∀{A B} (f : A → B) (x : A) → pure-W (f x) ≡ ap-W (pure-W f) (pure-W x)
+      ap-W-homomorphism f x rewrite sym (unit-left {{QM}} mempty) = refl
+  
+      ap-W-interchange : ∀{A B} (u : Writer Q (A → B)) (x : A) → ap-W u (pure-W x) ≡ ap-W (pure-W λ f → f x) u
+      ap-W-interchange (f , v) x rewrite sym (unit-left v) | sym (unit-right v) = refl
+  
+      fmap-is-pure-ap-W : ∀{A B} (f : A → B) (v : Writer Q A) → fmap-W f v ≡ ap-W (pure-W f) v
+      fmap-is-pure-ap-W f (a , v) rewrite sym (unit-left v) = refl
+
+      ApplicativePropsWriter : ApplicativeProps (Writer Q) {{ApplicativeWriter}}
+      ApplicativePropsWriter = record
+                                 { <*>-composition = ap-W-composition
+                                 ; <*>-homomorphism = ap-W-homomorphism
+                                 ; <*>-interchange = ap-W-interchange
+                                 ; fmap-is-pure-<*> = fmap-is-pure-ap-W
+                                 }
+
+
+      >>=-assoc-W : ∀{A B C}
+                  → (x : Writer Q A) → (f : A → Writer Q B) → (g : B → Writer Q C)
+                  → bind-W (bind-W x f) g ≡ bind-W x (λ y → bind-W (f y) g)
+      >>=-assoc-W (a , v) f g with f a
+      ... | b , u with g b
+      ... | c , w rewrite op-assoc v u w = refl
+      return->>=-right-id-W : ∀{A} → (x : Writer Q A) → x ≡ bind-W x pure-W
+      return->>=-right-id-W (a , v) rewrite sym (unit-right v) = refl
+      return->>=-left-id-W  : ∀{A B} → (x : A) → (f : A → Writer Q B)
+                            → bind-W (pure-W x) f ≡ f x
+      return->>=-left-id-W x f with f x
+      ... | a , v rewrite sym (unit-left v) = refl
+      ap-W-is-ap : ∀{A B} (x : Writer Q (A → B)) (y : Writer Q A)
+                 → ap-W x y ≡ bind-W x λ f → bind-W y λ a → pure-W (f a)
+      ap-W-is-ap (f , v) (a , u) rewrite sym (unit-right u) = refl
+
+      MonadPropsWriter : MonadProps (Writer Q) {{MonadWriter}}
+      MonadPropsWriter = record { >>=-assoc = >>=-assoc-W
+                                ; return->>=-right-id = return->>=-right-id-W
+                                ; return->>=-left-id = return->>=-left-id-W
+                                ; super = ApplicativePropsWriter
+                                ; <*>-is-ap = ap-W-is-ap
+                                }
+
+
+
