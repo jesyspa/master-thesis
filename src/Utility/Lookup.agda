@@ -134,6 +134,10 @@ module _ {l} {A B : Set l} where
     ... | yes refl rewrite yes-refl a | sym (filter-eq-idempotent a xs) = refl
     ... | no neq rewrite sym (filter-eq-idempotent a xs) = refl
 
+    filter-eq-singleton : ∀(a : A) (b : B)
+                        → [ b ] ≡ filter-vals a [ a , b ]
+    filter-eq-singleton a b rewrite yes-refl a = refl
+
     annotate : (b : B) (xs : List A) → SearchList A B
     annotate = map ∘′ make-W
 
@@ -156,12 +160,13 @@ module _ {l} {A B : Set l} where
     ... | no neq rewrite comm-annotate a b xs = refl
 
     combine-vals : ∀{r : Set l} (cmb : List B → r) (a : A) (xs : SearchList A B) → r
-    combine-vals cmb a = cmb ∘ map snd ∘ filter-eq a
+    combine-vals cmb a = cmb ∘ filter-vals a
 
     postulate
       combine-vals-invariant : ∀{r : Set l} (cmb : List B → r) (_ : PermInvariant cmb) (a : A) (xs ys : SearchList A B)
                              → (Index a xs ↔ Index a ys)
                              → combine-vals cmb a xs ≡ combine-vals cmb a ys
+
 
 
 

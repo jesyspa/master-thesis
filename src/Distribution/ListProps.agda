@@ -43,27 +43,16 @@ module _ {Q} {{QC : Carrier Q}} where
     ApplicativePropsListDist : ApplicativeProps (ListDist Q)
     MonadPropsListDist : MonadProps (ListDist Q)
 
-  filter-uniform-LD-singleton : ∀ n (xs : BitVec n)
-                              → [ xs , negpow2 n ] ≡ filter (isYes ∘ (_==_ xs) ∘ fst) (uniform-LD {Q} n)
-  filter-uniform-LD-singleton n xs =
-    annotate (negpow2 n) [ xs ]
-      ≡⟨ cong (annotate (negpow2 n)) {!!} ⟩
-    annotate (negpow2 n) (filter (isYes ∘ (_==_ xs)) (all-bitvecs n))
-      ≡⟨ filter-reduction-identity fst (make-W (negpow2 n)) 
-                                   (isYes ∘ (_==_ xs))
-                                   (all-bitvecs n)
-                                   (fst-Retraction {A = Vec Bool n} (negpow2 {Q} n)) ⟩
-    filter (isYes ∘ (_==_ xs) ∘ fst) (annotate (negpow2 n) (all-bitvecs n))
-    ∎
-
-  uniform-LD-is-uniform : ∀ n (xs : BitVec n)
-                        → negpow2 {{QC}} n ≡ sample-LD (uniform-LD n) xs
-  uniform-LD-is-uniform n xs =
-    {!!}
+  uniform-LD-is-uniform : ∀{{QPC : CarrierProps Q}} n (v : BitVec n)
+                        → negpow2 {{QC}} n ≡ sample-LD (uniform-LD n) v
+  uniform-LD-is-uniform n v =
+    negpow2 n
       ≡⟨ {!!} ⟩
-    combine-vals sum xs ([ xs , negpow2 n ])
-      ≡⟨ combine-vals-invariant sum {!!} xs ([ xs , negpow2 n ]) (annotate (negpow2 n) (all-bitvecs n)) {!!} ⟩
-    combine-vals sum xs (annotate (negpow2 n) (all-bitvecs n))
+    sum [ negpow2 n ]
+      ≡⟨ cong sum (filter-eq-singleton v (negpow2 n)) ⟩
+    combine-vals sum v ([ v , negpow2 n ])
+      ≡⟨ combine-vals-invariant sum {!!} v ([ v , negpow2 n ]) (annotate (negpow2 n) (all-bitvecs n)) (all-bitvecs-indexing v (negpow2 n)) ⟩
+    combine-vals sum v (annotate (negpow2 n) (all-bitvecs n))
     ∎
 
   uniform-LD-bijection-invariant : ∀ n (f : BitVec n → BitVec n)
@@ -71,7 +60,7 @@ module _ {Q} {{QC : Carrier Q}} where
                                  → _≡LD_ {Q} (uniform-LD n) (fmap f (uniform-LD n))
   uniform-LD-bijection-invariant n f (bp , pa , pb) = {!!}
 
-  DistMonadPropsListDist : DistMonadProps (ListDist Q)
+  DistMonadPropsListDist : {{QPC : CarrierProps Q}} → DistMonadProps (ListDist Q)
   DistMonadPropsListDist = record
                              { is-monad = MonadPropsListDist
                              ; uniform-is-uniform = uniform-LD-is-uniform
