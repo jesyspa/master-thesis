@@ -27,7 +27,7 @@ open FunctorProps {{...}} public
 
 functor-composition : ∀ (F : Set → Set) {{FF : Functor F}}
                         (G : Set → Set) {{FG : Functor G}}
-                    → Functor (F ∘ G)
+                    → Functor (F ∘′ G)
 functor-composition F {{FF}} G {{FG}} = record { fmap = fmap {{FF}} ∘′ fmap {{FG}} }
 
 fmap-ext-composition : ∀ {A B : Set}
