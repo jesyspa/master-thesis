@@ -6,6 +6,7 @@ open import Algebra.Monoid
 open import Algebra.Functor
 open import Algebra.Function
 open import Algebra.Applicative
+open import Algebra.Monad
 
 ∷-list-Inj : ∀{l} {A : Set l} (x : A)
         → Injective (List._∷_ {A = A} x)
@@ -169,6 +170,34 @@ list-fmap-is-pure-<*> : ∀{l} {A B : Set l} (f : A → B) (xs : List A)
                       → fmap f xs ≡ ([ f ] <*> xs)
 list-fmap-is-pure-<*> f xs rewrite sym (list-++-right-identity (fmap f xs)) = refl
 
+--                   → map f (concatMap g xs) ≡ concatMap (map f ∘ g) xs
+list->>=-assoc : ∀{l} {A B C : Set l} → (xs : List A) → (f : A → List B) → (g : B → List C)
+               → (xs >>= f >>= g) ≡ (xs >>= (λ y → f y >>= g))
+list->>=-assoc xs f g =
+  concat (map g (concat (map f xs)))
+    ≡⟨ cong concat (map-concatmap-swap g f xs) ⟩
+  concat (concat (map (map g ∘′ f) xs))
+    ≡⟨ map-concat-swap (map g ∘′ f) xs ⟩ʳ
+  concat (map (concat ∘′ map g ∘′ f) xs)
+  ∎
+
+list-return->>=-right-id : ∀{l} {A : Set l} → (xs : List A) → xs ≡ (xs >>= [_])
+list-return->>=-right-id = concat-retraction
+
+list-return->>=-left-id  : ∀{l} {A B : Set l} → (x : A) → (f : A → List B) → ([ x ] >>= f) ≡ f x
+list-return->>=-left-id x f = sym (list-++-right-identity (f x))
+
+list-<*>-is-ap : ∀{l} {A B : Set l} (xs : List (A → B)) (ys : List A) → (xs <*> ys) ≡ (xs >>= λ x → ys >>= λ y → [ x y ])
+list-<*>-is-ap xs ys = cong concat (map-ext (λ z → map z ys) (λ x → concatMap (λ y → [ x y ]) ys) eq xs)
+  where eq : ∀ a → map a ys ≡ concatMap (λ y → a y ∷ []) ys
+        eq a =
+           map a ys
+             ≡⟨ concat-retraction (map a ys) ⟩
+           concat (map (λ y → [ y ]) (map a ys))
+             ≡⟨ cong concat (map-comp (λ z → z ∷ []) a ys) ⟩ʳ
+           concat (map (λ y → a y ∷ []) ys)
+           ∎
+
 instance
   FunctorPropsList : ∀{l} → FunctorProps {l} List
   FunctorPropsList = record { fmap-ext = map-ext ; fmap-id = map-id ; fmap-comp = map-comp }
@@ -181,6 +210,15 @@ instance
                            ; fmap-is-pure-<*> = list-fmap-is-pure-<*>
                            }
 
+  MonadPropsList : ∀{l} → MonadProps {l} List
+  MonadPropsList = record
+                     { >>=-assoc = list->>=-assoc
+                     ; return->>=-right-id = list-return->>=-right-id
+                     ; return->>=-left-id = list-return->>=-left-id
+                     ; <*>-is-ap = list-<*>-is-ap
+                     }
+
+
 filter-reduction-identity : ∀{l} {A B : Set l} (g : B → A) (f : A → B) (p : A → Bool) (xs : List A)
                           → Retraction g of f
                           → map f (filter p xs) ≡ filter (p ∘ g) (map f xs)
@@ -188,4 +226,3 @@ filter-reduction-identity g f p [] pr = refl
 filter-reduction-identity g f p (x ∷ xs) pr rewrite sym (pr x) with p x
 ... | false rewrite sym (filter-reduction-identity g f p xs pr) = refl
 ... | true rewrite sym (filter-reduction-identity g f p xs pr) = refl
-

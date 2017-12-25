@@ -5,17 +5,17 @@ open import Algebra.Applicative
 
 record MonadProps {l} (M : Set l → Set l) {{_ : Monad M}} : Set (lsuc l) where
   field
-    >>=-assoc : ∀{X Y Z}
-              → (x : M X) → (f : X → M Y) → (g : Y → M Z)
+    >>=-assoc : ∀{A B C}
+              → (x : M A) → (f : A → M B) → (g : B → M C)
               → (x >>= f >>= g) ≡ (x >>= (λ y → f y >>= g))
-    return->>=-right-id : ∀{X} → (x : M X) → x ≡ (x >>= return)
-    return->>=-left-id  : ∀{X Y} → (x : X) → (f : X → M Y)
+    return->>=-right-id : ∀{A} → (x : M A) → x ≡ (x >>= return)
+    return->>=-left-id  : ∀{A B} → (x : A) → (f : A → M B)
                         → (return x >>= f) ≡ f x
     overlap {{super}} : ApplicativeProps M
-    <*>-is-ap : ∀{X Y} (v : M (X → Y)) (w : M X)
+    <*>-is-ap : ∀{A B} (v : M (A → B)) (w : M A)
               → (v <*> w) ≡ (v >>= λ f → w >>= λ x → return (f x))
 
-  return-simplify : ∀{X Y} → (f : X → Y) → (v : M X)
+  return-simplify : ∀{A B} → (f : A → B) → (v : M A)
                   → fmap f v ≡ (v >>= λ x → return (f x))
   return-simplify f v =
     fmap f v
