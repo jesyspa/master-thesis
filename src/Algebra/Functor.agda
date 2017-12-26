@@ -63,10 +63,10 @@ fmap-comp-composition F G g f x =
   fmap {{functor-composition F G}} g (fmap {{functor-composition F G}} f x)
   ∎
 
-functor-prop-composition : ∀ (F : Set → Set) {{FF : Functor F}} {{FPF : FunctorProps F}}
-                        (G : Set → Set) {{FG : Functor G}} {{FPG : FunctorProps G}}
-                    → FunctorProps (F ∘ G) {{functor-composition F G}}
-functor-prop-composition F {{FF}} {{FPF}} G {{FG}} {{FPG}} = record { fmap-ext = fmap-ext-composition F G
-                                                                    ; fmap-id = fmap-id-composition F G
-                                                                    ; fmap-comp = fmap-comp-composition F G
-                                                                    }
+functor-props-composition : ∀ (F : Set → Set) {{FF : Functor F}} {{FPF : FunctorProps F}}
+                              (G : Set → Set) {{FG : Functor G}} {{FPG : FunctorProps G}}
+                         → FunctorProps (F ∘ G) {{functor-composition F G}}
+functor-props-composition F {{FF}} {{FPF}} G {{FG}} {{FPG}} = record { fmap-ext = fmap-ext-composition F G
+                                                                     ; fmap-id = fmap-id-composition F G
+                                                                     ; fmap-comp = fmap-comp-composition F G
+                                                                     }
