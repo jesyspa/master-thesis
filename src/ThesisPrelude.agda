@@ -21,5 +21,6 @@ open import Prelude.Functor public
 open import Prelude.Applicative public
 open import Prelude.Monad public
 open import Prelude.Equality.Inspect public
+open import Prelude.Strict public 
 open import Tactic.Nat public
 

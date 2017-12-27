@@ -35,16 +35,21 @@ record CarrierProps (A : Set) {{C : Carrier A}} : Set where
     negpow2-add         : ∀ n → negpow2 {{C}} n ≡ negpow2 (suc n) + pow2 (suc n)
     pow2-negpow2-cancel : ∀ n → one ≡ pow2 {{C}} n * negpow2 n
     pow2-zro-one        : one ≡ pow2 {{C}} zro
+  *-unit-left : (a : A) → a ≡ one * a
+  *-unit-left = MonoidProps.unit-left {{*-monoid}} *-is-monoid
+  +-unit-left : (a : A) → a ≡ zro + a
+  +-unit-left = MonoidProps.unit-left {{+-monoid}} (super +-is-comm-monoid)
+  +-unit-right : (a : A) → a ≡ a + zro
+  +-unit-right = MonoidProps.unit-right {{+-monoid}} (super +-is-comm-monoid)
 
   negpow2-zro-one : one ≡ negpow2 {{C}} zro
   negpow2-zro-one =
     one
       ≡⟨ pow2-negpow2-cancel zro ⟩
     pow2 zro * negpow2 zro
-    -- should be
-    --   ≡⟨ sym (unit-left {{*-monoid}} {{*-is-monoid}} (negpow2 zro))
-    -- but I can't figure out how to get that to work.
-      ≡⟨ sym (unit-left {{{!!}}} {{{!!}}} (negpow2 zro)) ⟩
+      ≡⟨ cong (λ e → e * negpow2 zro) pow2-zro-one ⟩ʳ
+    one * negpow2 zro
+      ≡⟨ *-unit-left (negpow2 zro) ⟩ʳ
     negpow2 zro
     ∎
 
