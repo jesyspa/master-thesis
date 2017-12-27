@@ -108,7 +108,7 @@ all-bitvecs-indexing-Sec : ∀{n} {B : Set} (v : BitVec n) (b : B)
                          → Section all-bitvecs-indexing-inv v b of all-bitvecs-indexing-fun v b
 all-bitvecs-indexing-Sec {n} v b p = Index-to-∈-Inj v (annotate b (all-bitvecs n)) pk 
   where p-ret : all-bitvecs n ≡ map fst (annotate b (all-bitvecs n))
-        p-ret = fmap-lift-ret fst (make-W b) (λ a → refl) (all-bitvecs n)
+        p-ret = fmap-lift-ret fst (rev-pair b) (λ a → refl) (all-bitvecs n)
         pk : Index-to-∈ v (annotate b (all-bitvecs n)) p ≡
              Index-to-∈ v (annotate b (all-bitvecs n)) (∈-to-annotate-Index v (all-bitvecs n) b (all-bitvecs-complete v))
         pk =
@@ -119,7 +119,7 @@ all-bitvecs-indexing-Sec {n} v b p = Index-to-∈-Inj v (annotate b (all-bitvecs
                               (Index-to-∈ v (annotate b (all-bitvecs n)) p)
                               (sym (all-bitvecs-unique v (transport (_∈_ v) (sym p-ret) (Index-to-∈ v (annotate b (all-bitvecs n)) p))) ) ⟩ʳ
           transport (_∈_ v) p-ret (all-bitvecs-complete v)
-            ≡⟨ Index-to-∈-Ret v (map (make-W b) (all-bitvecs n))
+            ≡⟨ Index-to-∈-Ret v (map (rev-pair b) (all-bitvecs n))
                                 (transport (_∈_ v) p-ret (all-bitvecs-complete v)) ⟩
           Index-to-∈ v (annotate b (all-bitvecs n))
                        (∈-to-Index v (annotate b (all-bitvecs n))

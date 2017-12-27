@@ -138,19 +138,22 @@ module _ {l} {A B : Set l} where
                         → [ b ] ≡ filter-vals a [ a , b ]
     filter-eq-singleton a b rewrite yes-refl a = refl
 
+    rev-pair : B → A → A × B
+    rev-pair = flip _,_
+
     annotate : (b : B) (xs : List A) → SearchList A B
-    annotate = map ∘′ make-W
+    annotate = map ∘′ rev-pair 
 
     ∈-to-annotate-Index : ∀(a : A) (xs : List A) (b : B)
                         → a ∈ xs → Index a (annotate b xs)
-    ∈-to-annotate-Index a xs b p = ∈-to-Index′ a xs (make-W b) (λ x → refl) p
+    ∈-to-annotate-Index a xs b p = ∈-to-Index′ a xs (rev-pair b) (λ x → refl) p
 
     annotate-Index-to-∈ : ∀(a : A) (xs : List A) (b : B)
                         → Index a (annotate b xs) → a ∈ xs
-    annotate-Index-to-∈ a xs b p = Index-to-∈′ a xs (make-W b) (λ x → refl) p
+    annotate-Index-to-∈ a xs b p = Index-to-∈′ a xs (rev-pair b) (λ x → refl) p
 
     map-fst-annotate-Ret : (b : B) → Retraction map fst of annotate b
-    map-fst-annotate-Ret b xs = fmap-ext-id (fst ∘′ make-W b) (λ a → refl) xs ⟨≡⟩ map-comp fst (make-W b) xs
+    map-fst-annotate-Ret b xs = fmap-ext-id (fst ∘′ rev-pair b) (λ a → refl) xs ⟨≡⟩ map-comp fst (rev-pair b) xs
 
     comm-annotate : (a : A) (b : B) (xs : List A)
                   → annotate b (filter (isYes ∘ (_==_ a)) xs) ≡ filter-eq a (annotate b xs)

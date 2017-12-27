@@ -4,36 +4,38 @@ open import ThesisPrelude
 open import Distribution.Class
 open import Carrier.Class
 open import Algebra.Functor
+open import Algebra.ApplicativeComposition
+open import Algebra.Monoid
 open import Utility.BitVec
 open import Utility.Writer
 open import Utility.Lookup
 
-ListDist : ∀ (Q A : Set) → Set
-ListDist Q A = SearchList A Q
+ListDist : ∀ (Q : Set) {{QC : Carrier Q}} → Set → Set
+ListDist Q A = List (Writer Q {{*-monoid}} A)
 
-instance
-  FunctorListDist : ∀{Q} → Functor (ListDist Q)
-  FunctorListDist {Q} = functor-composition List (Writer Q)
+module _ {Q : Set} {{QC : Carrier Q}} where
+  QWriter : Set → Set
+  QWriter = Writer Q {{*-monoid}}
+  instance
+    QMulMonoid : Monoid Q
+    QMulMonoid = *-monoid
+    FunctorQWriter : Functor QWriter
+    FunctorQWriter = FunctorWriter 
+    ApplicativeQWriter : Applicative QWriter
+    ApplicativeQWriter = ApplicativeWriter
+  instance
+    FunctorListDist : Functor (ListDist Q)
+    FunctorListDist = functor-composition List QWriter
 
-module _ {Q : Set} {{_ : Carrier Q}} where
-  pure-LD : ∀{A} → A → ListDist Q A
-  pure-LD a = [ a , one ]
-  
-  ap-LD-H2 : ∀{A B : Set} → (A → B) → Q → (A × Q) → B × Q 
-  ap-LD-H2 f q (x , p) = f x , q * p
-
-  ap-LD-H1 : ∀{A B} → ListDist Q A → (A → B) × Q → ListDist Q B
-  ap-LD-H1 v (f , q) = map (ap-LD-H2 f q) v
-
-  ap-LD : ∀{A B} → ListDist Q (A → B) → ListDist Q A → ListDist Q B
-  ap-LD xs ys = concatMap (ap-LD-H1 ys) xs 
+  ap-LD-H2 : ∀{A : Set} → Q → (A × Q) → A × Q 
+  ap-LD-H2 q (x , p) = x , q * p
 
   bind-LD : ∀{A B} → ListDist Q A → (A → ListDist Q B) → ListDist Q B
-  bind-LD xs f = concatMap (λ { (a , q) → map (ap-LD-H2 id q) (f a) }) xs
+  bind-LD xs f = concatMap (λ { (a , q) → map (ap-LD-H2 q) (f a) }) xs
   
   instance
     ApplicativeListDist : Applicative (ListDist Q)
-    ApplicativeListDist = record { pure = pure-LD ; _<*>_ = ap-LD }
+    ApplicativeListDist = applicative-composition List QWriter
     MonadListDist : Monad (ListDist Q)
     MonadListDist = record { _>>=_ = bind-LD }
 
