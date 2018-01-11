@@ -2,7 +2,7 @@ module Distribution.Class where
 
 open import ThesisPrelude
 open import Carrier.Class
-open import Utility.BitVec
+open import Utility.Vector.BitVec
 open import Algebra.Function
 
 record DistMonad (D : Set → Set) : Set₁ where

@@ -8,12 +8,12 @@ open import Distribution.List Q
 open import Algebra.Function
 open import Algebra.Monoid
 open import Carrier.Class
-open import Utility.ListLemmas
-open import Utility.ListArithmeticLemmas
+open import Utility.List.Props
+open import Utility.List.Arithmetic
+open import Utility.List.Lookup
 open import Utility.Writer Q
-open import Utility.BitVec
+open import Utility.Vector.BitVec
 open import Utility.Product
-open import Utility.Lookup
 
 import Algebra.FunctorComposition List Writer as FComp
 open import Algebra.FunctorProps ListDist

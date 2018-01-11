@@ -7,7 +7,7 @@ open import ThesisPrelude
 open import Carrier.Class
 open import Algebra.MonadProps F
 open import Algebra.FunctorProps F
-open import Utility.BitVec
+open import Utility.Vector.BitVec
 open import Algebra.Function
 
 record DistMonadProps : Set₂ where

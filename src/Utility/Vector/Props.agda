@@ -1,4 +1,4 @@
-module Utility.VecProps where
+module Utility.Vector.Props where
 
 open import ThesisPrelude hiding (List)
 

@@ -1,7 +1,7 @@
-module Utility.Elem where
+module Utility.List.Elem where
 
 open import ThesisPrelude
-open import Utility.ListLemmas
+open import Utility.List.Props
 open import Algebra.Function
 open import Algebra.ExactSize
 

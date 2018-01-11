@@ -3,7 +3,7 @@ module Crypto.OTP (Q : Set) {{CQ : Carrier Q}} {{CPQ : CarrierProps Q}} where
 
 open import ThesisPrelude
 open import Crypto.Syntax
-open import Utility.BitVec
+open import Utility.Vector.BitVec
 open import Distribution.Class
 open import Distribution.List Q
 open import Distribution.ListProps Q

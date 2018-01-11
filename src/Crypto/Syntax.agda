@@ -1,7 +1,7 @@
 module Crypto.Syntax where
 
 open import ThesisPrelude
-open import Utility.BitVec
+open import Utility.Vector.BitVec
 
 data CryptoExpr (A : Set) : Set where
   returnCE : A → CryptoExpr A

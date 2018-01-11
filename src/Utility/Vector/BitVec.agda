@@ -1,14 +1,14 @@
-module Utility.BitVec where
+module Utility.Vector.BitVec where
 
 open import ThesisPrelude
 open import Algebra.Function
 open import Algebra.Equality
 open import Algebra.ExactSize
-open import Utility.VecFuns
-open import Utility.VecProps
-open import Utility.ListLemmas
-open import Utility.Elem
-open import Utility.Lookup
+open import Utility.Vector.Functions
+open import Utility.Vector.Props
+open import Utility.List.Props
+open import Utility.List.Elem
+open import Utility.List.Lookup
 open import Utility.Bool
 open import Utility.Writer
 

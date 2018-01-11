@@ -1,5 +1,5 @@
 {-# OPTIONS --allow-unsolved-metas #-}
-module Utility.ListArithmeticLemmas where
+module Utility.List.Arithmetic where
 
 open import ThesisPrelude
 open import Algebra.Function

@@ -1,4 +1,4 @@
-module Utility.VecFuns where
+module Utility.Vector.Functions where
 
 open import ThesisPrelude
 

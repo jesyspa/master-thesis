@@ -3,7 +3,7 @@ module Utility.Permutation where
 
 open import ThesisPrelude
 open import Algebra.Function
-open import Utility.Elem
+open import Utility.List.Elem
 
 module _ {l} {A : Set l} where
   Element : List A → Set l

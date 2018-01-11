@@ -5,9 +5,9 @@ open import ThesisPrelude
 open import Distribution.Class
 open import Carrier.Class
 open import Algebra.Monoid
-open import Utility.BitVec
+open import Utility.Vector.BitVec
 open import Utility.Writer Q {{*-monoid}}
-open import Utility.Lookup
+open import Utility.List.Lookup
 
 instance
   QMulMonoid : Monoid Q

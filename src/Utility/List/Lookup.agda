@@ -1,10 +1,10 @@
-module Utility.Lookup where
+module Utility.List.Lookup where
 
 open import ThesisPrelude
 open import Algebra.Function
 open import Algebra.Equality
-open import Utility.Elem
-open import Utility.ListLemmas
+open import Utility.List.Elem
+open import Utility.List.Props
 open import Utility.Permutation
 open import Utility.Writer
 
