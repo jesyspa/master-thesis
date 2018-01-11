@@ -4,7 +4,6 @@ open import ThesisPrelude
 open import Carrier.Class
 open import Utility.BitVec
 open import Algebra.Function
-open import Algebra.Monad
 
 record DistMonad (D : Set → Set) : Set₁ where
   infix 4 _≡D_
