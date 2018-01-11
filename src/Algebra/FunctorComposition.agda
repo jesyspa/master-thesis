@@ -1,17 +1,18 @@
 import ThesisPrelude using (Functor)
-module Algebra.FunctorComposition {l l′ l′′} (F : Set l′  → Set l′′) (FF : ThesisPrelude.Functor F)
-                                             (G : Set l → Set l′)    (FG : ThesisPrelude.Functor G) where
+module Algebra.FunctorComposition {l l′ l′′} (F : Set l′  → Set l′′) {{FF : ThesisPrelude.Functor F}}
+                                             (G : Set l → Set l′)    {{FG : ThesisPrelude.Functor G}} where
 
 open import ThesisPrelude
-open import Algebra.FunctorProps F FF renaming (FunctorProps to FProps)
-open import Algebra.FunctorProps G FG renaming (FunctorProps to GProps; fmap-F to fmap-G)
+open import Algebra.FunctorProps F renaming (FunctorProps to FProps)
+open import Algebra.FunctorProps G renaming (FunctorProps to GProps; fmap-F to fmap-G)
 
-functor-composition : Functor (F ∘′ G)
-functor-composition = record { fmap = fmap-F ∘′ fmap-G }
+instance
+  functor-composition : Functor (F ∘′ G)
+  functor-composition = record { fmap = fmap-F ∘′ fmap-G }
 
-open import Algebra.FunctorProps (F ∘′ G) functor-composition renaming (FunctorProps to FGProps; fmap-F to fmap-FG)
+open import Algebra.FunctorProps (F ∘′ G) renaming (FunctorProps to FGProps; fmap-F to fmap-FG)
 
-module Props (FPF : FProps) (FPG : GProps) where
+module Props {{FPF : FProps}} {{FPG : GProps}} where
   open FProps
   open GProps
   open FGProps
@@ -43,8 +44,9 @@ module Props (FPF : FProps) (FPG : GProps) where
     fmap-FG g (fmap-FG f x)
     ∎
   
-  functor-props-composition : FGProps
-  functor-props-composition = record { fmap-ext = fmap-ext-composition
-                                     ; fmap-id = fmap-id-composition
-                                     ; fmap-comp = fmap-comp-composition
-                                     }
+  instance
+    functor-props-composition : FGProps
+    functor-props-composition = record { fmap-ext = fmap-ext-composition
+                                       ; fmap-id = fmap-id-composition
+                                       ; fmap-comp = fmap-comp-composition
+                                       }

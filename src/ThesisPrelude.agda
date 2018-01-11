@@ -24,3 +24,7 @@ open import Prelude.Equality.Inspect public
 open import Prelude.Strict public 
 open import Tactic.Nat public
 
+eq-as : ∀{l} (A : Set l) (x y : A) → Set l
+eq-as _ = _≡_
+
+syntax eq-as A x y = x ≡ y as A

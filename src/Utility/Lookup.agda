@@ -1,9 +1,7 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 module Utility.Lookup where
 
 open import ThesisPrelude
 open import Algebra.Function
-open import Algebra.Functor
 open import Algebra.Equality
 open import Utility.Elem
 open import Utility.ListLemmas
@@ -40,7 +38,7 @@ module _ {l} {A B : Set l} where
   Index-to-∈′ : ∀(a : A) (xs : List A) (f : A → A × B)
               → ((x : A) → x ≡ fst (f x))
               → Index a (map f xs) → a ∈ xs 
-  Index-to-∈′ a xs f eq p = transport (_∈_ a) (sym $ fmap-lift-ret fst f eq xs) (Index-to-∈ a (map f xs) p)
+  Index-to-∈′ a xs f eq p = transport (_∈_ a) (sym $ map-lift-ret fst f eq xs) (Index-to-∈ a (map f xs) p)
 
   ∈-to-Index-helper : ∀ (a : A) (xs : SearchList A B) (as : List A)
                     → as ≡ map fst xs → a ∈ as → Index a xs
@@ -58,7 +56,7 @@ module _ {l} {A B : Set l} where
   ∈-to-Index′ : ∀(a : A) (xs : List A) (f : A → A × B)
               → ((x : A) → x ≡ fst (f x))
               → a ∈ xs → Index a (map f xs)
-  ∈-to-Index′ a xs f eq p = ∈-to-Index a (map f xs) (transport (_∈_ a) (fmap-lift-ret fst f eq xs) p)
+  ∈-to-Index′ a xs f eq p = ∈-to-Index a (map f xs) (transport (_∈_ a) (map-lift-ret fst f eq xs) p)
 
   ∈-to-Index-Ret : ∀(a : A) (xs : SearchList A B)
                  → Retraction ∈-to-Index a xs of Index-to-∈ a xs
@@ -153,7 +151,11 @@ module _ {l} {A B : Set l} where
     annotate-Index-to-∈ a xs b p = Index-to-∈′ a xs (rev-pair b) (λ x → refl) p
 
     map-fst-annotate-Ret : (b : B) → Retraction map fst of annotate b
-    map-fst-annotate-Ret b xs = fmap-ext-id (fst ∘′ rev-pair b) (λ a → refl) xs ⟨≡⟩ map-comp fst (rev-pair b) xs
+    map-fst-annotate-Ret b xs = map-ext-id (fst ∘′ rev-pair b) (λ a → refl) xs ⟨≡⟩ map-comp fst (rev-pair b) xs
+
+    map-snd-annotate-const : (b : B) → (xs : List A) → map (const b) xs ≡ map snd (annotate b xs)
+    map-snd-annotate-const b [] = refl
+    map-snd-annotate-const b (x ∷ xs) rewrite sym (map-snd-annotate-const b xs) = refl
 
     comm-annotate : (a : A) (b : B) (xs : List A)
                   → annotate b (filter (isYes ∘ (_==_ a)) xs) ≡ filter-eq a (annotate b xs)
@@ -170,6 +172,10 @@ module _ {l} {A B : Set l} where
                              → (Index a xs ↔ Index a ys)
                              → combine-vals cmb a xs ≡ combine-vals cmb a ys
 
+    combine-vals-weak-invariant : ∀{r : Set l} (cmb : List B → r) (a : A) (xs : SearchList A B) (ys : List B)
+                                → ys ≡ filter-vals a xs
+                                → cmb ys ≡ combine-vals cmb a xs
+    combine-vals-weak-invariant cmb a xs ._ refl = refl
 
 
 

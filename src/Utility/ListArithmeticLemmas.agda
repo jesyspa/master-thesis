@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 module Utility.ListArithmeticLemmas where
 
 open import ThesisPrelude

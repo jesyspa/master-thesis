@@ -13,41 +13,6 @@ record DistMonad (D : Set → Set) : Set₁ where
     uniform : ∀ n → D (BitVec n)
     sample : ∀{A} → {{_ : Eq A}} → D A → A → carrier
     _≡D_ : ∀{A} → {{_ : Eq A}} → D A → D A → Set
-    overlap {{super-monad}} : Carrier carrier
-    overlap {{super-carrier}} : Monad D
+    overlap {{carrier-structure}} : Carrier carrier
+    overlap {{monad-structure}} : Monad D
 
-open DistMonad {{...}} public
-
-record DistMonadProps (D : Set → Set) {{DM : DistMonad D}} : Set₂ where
-  field
-    is-monad : MonadProps D
-    uniform-is-uniform : ∀ n (xs : BitVec n) → negpow2 n ≡ sample {{DM}} (uniform n) xs
-    uniform-bijection-invariant : ∀ n (f : BitVec n → BitVec n)
-                                → Bijective f
-                                → uniform {{DM}} n ≡D fmap f (uniform n)
-
--- The FPF paper/thesis suggests the following laws as well:
--- Commutativity:
--- a >>= λ x → b >>= λ y → f a b ≡D b >>= λ y → a >>= λ x → f a b
---
--- Distribution Irrelevance:
--- Given c : D A, f : A → D B, y : A, if for any x in the support of c,
--- sample (f x) y ≡ v for a fixed v, then sample (c >>= f) y ≡ v.
---
--- Distribution Isomorphism:
--- For any bijection f and any distributions c₁ and c₂, if f is the
--- relation between c₁ and c₂ then sampling x from c₁ is the same as
--- sampling f x from c₂.
---
--- Repeat Equivalence (irrelevant, we have no repeat)
---
--- Identical Until Bad
--- If c₁ and c₂ have the same chance of going bad and the distributions are
--- identical provided they do not go bad, then their difference is upper
--- bounded by their chance to go bad.
---
--- These laws are formulated with sequencing in mind, so rather than just
--- speaking of distributions, they speak of distributions and steps.  Maybe
--- that can be taken out to be a separate law?
-
-open DistMonadProps {{...}} public

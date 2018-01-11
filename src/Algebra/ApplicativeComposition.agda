@@ -1,16 +1,16 @@
 import ThesisPrelude using (Applicative)
-module Algebra.ApplicativeComposition {l l′ l′′} (F : Set l′ → Set l′′) (AF : ThesisPrelude.Applicative F)
-                                                 (G : Set l  → Set l′)  (AG : ThesisPrelude.Applicative G) where
+module Algebra.ApplicativeComposition {l l′ l′′} (F : Set l′ → Set l′′) {{AF : ThesisPrelude.Applicative F}}
+                                                 (G : Set l  → Set l′)  {{AG : ThesisPrelude.Applicative G}} where
 
 open import ThesisPrelude
 open import Algebra.ApplicativeHelpers
-open import Algebra.ApplicativeProps F AF renaming (ApplicativeProps to FAProps)
-open import Algebra.ApplicativeProps G AG renaming (ApplicativeProps to GAProps; pure-F to pure-G; _<*F>_ to _<*G>_)
-open import Algebra.FunctorProps F (super AF) renaming (FunctorProps to FFProps)
-open import Algebra.FunctorProps G (super AG) renaming (FunctorProps to GFProps; fmap-F to fmap-G)
-import Algebra.FunctorComposition F (super AF) G (super AG) as FComp
+open import Algebra.ApplicativeProps F renaming (ApplicativeProps to FAProps)
+open import Algebra.ApplicativeProps G renaming (ApplicativeProps to GAProps; pure-F to pure-G; _<*F>_ to _<*G>_)
+open import Algebra.FunctorProps F renaming (FunctorProps to FFProps)
+open import Algebra.FunctorProps G renaming (FunctorProps to GFProps; fmap-F to fmap-G)
+import Algebra.FunctorComposition F G as FComp
 open FComp using () renaming (functor-composition to FFG)
-open import Algebra.FunctorProps (F ∘′ G) FFG renaming (FunctorProps to FFGProps; fmap-F to fmap-FG)
+open import Algebra.FunctorProps (F ∘′ G) renaming (FunctorProps to FFGProps; fmap-F to fmap-FG)
 
 ap-F : ∀{A B} → F (A → B) → F A → F B
 ap-F = _<*F>_
@@ -20,16 +20,17 @@ ap-G = _<*G>_
 ap-FG : ∀ {A B : Set l} → F (G (A → B)) → F (G A) → F (G B)
 ap-FG u v = fmap-F ap-G u <*F> v
 
-applicative-composition : Applicative (F ∘′ G)
-applicative-composition = record { pure = pure-F ∘′ pure-G ; _<*>_ = ap-FG ; super = FFG }
+instance
+  applicative-composition : Applicative (F ∘′ G)
+  applicative-composition = record { pure = pure-F ∘′ pure-G ; _<*>_ = ap-FG ; super = FFG }
 
 module Props (APF : FAProps) (APG : GAProps) where
   open FFProps
   open GFProps
   open FAProps
   open GAProps
-  open FComp.Props (fprops APF) (fprops APG) renaming (functor-props-composition to FPFG)
-  open import Algebra.ApplicativeProps (F ∘′ G) applicative-composition
+  open FComp.Props renaming (functor-props-composition to FPFG)
+  open import Algebra.ApplicativeProps (F ∘′ G)
     renaming (ApplicativeProps to FGAProps; pure-F to pure-FG; _<*F>_ to _<*FG>_)
 
   <*>-composition-composition : ∀ {A B C} (u : F (G (B → C))) (v : F (G (A → B))) (w : F (G A))

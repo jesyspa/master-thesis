@@ -1,10 +1,9 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 module Utility.BitVec where
 
 open import ThesisPrelude
 open import Algebra.Function
-open import Algebra.Functor
 open import Algebra.Equality
+open import Algebra.ExactSize
 open import Utility.VecFuns
 open import Utility.VecProps
 open import Utility.ListLemmas
@@ -93,41 +92,64 @@ all-bitvecs-unique {suc n} (false ∷ v) p | left pl | ingraph ple
                                           pl)
 all-bitvecs-unique {suc n} (false ∷ v) p | right pr | _ = ⊥-elim (map-false-lem v (all-bitvecs n) pr)
 
-all-bitvecs-indexing-fun : ∀{n} {B : Set} (v : BitVec n) (b : B) → Index v [ v , b ] → Index v (annotate b (all-bitvecs n))
-all-bitvecs-indexing-fun {n} v b _ = ∈-to-annotate-Index v (all-bitvecs n) b (all-bitvecs-complete v)
+module _ {B : Set} where
+  all-bitvecs-indexing-fun : ∀{n} (v : BitVec n) (b : B) → Index v [ v , b ] → Index v (annotate b (all-bitvecs n))
+  all-bitvecs-indexing-fun {n} v b _ = ∈-to-annotate-Index v (all-bitvecs n) b (all-bitvecs-complete v)
+  
+  all-bitvecs-indexing-inv : ∀{n} (v : BitVec n) (b : B) → Index v (annotate b (all-bitvecs n)) → Index v [ v , b ]
+  all-bitvecs-indexing-inv {n} v b _ = here v b []
+  
+  all-bitvecs-indexing-Ret : ∀{n} (v : BitVec n) (b : B)
+                           → Retraction all-bitvecs-indexing-inv v b of all-bitvecs-indexing-fun v b
+  all-bitvecs-indexing-Ret v b (here .v .b .[]) = refl
+  all-bitvecs-indexing-Ret v b (there .v .(v , b) .[] ())
+  
+  all-bitvecs-indexing-Sec : ∀{n} (v : BitVec n) (b : B)
+                           → Section all-bitvecs-indexing-inv v b of all-bitvecs-indexing-fun v b
+  all-bitvecs-indexing-Sec {n} v b p = Index-to-∈-Inj v (annotate b (all-bitvecs n)) pk 
+    where p-ret : all-bitvecs n ≡ map fst (annotate b (all-bitvecs n))
+          p-ret = map-lift-ret fst (rev-pair b) (λ a → refl) (all-bitvecs n)
+          pk : Index-to-∈ v (annotate b (all-bitvecs n)) p ≡
+               Index-to-∈ v (annotate b (all-bitvecs n)) (∈-to-annotate-Index v (all-bitvecs n) b (all-bitvecs-complete v))
+          pk =
+            Index-to-∈ v (annotate b (all-bitvecs n)) p
+              ≡⟨ flip-transport (_∈_ v)
+                                p-ret
+                                (all-bitvecs-complete v)
+                                (Index-to-∈ v (annotate b (all-bitvecs n)) p)
+                                (sym (all-bitvecs-unique v (transport (_∈_ v) (sym p-ret) (Index-to-∈ v (annotate b (all-bitvecs n)) p))) ) ⟩ʳ
+            transport (_∈_ v) p-ret (all-bitvecs-complete v)
+              ≡⟨ Index-to-∈-Ret v (map (rev-pair b) (all-bitvecs n))
+                                  (transport (_∈_ v) p-ret (all-bitvecs-complete v)) ⟩
+            Index-to-∈ v (annotate b (all-bitvecs n))
+                         (∈-to-Index v (annotate b (all-bitvecs n))
+                         (transport (_∈_ v) p-ret (all-bitvecs-complete v)))
+              ≡⟨ refl ⟩
+            Index-to-∈ v (annotate b (all-bitvecs n)) (∈-to-annotate-Index v (all-bitvecs n) b (all-bitvecs-complete v))
+            ∎
+  
+  all-bitvecs-indexing : ∀{n} (v : BitVec n) (b : B) → Index v [ v , b ] ↔ Index v (annotate b (all-bitvecs n))
+  all-bitvecs-indexing v b = all-bitvecs-indexing-fun v b , all-bitvecs-indexing-inv v b , all-bitvecs-indexing-Ret v b , all-bitvecs-indexing-Sec v b
 
-all-bitvecs-indexing-inv : ∀{n} {B : Set} (v : BitVec n) (b : B) → Index v (annotate b (all-bitvecs n)) → Index v [ v , b ]
-all-bitvecs-indexing-inv {n} v b _ = here v b []
+  all-bitvecs-size : ∀{n} (v : BitVec n) → HasSize (v ∈ all-bitvecs n) 1
+  all-bitvecs-size {n} v = size1-lem (v ∈ all-bitvecs n) (all-bitvecs-complete v) (all-bitvecs-unique v)
+  
+  filter-bitvecs-lem : ∀{n} (v : BitVec n) → [ v ] ≡ filter (isYes ∘ (_==_ v)) (all-bitvecs n)
+  filter-bitvecs-lem {n} v = singleton-elem v (all-bitvecs n) (all-bitvecs-size v)
 
-all-bitvecs-indexing-Ret : ∀{n} {B : Set} (v : BitVec n) (b : B)
-                         → Retraction all-bitvecs-indexing-inv v b of all-bitvecs-indexing-fun v b
-all-bitvecs-indexing-Ret v b (here .v .b .[]) = refl
-all-bitvecs-indexing-Ret v b (there .v .(v , b) .[] ())
 
-all-bitvecs-indexing-Sec : ∀{n} {B : Set} (v : BitVec n) (b : B)
-                         → Section all-bitvecs-indexing-inv v b of all-bitvecs-indexing-fun v b
-all-bitvecs-indexing-Sec {n} v b p = Index-to-∈-Inj v (annotate b (all-bitvecs n)) pk 
-  where p-ret : all-bitvecs n ≡ map fst (annotate b (all-bitvecs n))
-        p-ret = fmap-lift-ret fst (rev-pair b) (λ a → refl) (all-bitvecs n)
-        pk : Index-to-∈ v (annotate b (all-bitvecs n)) p ≡
-             Index-to-∈ v (annotate b (all-bitvecs n)) (∈-to-annotate-Index v (all-bitvecs n) b (all-bitvecs-complete v))
-        pk =
-          Index-to-∈ v (annotate b (all-bitvecs n)) p
-            ≡⟨ flip-transport (_∈_ v)
-                              p-ret
-                              (all-bitvecs-complete v)
-                              (Index-to-∈ v (annotate b (all-bitvecs n)) p)
-                              (sym (all-bitvecs-unique v (transport (_∈_ v) (sym p-ret) (Index-to-∈ v (annotate b (all-bitvecs n)) p))) ) ⟩ʳ
-          transport (_∈_ v) p-ret (all-bitvecs-complete v)
-            ≡⟨ Index-to-∈-Ret v (map (rev-pair b) (all-bitvecs n))
-                                (transport (_∈_ v) p-ret (all-bitvecs-complete v)) ⟩
-          Index-to-∈ v (annotate b (all-bitvecs n))
-                       (∈-to-Index v (annotate b (all-bitvecs n))
-                       (transport (_∈_ v) p-ret (all-bitvecs-complete v)))
-            ≡⟨ refl ⟩
-          Index-to-∈ v (annotate b (all-bitvecs n)) (∈-to-annotate-Index v (all-bitvecs n) b (all-bitvecs-complete v))
-          ∎
+  all-bitvecs-filter-vals : ∀{n} (v : BitVec n) (b : B)
+                          → [ b ] ≡ filter-vals v (annotate b (all-bitvecs n))
+  all-bitvecs-filter-vals {n} v b =
+    [ b ]
+      ≡⟨ refl ⟩
+    map (const b) [ v ]
+      ≡⟨ map-snd-annotate-const b ([ v ]) ⟩
+    map snd (annotate b [ v ]) 
+      ≡⟨ cong (λ e → map snd (annotate b e)) (filter-bitvecs-lem v) ⟩
+    map snd (annotate b (filter (isYes ∘ (_==_ v)) (all-bitvecs n)))
+      ≡⟨ cong (map snd) (comm-annotate v b (all-bitvecs n)) ⟩
+    filter-vals v (annotate b (all-bitvecs n))
+    ∎
 
-all-bitvecs-indexing : ∀{n} {B : Set} (v : BitVec n) (b : B) → Index v [ v , b ] ↔ Index v (annotate b (all-bitvecs n))
-all-bitvecs-indexing v b = all-bitvecs-indexing-fun v b , all-bitvecs-indexing-inv v b , all-bitvecs-indexing-Ret v b , all-bitvecs-indexing-Sec v b
 

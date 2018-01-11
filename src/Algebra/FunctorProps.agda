@@ -1,11 +1,11 @@
 import ThesisPrelude using (Functor)
-module Algebra.FunctorProps {l l′} (F : Set l → Set l′) (FF : ThesisPrelude.Functor F) where
+module Algebra.FunctorProps {l l′} (F : Set l → Set l′) {{FF : ThesisPrelude.Functor F}} where
 
 open import ThesisPrelude
 open import Algebra.Function
 
 fmap-F : ∀{A B} → (A → B) → F A → F B
-fmap-F = fmap {{FF}}
+fmap-F = fmap 
 
 record FunctorProps : Set (lsuc l ⊔ l′) where
   field

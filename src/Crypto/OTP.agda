@@ -1,14 +1,19 @@
-module Crypto.OTP where
+open import Carrier.Class using (Carrier; CarrierProps)
+module Crypto.OTP (Q : Set) {{CQ : Carrier Q}} {{CPQ : CarrierProps Q}} where
 
 open import ThesisPrelude
 open import Crypto.Syntax
 open import Utility.BitVec
-open import Algebra.Monad
 open import Distribution.Class
-open import Distribution.List
-open import Distribution.ListProps
-open import Crypto.Valuation
+open import Distribution.List Q
+open import Distribution.ListProps Q
+open import Distribution.PropsClass ListDist {{DistMonadListDist}}
+open import Algebra.MonadProps ListDist
+open import Crypto.Valuation ListDist {{DistMonadListDist}}
 open import Carrier.Class
+open DistMonad {{...}}
+open DistMonadProps {{...}}
+open MonadProps
 
 expr-A : ∀ n (xs : BitVec n) → CryptoExpr (BitVec n)
 expr-A n xs = fmap (bitvec-xor xs) (uniform-expr n)
@@ -16,35 +21,19 @@ expr-A n xs = fmap (bitvec-xor xs) (uniform-expr n)
 expr-B : ∀ n → CryptoExpr (BitVec n)
 expr-B n = uniform-expr n
 
--- Or at least for *some* DistMonad.
-otp-goal : ∀ M n xs → {{_ : DistMonad M}} →  eval expr-A n xs as M ≡D eval expr-B n as M
-otp-goal M n xs = {!!}
-
-otp-goal-list : ∀{Q} (n : Nat) (xs : BitVec n) {{_ : Carrier Q}}
-              → eval expr-A n xs as ListDist Q ≡D eval expr-B n as ListDist Q
-otp-goal-list {Q} n xs = sample-equiv λ a →
-  sample-LD (eval expr-A n xs as ListDist Q) a
+otp-goal-list : ∀ (n : Nat) (xs : BitVec n)
+              → ⟦ expr-A n xs ⟧ ≡D ⟦ expr-B n ⟧
+otp-goal-list n xs = sample-equiv λ a →
+  sample-LD ⟦ expr-A n xs ⟧ a
     ≡⟨ refl ⟩
   sample-LD (uniform-LD n >>= (λ ys → return (bitvec-xor xs ys))) a
-    ≡⟨ cong (λ e → sample-LD e a) (sym (return-simplify {{_}} {{MonadPropsListDist}} (bitvec-xor xs) (uniform-LD n))) ⟩
+    ≡⟨ cong (λ e → sample-LD e a) (sym (return-simplify MonadPropsListDist (bitvec-xor xs) (uniform-LD n))) ⟩
   sample-LD (fmap (bitvec-xor xs) (uniform-LD n)) a
-    ≡⟨ {!!} ⟩ -- this is the hard part
+    ≡⟨ sample-invariant (uniform-LD-bijection-invariant n (bitvec-xor xs) (bitvec-xor-Bij xs)) a ⟩
   sample-LD (uniform-LD n) a
-    ≡⟨ cong (λ e → sample-LD e a) (return->>=-right-id {{_}} {{MonadPropsListDist}} (uniform-LD n)) ⟩
-  sample-LD (uniform-LD n >>= pure-LD) a
+    ≡⟨ cong (λ e → sample-LD e a) (return->>=-right-id MonadPropsListDist (uniform-LD n)) ⟩
+  sample-LD (uniform-LD n >>= return {{MonadListDist}}) a
     ≡⟨ refl ⟩
-  sample-LD (eval expr-B n as ListDist Q) a
+  sample-LD (⟦ expr-B n ⟧) a
   ∎
 
-otp-subgoal : ∀{Q} {{CQ : Carrier Q}} (n : Nat) (xs ys : BitVec n)
-            → sample-LD {{CQ}} (fmap (bitvec-xor xs) (uniform-LD n)) ys ≡ sample-LD (uniform-LD n) ys
-otp-subgoal .0 [] [] = refl
-otp-subgoal {{CQ}} (suc n) (x ∷ xs) ys =
-  sample-LD {{CQ}} (fmap (bitvec-xor (x ∷ xs)) (uniform-LD (suc n))) ys
-    ≡⟨ refl ⟩
-  sum (map snd (filter (isYes ∘ (_==_ ys) ∘ fst) (fmap (bitvec-xor (x ∷ xs)) (uniform-LD (suc n)))))
-    ≡⟨ {!!} ⟩  -- this does not seem to be very fruitful
-  sum (map snd (filter (isYes ∘ (_==_ ys) ∘ fst) (uniform-LD (suc n))))
-    ≡⟨ refl ⟩
-  sample-LD (uniform-LD (suc n)) ys
-  ∎

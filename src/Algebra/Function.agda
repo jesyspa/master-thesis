@@ -2,10 +2,10 @@ module Algebra.Function where
 
 open import ThesisPrelude
 
-Injective : ∀{l} {A B : Set l} → (A → B) → Set l
+Injective : ∀{l l′} {A : Set l} {B : Set l′} → (A → B) → Set (l ⊔ l′)
 Injective {A = A} f = {x y : A} → f x ≡ f y → x ≡ y
 
-comp-Injective : ∀{l} {A B C : Set l}
+comp-Injective : ∀{l l′ l′′} {A : Set l} {B : Set l′} {C : Set l′′}
                → (g : B → C) → (f : A → B)
                → Injective g
                → Injective f
@@ -16,10 +16,10 @@ id-Injective : ∀{l} {A : Set l}
              → Injective {A = A} id
 id-Injective p = p 
 
-Surjective : ∀{l} {A B : Set l} → (A → B) → Set l
+Surjective : ∀{l l′} {A : Set l} {B : Set l′} → (A → B) → Set (l ⊔ l′)
 Surjective {A = A} {B = B} f = (y : B) → Σ A λ x → y ≡ f x
 
-comp-Surjective : ∀{l} {A B C : Set l}
+comp-Surjective : ∀{l l′ l′′} {A : Set l} {B : Set l′} {C : Set l′′}
                 → (g : B → C) → (f : A → B)
                 → Surjective g
                 → Surjective f
@@ -34,36 +34,36 @@ id-Surjective : ∀{l} {A : Set l}
 id-Surjective y = y , refl
 
 -- g is a retraction of f 
-Retraction_of_ : ∀{l} {A B : Set l} (g : B → A) (f : A → B) → Set l
+Retraction_of_ : ∀{l l′} {A : Set l} {B : Set l′} (g : B → A) (f : A → B) → Set l
 Retraction_of_ {A = A} g f = (a : A) → a ≡ g (f a) 
 
-Section_of_ : ∀{l} {A B : Set l} (g : B → A) (f : A → B) → Set l
+Section_of_ : ∀{l l′} {A : Set l} {B : Set l′} (g : B → A) (f : A → B) → Set l′
 Section g of f = Retraction f of g
 
-Bijective : ∀{l} {A B : Set l} → (A → B) → Set l
+Bijective : ∀{l l′} {A : Set l} {B : Set l′} → (A → B) → Set (l ⊔ l′)
 Bijective {A = A} {B = B} f = Σ (B → A) λ g → Section f of g × Retraction f of g 
 
-InjSurj-to-Bij : ∀{l} {A B : Set l}
+InjSurj-to-Bij : ∀{l l′} {A : Set l} {B : Set l′}
                → (f : A → B)
                → Injective f
                → Surjective f
                → Bijective f
 InjSurj-to-Bij f pi ps = fst ∘ ps , (λ a → pi (snd $ ps $ f a)) , snd ∘ ps
 
-Bij-to-Inj : ∀{l} {A B : Set l}
+Bij-to-Inj : ∀{l l′} {A : Set l} {B : Set l′}
            → (f : A → B)
            → Bijective f
            → Injective f
 Bij-to-Inj f (g , pa , pb) {x} {y} = λ p → pa x ⟨≡⟩ cong g p ⟨≡⟩ʳ pa y
 
-Bij-to-Surj : ∀{l} {A B : Set l}
+Bij-to-Surj : ∀{l l′} {A : Set l} {B : Set l′}
             → (f : A → B)
             → Bijective f
             → Surjective f
 Bij-to-Surj f (g , pa , pb) = λ y → g y , pb y
 
 
-comp-Bijective : ∀{l} {A B C : Set l}
+comp-Bijective : ∀{l l′ l′′} {A : Set l} {B : Set l′} {C : Set l′′}
                 → (g : B → C) → (f : A → B)
                 → Bijective g
                 → Bijective f
@@ -77,14 +77,14 @@ id-Bijective : ∀{l} {A : Set l}
 id-Bijective = (λ x → x) , (λ x → refl) , (λ x → refl)
 
 infix 2 _↔_
-_↔_ : ∀{l} (A B : Set l) → Set l
+_↔_ : ∀{l l′} (A : Set l) (B : Set l′) → Set (l ⊔ l′)
 A ↔ B = Σ (A → B) Bijective
 
-get-fun : ∀{l} {A B : Set l}
+get-fun : ∀{l l′} {A : Set l} {B : Set l′}
         → A ↔ B → A → B
 get-fun = fst
 
-get-inv : ∀{l} {A B : Set l}
+get-inv : ∀{l l′} {A : Set l} {B : Set l′}
         → A ↔ B → B → A
 get-inv = fst ∘ snd
 
@@ -92,12 +92,12 @@ get-inv = fst ∘ snd
        → A ↔ A
 ↔-refl A = id , id-Bijective
 
-↔-sym : ∀{l} (A B : Set l)
+↔-sym : ∀{l l′} (A : Set l) (B : Set l′)
       → A ↔ B
       → B ↔ A
 ↔-sym A B (f , g , pfg , pgf) = g , f , pgf , pfg
 
-↔-trans : ∀{l} (A B C : Set l)
+↔-trans : ∀{l l′ l′′} (A : Set l) (B : Set l′) (C : Set l′′)
         → A ↔ B → B ↔ C
         → A ↔ C
 ↔-trans A B C (f , pf) (g , pg) = g ∘′ f , comp-Bijective g f pg pf 

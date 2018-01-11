@@ -3,10 +3,7 @@ module Utility.ListLemmas where
 
 open import ThesisPrelude
 open import Algebra.Monoid
-open import Algebra.Functor
 open import Algebra.Function
-open import Algebra.Applicative
-open import Algebra.Monad
 
 ∷-list-Inj : ∀{l} {A : Set l} (x : A)
         → Injective (List._∷_ {A = A} x)
@@ -24,7 +21,7 @@ instance
   MonoidPropsList : ∀{l} {A : Set l} → MonoidProps (List A)
   MonoidPropsList = record { op-assoc = list-++-assoc ; unit-left = λ a → refl ; unit-right = list-++-right-identity }
 
-map-ext : ∀{l} {A B : Set l}
+map-ext : ∀{l l′} {A : Set l} {B : Set l′}
         → (f g : A → B)
         → (∀ a → f a ≡ g a)
         → (xs : List A)
@@ -38,12 +35,12 @@ map-id : ∀{l} {A : Set l}
 map-id [] = refl
 map-id (x ∷ xs) rewrite sym (map-id xs) = refl
 
-map-comp : ∀{l} {A B C : Set l} (g : B → C) (f : A → B) (xs : List A)
-         → fmap (g ∘′ f) xs ≡ fmap g (fmap f xs)
+map-comp : ∀{l l′ l′′} {A : Set l} {B : Set l′} {C : Set l′′} (g : B → C) (f : A → B) (xs : List A)
+         → map (g ∘′ f) xs ≡ map g (map f xs)
 map-comp g f [] = refl
-map-comp g f (x ∷ xs) rewrite map-comp g f xs = refl
+map-comp g f (x ∷ xs) rewrite sym (map-comp g f xs) = refl
 
-map-append-dist : ∀{l} {A B : Set l}
+map-append-dist : ∀{l l′} {A : Set l} {B : Set l′}
                 → (f : A → B)
                 → (xs ys : List A)
                 → map f (xs ++ ys) ≡ map f xs ++ map f ys 
@@ -198,25 +195,39 @@ list-<*>-is-ap xs ys = cong concat (map-ext (λ z → map z ys) (λ x → concat
            concat (map (λ y → a y ∷ []) ys)
            ∎
 
+open import Algebra.FunctorProps List using (FunctorProps)
+open import Algebra.ApplicativeProps List using (ApplicativeProps)
+open import Algebra.MonadProps List using (MonadProps)
 instance
-  FunctorPropsList : ∀{l} → FunctorProps {l} List
+  FunctorPropsList : FunctorProps
   FunctorPropsList = record { fmap-ext = map-ext ; fmap-id = map-id ; fmap-comp = map-comp }
 
-  ApplicativePropsList : ∀{l} → ApplicativeProps {l} List
+  ApplicativePropsList : ApplicativeProps
   ApplicativePropsList = record
                            { <*>-composition = list-<*>-composition
                            ; <*>-homomorphism = list-<*>-homomorphism
                            ; <*>-interchange = list-<*>-interchange
                            ; fmap-is-pure-<*> = list-fmap-is-pure-<*>
+                           ; fprops = FunctorPropsList
                            }
 
-  MonadPropsList : ∀{l} → MonadProps {l} List
+  MonadPropsList : MonadProps
   MonadPropsList = record
                      { >>=-assoc = list->>=-assoc
                      ; return->>=-right-id = list-return->>=-right-id
                      ; return->>=-left-id = list-return->>=-left-id
                      ; <*>-is-ap = list-<*>-is-ap
+                     ; aprops = ApplicativePropsList
                      }
+
+map-ext-id : ∀{l} {A : Set l} (f : A → A) → (∀ a → a ≡ f a) → (xs : List A)
+           → xs ≡ map f xs
+map-ext-id = FunctorProps.fmap-ext-id FunctorPropsList
+
+map-lift-ret : ∀{l} {A B : Set l} (g : B → A) (f : A → B)
+             → Retraction g of f
+             → Retraction map g of map f
+map-lift-ret = FunctorProps.fmap-lift-ret FunctorPropsList
 
 
 filter-reduction-identity : ∀{l} {A B : Set l} (g : B → A) (f : A → B) (p : A → Bool) (xs : List A)
