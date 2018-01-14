@@ -1,11 +1,13 @@
-module Utility.List.Arithmetic where
+open import ThesisPrelude using (Semiring)
+module Utility.List.Arithmetic (A : Set) {{SA : Semiring A}} where
 
 open import ThesisPrelude
 open import Algebra.Function
-open import Probability.Class
+open import Algebra.SemiringProps A
+open SemiringProps {{...}}
 
-module _ {A : Set} {{_ : Probability A}} {{_ : ProbabilityProps A}} where
-  singleton-sum-id : Retraction_of_ {A = A} sum [_]
+module _ {{_ : SemiringProps}} where
+  singleton-sum-id : Retraction sum {A = A} of [_]
   singleton-sum-id x =
     x
       ≡⟨ +-unit-left x ⟩
