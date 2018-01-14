@@ -1,5 +1,5 @@
-open import Carrier.Class using (Carrier; CarrierProps)
-module Crypto.OTP (Q : Set) {{CQ : Carrier Q}} {{CPQ : CarrierProps Q}} where
+open import Probability.Class using (Probability; ProbabilityProps)
+module Crypto.OTP (Q : Set) {{CQ : Probability Q}} {{CPQ : ProbabilityProps Q}} where
 
 open import ThesisPrelude
 open import Crypto.Syntax
@@ -10,7 +10,7 @@ open import Distribution.ListProps Q
 open import Distribution.PropsClass ListDist {{DistMonadListDist}}
 open import Algebra.MonadProps ListDist
 open import Crypto.Valuation ListDist {{DistMonadListDist}}
-open import Carrier.Class
+open import Probability.Class
 open DistMonad {{...}}
 open DistMonadProps {{...}}
 open MonadProps

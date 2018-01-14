@@ -2,7 +2,7 @@ open import Distribution.Class using (DistMonad)
 module Crypto.Valuation (M : Set → Set) {{DM : DistMonad M}} where
 
 open import ThesisPrelude
-open import Carrier.Class
+open import Probability.Class
 open import Distribution.Class
 open DistMonad {{...}}
 open import Crypto.Syntax

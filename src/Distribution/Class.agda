@@ -1,17 +1,17 @@
 module Distribution.Class where
 
 open import ThesisPrelude
-open import Carrier.Class
+open import Probability.Class
 open import Utility.Vector.BitVec
 open import Algebra.Function
 
 record DistMonad (D : Set → Set) : Set₁ where
   infix 4 _≡D_
   field
-    carrier : Set
+    probability : Set
     uniform : ∀ n → D (BitVec n)
-    sample : ∀{A} → {{_ : Eq A}} → D A → A → carrier
+    sample : ∀{A} → {{_ : Eq A}} → D A → A → probability
     _≡D_ : ∀{A} → {{_ : Eq A}} → D A → D A → Set
-    overlap {{carrier-structure}} : Carrier carrier
+    overlap {{carrier-structure}} : Probability probability
     overlap {{monad-structure}} : Monad D
 

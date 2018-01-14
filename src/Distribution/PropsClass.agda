@@ -4,7 +4,7 @@ module Distribution.PropsClass (F : Set → Set) {{DF : DistMonad F}} where
 open DistMonad {{...}}
 
 open import ThesisPrelude
-open import Carrier.Class
+open import Probability.Class
 open import Algebra.MonadProps F
 open import Algebra.FunctorProps F
 open import Utility.Vector.BitVec

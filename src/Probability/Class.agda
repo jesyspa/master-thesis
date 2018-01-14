@@ -1,25 +1,24 @@
-module Carrier.Class where
+module Probability.Class where
 
 open import ThesisPrelude
 open import Algebra.Monoid
 open import Algebra.Preorder
 
--- A carrier is a Semiring that is also an Ord.
--- Can we express that somehow?
+-- A probability is a Semiring that is also an Ord and supports negative powers of two.
 
-record Carrier (A : Set) : Set₁ where
+record Probability (A : Set) : Set₁ where
   field
     overlap {{super-semiring}} : Semiring A
     overlap {{super-ord}} : Ord A
     pow2 : Nat → A
     negpow2 : Nat → A
 
-open Carrier {{...}} public
+open Probability {{...}} public
 
-{-# DISPLAY Carrier.pow2 _ n = pow2 n #-}
-{-# DISPLAY Carrier.negpow2 _ n = negpow2 n #-}
+{-# DISPLAY Probability.pow2 _ n = pow2 n #-}
+{-# DISPLAY Probability.negpow2 _ n = negpow2 n #-}
 
-record CarrierProps (A : Set) {{C : Carrier A}} : Set where
+record ProbabilityProps (A : Set) {{C : Probability A}} : Set where
   field
     +-is-comm-monoid    : CommMonoidProps A {{+-monoid}}
     *-is-monoid         : MonoidProps A {{*-monoid}}
@@ -29,7 +28,7 @@ record CarrierProps (A : Set) {{C : Carrier A}} : Set where
     zro-right-nil       : (a : A) → a ≡ a * zro
     ≤-is-preorder       : PreorderProps A
     zro-minimum         : (a : A) → zro ≤ a
-    -- TODO: Figure out why we need the 'Carrier.' here
+    -- TODO: Figure out why we need the 'Probability.' here
     pow2-add            : ∀ n → pow2 {{C}} (suc n) ≡ pow2 n + pow2 n
     negpow2-add         : ∀ n → negpow2 {{C}} n ≡ negpow2 (suc n) + pow2 (suc n)
     pow2-negpow2-cancel : ∀ n → one ≡ pow2 {{C}} n * negpow2 n
@@ -52,4 +51,4 @@ record CarrierProps (A : Set) {{C : Carrier A}} : Set where
     negpow2 zro
     ∎
 
-open CarrierProps {{...}} public
+open ProbabilityProps {{...}} public

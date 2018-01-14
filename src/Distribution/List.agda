@@ -1,9 +1,9 @@
-open import Carrier.Class using (Carrier)
-module Distribution.List (Q : Set) {{QC : Carrier Q}} where
+open import Probability.Class using (Probability)
+module Distribution.List (Q : Set) {{QC : Probability Q}} where
 
 open import ThesisPrelude
 open import Distribution.Class
-open import Carrier.Class
+open import Probability.Class
 open import Algebra.Monoid
 open import Utility.Vector.BitVec
 open import Utility.Writer Q {{*-monoid}}
@@ -50,7 +50,7 @@ data _≡LD_ {A} {{_ : Eq A}} : ListDist A → ListDist A → Set where
 
 instance
   DistMonadListDist : DistMonad ListDist
-  DistMonadListDist = record { carrier = Q
+  DistMonadListDist = record { probability = Q
                              ; uniform = uniform-LD
                              ; sample = sample-LD
                              ; _≡D_ = _≡LD_

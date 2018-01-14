@@ -1,5 +1,5 @@
-open import Carrier.Class using (Carrier; CarrierProps)
-module Distribution.ListProps (Q : Set) {{QC : Carrier Q}} {{QCP : CarrierProps Q}} where
+open import Probability.Class using (Probability; ProbabilityProps)
+module Distribution.ListProps (Q : Set) {{QC : Probability Q}} {{QCP : ProbabilityProps Q}} where
 
 open import ThesisPrelude
 open import Distribution.Class
@@ -7,7 +7,7 @@ open import Distribution.List Q
 open import Algebra.Function
 open import Algebra.Monoid
 open import Algebra.Equality
-open import Carrier.Class
+open import Probability.Class
 open import Utility.List.Props
 open import Utility.List.Arithmetic
 open import Utility.List.Lookup

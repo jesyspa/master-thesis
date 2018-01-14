@@ -2,9 +2,9 @@ module Utility.List.Arithmetic where
 
 open import ThesisPrelude
 open import Algebra.Function
-open import Carrier.Class
+open import Probability.Class
 
-module _ {A : Set} {{_ : Carrier A}} {{_ : CarrierProps A}} where
+module _ {A : Set} {{_ : Probability A}} {{_ : ProbabilityProps A}} where
   singleton-sum-id : Retraction_of_ {A = A} sum [_]
   singleton-sum-id x =
     x
