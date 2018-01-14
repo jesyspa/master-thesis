@@ -1,4 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 module Utility.Permutation where
 
 open import ThesisPrelude

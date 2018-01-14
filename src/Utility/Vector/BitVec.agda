@@ -8,7 +8,9 @@ open import Utility.Vector.Functions
 open import Utility.Vector.Props
 open import Utility.List.Props
 open import Utility.List.Elem
+open import Utility.List.ElemProps
 open import Utility.List.Lookup
+open import Utility.List.LookupProps
 open import Utility.Bool
 open import Utility.Writer
 

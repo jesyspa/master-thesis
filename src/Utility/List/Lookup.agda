@@ -5,7 +5,6 @@ open import Algebra.Function
 open import Algebra.Equality
 open import Utility.List.Elem
 open import Utility.List.Props
-open import Utility.Permutation
 open import Utility.Writer
 
 SearchList : ∀ {l} (A B : Set l) → Set l
@@ -25,15 +24,6 @@ module _ {l} {A B : Set l} where
              → Index a xs → a ∈ map fst xs
   Index-to-∈ a .((a , b) ∷ xs) (here .a b xs) = here a (map fst xs)
   Index-to-∈ a .(x ∷ xs) (there .a x xs p) = there a (fst x) (map fst xs) (Index-to-∈ a xs p)
-
-  Index-to-∈-Inj : ∀(a : A) (xs : SearchList A B)
-                 → Injective (Index-to-∈ a xs)
-  Index-to-∈-Inj a [] {()} {()} eq
-  Index-to-∈-Inj a (.(a , b) ∷ xs) {here .a b .xs} {here .a .b .xs} eq = refl
-  Index-to-∈-Inj a (.(a , b) ∷ xs) {here .a b .xs} {there .a .(a , b) .xs q} ()
-  Index-to-∈-Inj a (.(a , b) ∷ xs) {there .a .(a , b) .xs p} {here .a b .xs} ()
-  Index-to-∈-Inj a (x ∷ xs) {there .a .x .xs p} {there .a .x .xs q} eq
-    rewrite Index-to-∈-Inj a xs (there-Inj eq) = refl
 
   Index-to-∈′ : ∀(a : A) (xs : List A) (f : A → A × B)
               → ((x : A) → x ≡ fst (f x))
@@ -58,31 +48,12 @@ module _ {l} {A B : Set l} where
               → a ∈ xs → Index a (map f xs)
   ∈-to-Index′ a xs f eq p = ∈-to-Index a (map f xs) (transport (_∈_ a) (map-lift-ret fst f eq xs) p)
 
-  ∈-to-Index-Ret : ∀(a : A) (xs : SearchList A B)
-                 → Retraction ∈-to-Index a xs of Index-to-∈ a xs
-  ∈-to-Index-Ret a .((a , b) ∷ xs) (here .a b xs) = refl
-  ∈-to-Index-Ret a .(x ∷ xs) (there .a x xs p)
-    rewrite sym (∈-to-Index-Ret a xs p) = refl
+  rev-pair : B → A → A × B
+  rev-pair = flip _,_
 
-  Index-to-∈-Ret : ∀(a : A) (xs : SearchList A B)
-                 → Retraction Index-to-∈ a xs of ∈-to-Index a xs
-  Index-to-∈-Ret a [] ()
-  Index-to-∈-Ret .(fst x) (x ∷ xs) (here .(fst x) .(map fst xs)) with x
-  ... | a , b = refl
-  Index-to-∈-Ret a (x ∷ xs) (there .a .(fst x) .(map fst xs) p) with x
-  ... | a′ , b rewrite sym (Index-to-∈-Ret a xs p) = refl
+  annotate : (b : B) (xs : List A) → SearchList A B
+  annotate = map ∘′ rev-pair 
 
-  ∈-to-Index-Inj : ∀(a : A) (xs : SearchList A B)
-                 → Injective (∈-to-Index a xs)
-  ∈-to-Index-Inj a [] {()} {()} eq
-  ∈-to-Index-Inj ._ (x ∷ xs) {here ._ ._} {here ._ ._} refl = refl
-  ∈-to-Index-Inj ._ (x ∷ xs) {here ._ ._} {there ._ ._ ._ q} eq with x
-  ∈-to-Index-Inj ._ (x ∷ xs) {here ._ ._} {there ._ ._ ._ q} () | a′ , b
-  ∈-to-Index-Inj ._ (x ∷ xs) {there ._ ._ ._ p} {here ._ ._} eq with x
-  ∈-to-Index-Inj ._ (x ∷ xs) {there ._ ._ ._ p} {here ._ ._} () | a′ , b
-  ∈-to-Index-Inj a (x ∷ xs) {there .a ._ ._ p} {there .a ._ ._ q} eq with x
-  ... | a′ , b rewrite sym (∈-to-Index-Inj a xs (Index-there-Inj eq)) = refl
-  
   module _ {{_ : Eq A}} where
     filter-eq : ∀ (a : A) (xs : SearchList A B)
               → SearchList A B
@@ -115,16 +86,6 @@ module _ {l} {A B : Set l} where
                       → Index a (filter-eq a xs) → Index a xs
     filter-eq-extract a xs p = filter-eq-extract-helper a xs (filter-eq a xs) refl p
     
-    postulate
-      filter-eq-embed-Sec : ∀ (a : A) (xs : SearchList A B)
-                          → Section filter-eq-embed a xs of filter-eq-extract a xs
-      filter-eq-embed-Ret : ∀ (a : A) (xs : SearchList A B)
-                          → Retraction filter-eq-embed a xs of filter-eq-extract a xs
-    
-    filter-eq-correct : ∀ (a : A) (xs : SearchList A B)
-                      → Index a xs ↔ Index a (filter-eq a xs)
-    filter-eq-correct a xs = filter-eq-embed a xs , filter-eq-extract a xs , filter-eq-embed-Sec a xs , filter-eq-embed-Ret a xs
-
     filter-eq-idempotent : ∀(a : A) (xs : SearchList A B)
                          → filter-eq a xs ≡ filter-eq a (filter-eq a xs)
     filter-eq-idempotent a [] = refl
@@ -136,12 +97,6 @@ module _ {l} {A B : Set l} where
                         → [ b ] ≡ filter-vals a [ a , b ]
     filter-eq-singleton a b rewrite yes-refl a = refl
 
-    rev-pair : B → A → A × B
-    rev-pair = flip _,_
-
-    annotate : (b : B) (xs : List A) → SearchList A B
-    annotate = map ∘′ rev-pair 
-
     ∈-to-annotate-Index : ∀(a : A) (xs : List A) (b : B)
                         → a ∈ xs → Index a (annotate b xs)
     ∈-to-annotate-Index a xs b p = ∈-to-Index′ a xs (rev-pair b) (λ x → refl) p
@@ -150,32 +105,6 @@ module _ {l} {A B : Set l} where
                         → Index a (annotate b xs) → a ∈ xs
     annotate-Index-to-∈ a xs b p = Index-to-∈′ a xs (rev-pair b) (λ x → refl) p
 
-    map-fst-annotate-Ret : (b : B) → Retraction map fst of annotate b
-    map-fst-annotate-Ret b xs = map-ext-id (fst ∘′ rev-pair b) (λ a → refl) xs ⟨≡⟩ map-comp fst (rev-pair b) xs
-
-    map-snd-annotate-const : (b : B) → (xs : List A) → map (const b) xs ≡ map snd (annotate b xs)
-    map-snd-annotate-const b [] = refl
-    map-snd-annotate-const b (x ∷ xs) rewrite sym (map-snd-annotate-const b xs) = refl
-
-    comm-annotate : (a : A) (b : B) (xs : List A)
-                  → annotate b (filter (isYes ∘ (_==_ a)) xs) ≡ filter-eq a (annotate b xs)
-    comm-annotate a b [] = refl
-    comm-annotate a b (x ∷ xs) with a == x 
-    ... | yes eq rewrite comm-annotate a b xs = refl
-    ... | no neq rewrite comm-annotate a b xs = refl
-
     combine-vals : ∀{r : Set l} (cmb : List B → r) (a : A) (xs : SearchList A B) → r
     combine-vals cmb a = cmb ∘ filter-vals a
-
-    postulate
-      combine-vals-invariant : ∀{r : Set l} (cmb : List B → r) (_ : PermInvariant cmb) (a : A) (xs ys : SearchList A B)
-                             → (Index a xs ↔ Index a ys)
-                             → combine-vals cmb a xs ≡ combine-vals cmb a ys
-
-    combine-vals-weak-invariant : ∀{r : Set l} (cmb : List B → r) (a : A) (xs : SearchList A B) (ys : List B)
-                                → ys ≡ filter-vals a xs
-                                → cmb ys ≡ combine-vals cmb a xs
-    combine-vals-weak-invariant cmb a xs ._ refl = refl
-
-
 

@@ -1,9 +1,7 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 module Utility.List.Arithmetic where
 
 open import ThesisPrelude
 open import Algebra.Function
-open import Utility.Permutation
 open import Carrier.Class
 
 module _ {A : Set} {{_ : Carrier A}} {{_ : CarrierProps A}} where
@@ -16,6 +14,8 @@ module _ {A : Set} {{_ : Carrier A}} {{_ : CarrierProps A}} where
     force (zro + x) id
     ∎
 
+{-
   sum-perm-invariant : PermInvariant {A = A} sum
   sum-perm-invariant [] φ = {!!}
   sum-perm-invariant (x ∷ xs) φ = {!!}
+-}

@@ -1,4 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 module Carrier.Class where
 
 open import ThesisPrelude

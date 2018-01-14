@@ -1,4 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 open import Carrier.Class using (Carrier; CarrierProps)
 module Distribution.ListProps (Q : Set) {{QC : Carrier Q}} {{QCP : CarrierProps Q}} where
 
@@ -12,6 +11,7 @@ open import Carrier.Class
 open import Utility.List.Props
 open import Utility.List.Arithmetic
 open import Utility.List.Lookup
+open import Utility.List.LookupProps
 open import Utility.Writer Q
 open import Utility.Vector.BitVec
 open import Utility.Product
