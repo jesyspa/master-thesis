@@ -13,6 +13,9 @@ fmap-W f (a , q) = f a , q
 make-W : ∀{A} → Q → A → Writer A
 make-W q a = a , q
 
+mul-Writer : ∀{A} → Q → Writer A → Writer A
+mul-Writer q (a , p) = a , q <> p
+
 instance
   FunctorWriter : Functor Writer
   FunctorWriter = record { fmap = fmap-W }

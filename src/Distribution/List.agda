@@ -23,18 +23,15 @@ instance
   FunctorListDist : Functor ListDist
   FunctorListDist = FComp.functor-composition
 
-ap-LD-H2 : ∀{A : Set} → Q → (A × Q) → A × Q 
-ap-LD-H2 q (x , p) = x , q * p
-
-bind-LD : ∀{A B} → ListDist A → (A → ListDist B) → ListDist B
-bind-LD xs f = concatMap (λ { (a , q) → map (ap-LD-H2 q) (f a) }) xs
-
-open import Algebra.ApplicativeComposition List Writer 
+import Algebra.ApplicativeComposition List Writer as AComp
 instance
   ApplicativeListDist : Applicative ListDist
-  ApplicativeListDist = applicative-composition
+  ApplicativeListDist = AComp.applicative-composition
+
+import Utility.Writer.Transformer Q List as WriterT
+instance
   MonadListDist : Monad ListDist
-  MonadListDist = record { _>>=_ = bind-LD }
+  MonadListDist = WriterT.writer-monad-composition
 
 uniform-LD : (n : Nat) → ListDist (BitVec n)
 uniform-LD n = annotate (negpow2 n) (all-bitvecs n)

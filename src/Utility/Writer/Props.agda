@@ -28,7 +28,10 @@ instance
 open import Algebra.ApplicativeProps Writer
 open import Algebra.MonadProps Writer
 
-module Props {{QP : MonoidProps Q}} where
+module _ {{QP : MonoidProps Q}} where
+  mul-Writer-assoc : ∀{A} (p q : Q) (w : Writer A) → mul-Writer (p <> q) w ≡ mul-Writer p (mul-Writer q w) 
+  mul-Writer-assoc p q (a , r) = cong (_,_ a) (sym (op-assoc p q r))
+
   ap-W-composition : ∀{A B C} (u : Writer (B → C)) (v : Writer (A → B)) (w : Writer A)
                   → ap-W u (ap-W v w) ≡ ap-W (ap-W (ap-W (pure-W _∘′_) u) v) w
   ap-W-composition (f , a) (g , b) (h , c)
@@ -65,6 +68,13 @@ module Props {{QP : MonoidProps Q}} where
                         → bind-W (pure-W x) f ≡ f x
   return->>=-left-id-W x f with f x
   ... | a , v rewrite sym (unit-left v) = refl
+
+  >>=-W-ext : ∀{A B} (x : Writer A) (f g : A → Writer B)
+            → (∀ a → f a ≡ g a)
+            → bind-W x f ≡ bind-W x g
+  >>=-W-ext (a , q) f g pf with f a | g a | pf a
+  >>=-W-ext (a , q) f g pf | b , p | .b , .p | refl = refl
+
   ap-W-is-ap : ∀{A B} (x : Writer (A → B)) (y : Writer A)
              → ap-W x y ≡ bind-W x λ f → bind-W y λ a → pure-W (f a)
   ap-W-is-ap (f , v) (a , u) rewrite sym (unit-right u) = refl
@@ -73,6 +83,7 @@ module Props {{QP : MonoidProps Q}} where
   MonadPropsWriter = record { >>=-assoc = >>=-assoc-W
                             ; return->>=-right-id = return->>=-right-id-W
                             ; return->>=-left-id = return->>=-left-id-W
+                            ; >>=-ext = >>=-W-ext
                             ; <*>-is-ap = ap-W-is-ap
                             }
 

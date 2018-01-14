@@ -35,6 +35,11 @@ list-<*>-is-ap xs ys = cong concat (map-ext (λ z → map z ys) (λ x → concat
            concat (map (λ y → a y ∷ []) ys)
            ∎
 
+list->>=-ext : ∀{l} {A B : Set l} (xs : List A) (f g : A → List B)
+             → (∀ x → f x ≡ g x)
+             → concat (map f xs) ≡ concat (map g xs)
+list->>=-ext xs f g pf = cong concat (map-ext f g pf xs)
+
 module _ {l : Level} where
   open import Algebra.MonadProps (List {l}) using (MonadProps)
   instance
@@ -43,5 +48,6 @@ module _ {l : Level} where
                        { >>=-assoc = list->>=-assoc
                        ; return->>=-right-id = list-return->>=-right-id
                        ; return->>=-left-id = list-return->>=-left-id
+                       ; >>=-ext = list->>=-ext
                        ; <*>-is-ap = list-<*>-is-ap
                        }

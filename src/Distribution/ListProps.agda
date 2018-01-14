@@ -31,9 +31,11 @@ module _ {{PPQ : ProbabilityProps}} where
   import Algebra.ApplicativeComposition List Writer as AComp
   open import Algebra.ApplicativeProps ListDist
   
+  import Utility.Writer.Transformer Q List as WriterT
   open import Algebra.MonadProps ListDist
-  postulate
+  instance
     MonadPropsListDist : MonadProps
+    MonadPropsListDist = WriterT.Props.writer-monad-props-composition
   
   uniform-LD-is-uniform : ∀ n (v : BitVec n)
                         → negpow2 n ≡ sample-LD (uniform-LD n) v

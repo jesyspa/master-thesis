@@ -24,7 +24,7 @@ instance
   applicative-composition : Applicative (F ∘′ G)
   applicative-composition = record { pure = pure-F ∘′ pure-G ; _<*>_ = ap-FG ; super = FFG }
 
-module Props (APF : FAProps) (APG : GAProps) where
+module Props {{APF : FAProps}} {{APG : GAProps}} where
   open FFProps
   open GFProps
   open FAProps
