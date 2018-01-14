@@ -54,6 +54,6 @@ instance
                              ; uniform = uniform-LD
                              ; sample = sample-LD
                              ; _≡D_ = _≡LD_
-                             ; monad-structure = MonadListDist
-                             ; carrier-structure = QC
+                             ; monad-super = MonadListDist
+                             ; probability-super = QC
                              }

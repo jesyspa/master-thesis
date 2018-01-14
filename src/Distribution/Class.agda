@@ -12,6 +12,6 @@ record DistMonad (D : Set → Set) : Set₁ where
     uniform : ∀ n → D (BitVec n)
     sample : ∀{A} → {{_ : Eq A}} → D A → A → probability
     _≡D_ : ∀{A} → {{_ : Eq A}} → D A → D A → Set
-    overlap {{carrier-structure}} : Probability probability
-    overlap {{monad-structure}} : Monad D
+    overlap {{probability-super}} : Probability probability
+    overlap {{monad-super}} : Monad D
 
