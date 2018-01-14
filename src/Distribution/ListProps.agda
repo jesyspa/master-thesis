@@ -7,6 +7,7 @@ open import Distribution.Class
 open import Distribution.List Q
 open import Algebra.Function
 open import Algebra.Monoid
+open import Algebra.Equality
 open import Carrier.Class
 open import Utility.List.Props
 open import Utility.List.Arithmetic
@@ -41,16 +42,40 @@ uniform-LD-is-uniform n v =
                                    (all-bitvecs-filter-vals v (negpow2 n)) ⟩
   combine-vals sum v (annotate (negpow2 n) (all-bitvecs n))
   ∎
--- another attempt:
--- ≡⟨ combine-vals-invariant sum {!!} v
---      [ v , negpow2 {{QC}} n ]
---      (annotate (negpow2 {{QC}} n) (all-bitvecs n))
---      (all-bitvecs-indexing v (negpow2 {{QC}} n)) ⟩
+
+injections-preserve-filter : ∀{A B} {{_ : Eq A}} {{_ : Eq B}} (f : A → B)
+                                → Injective f
+                                → (D : ListDist A)
+                                → (a : A)
+                                → filter-vals a D ≡ filter-vals (f a) (fmap f D)
+injections-preserve-filter f pf [] a = refl
+injections-preserve-filter f pf ((x , v) ∷ D) a with a == x
+... | yes refl rewrite yes-refl (f a) = cong (_∷_ v) (injections-preserve-filter f pf D a)
+... | no neq with f a == f x
+injections-preserve-filter f pf ((x , v) ∷ D) a | no neq | yes eq = ⊥-elim (neq (pf eq))
+injections-preserve-filter f pf ((x , v) ∷ D) a | no neq | no neq′ = injections-preserve-filter f pf D a
+
+injections-preserve-distributions-LD : ∀{A B} {{_ : Eq A}} {{_ : Eq B}} (f : A → B)
+                                     → Injective f
+                                     → (D : ListDist A)
+                                     → (a : A)
+                                     → sample-LD D a ≡ sample-LD (fmap f D) (f a)
+injections-preserve-distributions-LD f pf D a = cong sum (injections-preserve-filter f pf D a)
 
 uniform-LD-bijection-invariant : ∀ n (f : BitVec n → BitVec n)
                                → Bijective f 
-                               → fmap f (uniform-LD n) ≡LD uniform-LD n
-uniform-LD-bijection-invariant n f (bp , pa , pb) = {!!}
+                               → uniform-LD n ≡LD fmap f (uniform-LD n)
+uniform-LD-bijection-invariant n f (fi , pa , pb) = sample-equiv λ v →
+  sample-LD (uniform-LD n) v
+    ≡⟨ uniform-LD-is-uniform n v  ⟩ʳ
+  negpow2 n
+    ≡⟨ uniform-LD-is-uniform n (fi v) ⟩
+  sample-LD (uniform-LD n) (fi v)
+    ≡⟨ injections-preserve-distributions-LD f (Bij-to-Inj f (fi , pa , pb)) (uniform-LD n) (fi v) ⟩
+  sample-LD (fmap f (uniform-LD n)) (f (fi v))
+    ≡⟨ cong (λ e → sample-LD (fmap f (uniform-LD n)) e) (pb v) ⟩ʳ
+  sample-LD (fmap f (uniform-LD n)) v
+  ∎
 
 sample-invariant-LD : ∀ {A} {{_ : Eq A}} {xs ys : ListDist A} → xs ≡LD ys → (a : A) → sample-LD xs a ≡ sample-LD ys a
 sample-invariant-LD (sample-equiv p) a = p a

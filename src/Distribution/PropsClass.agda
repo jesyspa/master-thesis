@@ -17,7 +17,7 @@ record DistMonadProps : Set₂ where
     uniform-is-uniform : ∀ n (xs : BitVec n) → negpow2 n ≡ sample (uniform {{DF}} n) xs
     uniform-bijection-invariant : ∀ n (f : BitVec n → BitVec n)
                                 → Bijective f
-                                → fmap-F f (uniform n) ≡D uniform n
+                                → uniform n ≡D fmap-F f (uniform n)
 
 -- The FPF paper/thesis suggests the following laws as well:
 -- Commutativity:
