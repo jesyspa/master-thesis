@@ -1,13 +1,13 @@
-module Carrier.Abstract where
+module Probability.Abstract where
 
 open import ThesisPrelude
-open import Carrier.Class
+open import Probability.Class
 
 abstract
-  data ACarrier : Set where
+  data AProbability : Set where
 
 postulate
   instance
-    ACarrierSemiring : Semiring ACarrier
-    ACarrierOrd : Ord ACarrier
-    ACarrierCarrierProps : CarrierProps ACarrier
+    AProbabilitySemiring : Semiring AProbability
+    AProbabilityOrd : Ord AProbability
+    AProbabilityProbabilityProps : ProbabilityProps AProbability
