@@ -1,23 +1,50 @@
 open import Distribution.Class using (DistMonad)
 module Distribution.PropsClass (F : Set → Set) {{DF : DistMonad F}} where
 
-open DistMonad {{...}}
-
+open DistMonad DF
 open import ThesisPrelude
 open import Probability.Class
 open import Algebra.MonadProps F
 open import Algebra.FunctorProps F
-open import Utility.Vector.BitVec
+open FunctorProps {{...}}
+open import Utility.Vector
 open import Algebra.Function
+open import Algebra.LiftingProps F
+open import Algebra.LiftingProps (λ τ → Vec {lzero} τ 1) as V1LProps
+open import Probability.PropsClass (probability)
 
 record DistMonadProps : Set₂ where
   field
-    is-monad : MonadProps
+    overlap {{is-monad}} : MonadProps
+    overlap {{is-probability}} : ProbabilityProps
+    sample-equality : ∀ {A} {{_ : Eq A}} {D₁ D₂ : F A} → (∀ a → sample D₁ a ≡ sample D₂ a) → D₁ ≡D D₂
     sample-invariant : ∀ {A} {{_ : Eq A}} {D₁ D₂ : F A} → D₁ ≡D D₂ → (a : A) → sample D₁ a ≡ sample D₂ a
-    uniform-is-uniform : ∀ n (xs : BitVec n) → negpow2 n ≡ sample (uniform {{DF}} n) xs
+    uniform-is-uniform : ∀ n (xs : BitVec n) → negpow2 n ≡ sample (uniform n) xs
     uniform-bijection-invariant : ∀ n (f : BitVec n → BitVec n)
                                 → Bijective f
                                 → uniform n ≡D fmap-F f (uniform n)
+    injection-invariant : ∀{A B} {{_ : Eq A}} {{_ : Eq B}}
+                        → (f : A → B)
+                        → Injective f
+                        → (D : F A)
+                        → (a : A)
+                        → sample D a ≡ sample (fmap f D) (f a)
+  coin-bijection-invariant : (f : Bool → Bool)
+                           → Bijective f
+                           → coin ≡D fmap-F f coin
+  coin-bijection-invariant f pf = sample-equality λ a →
+    sample coin a
+      ≡⟨ injection-invariant head head1-Inj (uniform 1) (a ∷ []) ⟩ʳ
+    sample (uniform 1) (a ∷ [])
+      ≡⟨ sample-invariant (uniform-bijection-invariant 1 (fmap f) (V1LProps.fmap-lift-Bij f pf)) (a ∷ [])  ⟩
+    sample (fmap-F (fmap f) (uniform 1)) (a ∷ [])
+      ≡⟨ injection-invariant head head1-Inj (fmap-F (fmap f) (uniform 1)) (a ∷ []) ⟩
+    sample (fmap-F head (fmap-F (fmap f) (uniform 1))) a
+      ≡⟨ cong (λ e → sample e a) (fmap-comp head (fmap f) (uniform 1)
+                                 ʳ⟨≡⟩ fmap-ext  (f ∘ head) (head ∘ fmap f) (head-nattrans f) (uniform 1)
+                                 ʳ⟨≡⟩ fmap-comp f head (uniform 1)) ⟩
+    sample (fmap-F f (fmap-F head (uniform 1))) a
+    ∎
 
 -- The FPF paper/thesis suggests the following laws as well:
 -- Commutativity:

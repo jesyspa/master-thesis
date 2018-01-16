@@ -86,14 +86,17 @@ module _ {{PPQ : ProbabilityProps}} where
   
   sample-invariant-LD : ∀ {A} {{_ : Eq A}} {xs ys : ListDist A} → xs ≡LD ys → (a : A) → sample-LD xs a ≡ sample-LD ys a
   sample-invariant-LD (sample-equiv p) a = p a
-  
+
   open import Distribution.PropsClass ListDist
   
   instance
     DistMonadPropsListDist : DistMonadProps
     DistMonadPropsListDist = record
                                { is-monad = MonadPropsListDist
+                               ; is-probability = PPQ
                                ; uniform-is-uniform = uniform-LD-is-uniform
                                ; uniform-bijection-invariant = uniform-LD-bijection-invariant
+                               ; sample-equality = sample-equiv
                                ; sample-invariant = sample-invariant-LD
+                               ; injection-invariant = injections-preserve-distributions-LD
                                }

@@ -63,3 +63,16 @@ record MonadProps : Set (lsuc l) where
     fmap f (return a)
     ∎
 
+  fmap-bind : ∀{A B C} (f : B → C) (a : F A) (g : A → F B)
+            → fmap f (a >>= g) ≡ (a >>= (λ x → fmap f (g x)))
+  fmap-bind f a g =
+    fmap f (a >>= g)
+      ≡⟨ return-simplify f (a >>= g) ⟩
+    a >>= g >>= return ∘′ f
+      ≡⟨ >>=-assoc a g (return ∘′ f) ⟩
+    a >>= (λ y → g y >>= return ∘′ f)
+      ≡⟨ >>=-ext a (λ y → g y >>= return ∘′ f) (fmap f ∘′ g)
+                 (λ x → sym (return-simplify f (g x))) ⟩
+    a >>= fmap f ∘′ g
+    ∎
+

@@ -2,6 +2,7 @@ module Crypto.Syntax where
 
 open import ThesisPrelude
 open import Utility.Vector.BitVec
+open import Utility.Vector.Functions
 
 data CryptoExpr (A : Set) : Set where
   returnCE : A → CryptoExpr A
@@ -11,8 +12,8 @@ uniform-expr : ∀ n → CryptoExpr (BitVec n)
 uniform-expr n = uniformCE n returnCE
 
 fmap-CE : ∀{A B} → (A → B) → CryptoExpr A → CryptoExpr B
-fmap-CE f (returnCE x) = returnCE (f x)
-fmap-CE f (uniformCE n x) = uniformCE n (λ z → fmap-CE f (x z))
+fmap-CE f (returnCE a) = returnCE (f a)
+fmap-CE f (uniformCE n cont) = uniformCE n (λ z → fmap-CE f (cont z))
 
 ap-CE : ∀{A B} → CryptoExpr (A → B) → CryptoExpr A → CryptoExpr B
 ap-CE (returnCE f) e = fmap-CE f e
@@ -29,3 +30,6 @@ instance
   ApplicativeCryptoExpr = record { pure = returnCE ; _<*>_ = ap-CE }
   MonadCryptoExpr : Monad CryptoExpr 
   MonadCryptoExpr = record { _>>=_ = bind-CE }
+
+coin-expr : CryptoExpr Bool
+coin-expr = fmap head (uniform-expr 1)

@@ -2,7 +2,7 @@ module Distribution.Class where
 
 open import ThesisPrelude
 open import Probability.Class
-open import Utility.Vector.BitVec
+open import Utility.Vector
 open import Algebra.Function
 
 record DistMonad (D : Set → Set) : Set₁ where
@@ -14,4 +14,6 @@ record DistMonad (D : Set → Set) : Set₁ where
     _≡D_ : ∀{A} → {{_ : Eq A}} → D A → D A → Set
     overlap {{probability-super}} : Probability probability
     overlap {{monad-super}} : Monad D
+  coin : D Bool
+  coin = fmap head (uniform 1)
 

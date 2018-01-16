@@ -1,6 +1,8 @@
 module Utility.Vector.Props where
 
 open import ThesisPrelude hiding (List)
+open import Utility.Vector.Functions
+open import Algebra.Function
 
 componentwise-equality : ∀ {A : Set} {n : Nat} (x y : A) (xs ys : Vec A n)
                        → Dec (x ≡ y) → Dec (xs ≡ ys)
@@ -13,4 +15,32 @@ vec-eq : ∀{A : Set} {{_ : Eq A}} {n} → (xs ys : Vec A n) → Dec (xs ≡ ys)
 vec-eq [] [] = yes refl
 vec-eq (x ∷ xs) (y ∷ ys) = componentwise-equality x y xs ys (x == y) (xs == ys) 
 
+head1-Inj : ∀{l} {A : Set l} → Injective (head1 {l} {A})
+head1-Inj {x = x ∷ []} {y = .x ∷ []} refl = refl
 
+head-nattrans : ∀{l n} {A B : Set l} → (f : A → B)
+              → (xs : Vec A (suc n))
+              → f (head xs) ≡ head (fmap f xs)
+head-nattrans f (x ∷ _) = refl
+
+fmap-ext-vec : ∀{l n} {A B : Set l} (f g : A → B)
+             → (∀ a → f a ≡ g a)
+             → (xs : Vec A n)
+             → fmap f xs ≡ fmap g xs
+fmap-ext-vec f g pf [] = refl
+fmap-ext-vec f g pf (x ∷ xs) rewrite sym (fmap-ext-vec f g pf xs) | pf x = refl
+
+fmap-id-vec : ∀{l n} {A : Set l} → (xs : Vec A n) → xs ≡ fmap id xs
+fmap-id-vec [] = refl
+fmap-id-vec (x ∷ xs) rewrite sym (fmap-id-vec xs) = refl
+
+fmap-comp-vec : ∀{l n} {A B C : Set l} (g : B → C) (f : A → B) (xs : Vec A n) 
+              → fmap (g ∘′ f) xs ≡ fmap g (fmap f xs)
+fmap-comp-vec g f [] = refl
+fmap-comp-vec g f (x ∷ xs) rewrite sym (fmap-comp-vec g f xs) = refl
+
+module _ {l : Level} {n : Nat} where
+  open import Algebra.FunctorProps (λ τ → Vec {l} τ n)
+  instance
+    FunctorPropsVec : FunctorProps
+    FunctorPropsVec = record { fmap-ext = fmap-ext-vec ; fmap-id = fmap-id-vec ; fmap-comp = fmap-comp-vec }
