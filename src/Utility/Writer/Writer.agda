@@ -2,6 +2,7 @@ open import ThesisPrelude using (Monoid)
 module Utility.Writer.Writer {l} (Q : Set l) {{QM : Monoid Q}} where
 
 open import ThesisPrelude
+open import Utility.Product
 open import Algebra.Monoid
 
 Writer : Set l → Set l
@@ -14,7 +15,7 @@ make-W : ∀{A} → Q → A → Writer A
 make-W q a = a , q
 
 mul-Writer : ∀{A} → Q → Writer A → Writer A
-mul-Writer q (a , p) = a , q <> p
+mul-Writer q = over-snd (_<>_ q)
 
 instance
   FunctorWriter : Functor Writer

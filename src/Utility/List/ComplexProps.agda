@@ -27,7 +27,7 @@ concat-append-dist : ∀{l} {A : Set l}
                    → (xs ys : List (List A))
                    → concat (xs ++ ys) ≡ concat xs ++ concat ys 
 concat-append-dist [] ys = refl
-concat-append-dist (x ∷ xs) ys rewrite concat-append-dist xs ys = op-assoc x (concat xs) (concat ys)
+concat-append-dist (x ∷ xs) ys rewrite concat-append-dist xs ys = list-++-assoc x (concat xs) (concat ys)
 
 concat-retraction : ∀{l} {A : Set l}
                   → Retraction concat {A = A} of map (λ x → x ∷ [])
@@ -55,3 +55,8 @@ filter-reduction-identity g f p [] pr = refl
 filter-reduction-identity g f p (x ∷ xs) pr rewrite sym (pr x) with p x
 ... | false rewrite sym (filter-reduction-identity g f p xs pr) = refl
 ... | true rewrite sym (filter-reduction-identity g f p xs pr) = refl
+
+length-append-dist : ∀{l} {A : Set l} (xs ys : List A)
+                   → length (xs ++ ys) ≡ length xs +N length ys
+length-append-dist [] ys = refl
+length-append-dist (x ∷ xs) ys rewrite sym (length-append-dist xs ys) = refl

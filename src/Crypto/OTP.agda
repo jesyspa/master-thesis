@@ -6,8 +6,10 @@ open import ThesisPrelude
 open import Crypto.Syntax
 open import Utility.Vector
 open import Utility.Bool
+open import Probability.Class
 open import Probability.PropsClass Q
-open ProbabilityProps {{...}}
+open Probability PQ
+open ProbabilityProps PPQ
 open import Distribution.Class
 open import Distribution.List Q
 open import Distribution.ListProps Q

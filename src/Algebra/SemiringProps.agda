@@ -2,19 +2,21 @@ open import ThesisPrelude using (Semiring)
 module Algebra.SemiringProps (A : Set) {{SA : Semiring A}} where
 
 open import ThesisPrelude
-open import Algebra.Monoid
+open import Algebra.MonoidHelpers A
+open import Algebra.Monoid A {{+-monoid}} using () renaming (MonoidProps to +MProps; CommMonoidProps to +CMProps)
+open import Algebra.Monoid A {{*-monoid}} using () renaming (MonoidProps to *MProps) 
 
 record SemiringProps : Set where
   field
-    +-is-comm-monoid    : CommMonoidProps A {{+-monoid}}
-    *-is-monoid         : MonoidProps A {{*-monoid}}
+    +-is-comm-monoid    : +CMProps
+    *-is-monoid         : *MProps
     +*-left-dist        : (a b c : A) → a * (b + c) ≡ a * b + a * c
-    +*-right-dist       : (a b c : A) → (a + b) * c ≡ a * b + a * c
-    zro-left-nil        : (a : A) → a ≡ zro * a
-    zro-right-nil       : (a : A) → a ≡ a * zro
+    +*-right-dist       : (a b c : A) → (a + b) * c ≡ a * c + b * c
+    zro-left-nil        : (a : A) → zro ≡ zro * a
+    zro-right-nil       : (a : A) → zro ≡ a * zro
   *-unit-left : (a : A) → a ≡ one * a
-  *-unit-left = MonoidProps.unit-left {{*-monoid}} *-is-monoid
+  *-unit-left = *MProps.unit-left *-is-monoid
   +-unit-left : (a : A) → a ≡ zro + a
-  +-unit-left = MonoidProps.unit-left {{+-monoid}} (super +-is-comm-monoid)
+  +-unit-left = +MProps.unit-left (+CMProps.forget-comm +-is-comm-monoid)
   +-unit-right : (a : A) → a ≡ a + zro
-  +-unit-right = MonoidProps.unit-right {{+-monoid}} (super +-is-comm-monoid)
+  +-unit-right = +MProps.unit-right (+CMProps.forget-comm +-is-comm-monoid)

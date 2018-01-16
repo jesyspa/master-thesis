@@ -4,6 +4,7 @@ open import ThesisPrelude
 open import Algebra.Function
 open import Algebra.Equality
 open import Algebra.ExactSize
+open import Utility.Num
 open import Utility.Vector.Functions
 open import Utility.Vector.Props
 open import Utility.List.Props
@@ -36,6 +37,15 @@ bitvec-xor-Bij xs = bitvec-xor xs , bitvec-xor-self-inverse xs , bitvec-xor-self
 all-bitvecs : ∀ n → List (BitVec n)
 all-bitvecs zero = [ [] ]
 all-bitvecs (suc n) = map (_∷_ false) (all-bitvecs n) ++ map (_∷_ true) (all-bitvecs n)
+
+all-bitvecs-length : ∀ n → pow2 n ≡ length (all-bitvecs n)
+all-bitvecs-length zero = refl
+all-bitvecs-length (suc n)
+  rewrite length-append-dist (map (Vec._∷_ false) (all-bitvecs n)) (map (Vec._∷_ true) (all-bitvecs n))
+        | sym (map-length (Vec._∷_ false) (all-bitvecs n))
+        | sym (map-length (Vec._∷_ true) (all-bitvecs n))
+        | sym (all-bitvecs-length n)
+        = refl
 
 all-bitvecs-complete : ∀{n} → (v : BitVec n) → v ∈ all-bitvecs n
 all-bitvecs-complete [] = here [] []

@@ -2,7 +2,7 @@ open import ThesisPrelude using (Monoid)
 module Utility.Writer.Props {l} (Q : Set l) {{QM : Monoid Q}} where
 
 open import ThesisPrelude
-open import Algebra.Monoid
+open import Algebra.Monoid Q
 open import Utility.Writer.Writer Q
 
 fmap-W-ext : ∀{A B} (f g : A → B)
@@ -28,9 +28,13 @@ instance
 open import Algebra.ApplicativeProps Writer
 open import Algebra.MonadProps Writer
 
-module _ {{QP : MonoidProps Q}} where
+module _ {{QP : MonoidProps}} where
+  open MonoidProps QP
   mul-Writer-assoc : ∀{A} (p q : Q) (w : Writer A) → mul-Writer (p <> q) w ≡ mul-Writer p (mul-Writer q w) 
   mul-Writer-assoc p q (a , r) = cong (_,_ a) (sym (op-assoc p q r))
+
+  mul-Writer-id : ∀{A} (w : Writer A) → w ≡ mul-Writer mempty w 
+  mul-Writer-id (a , p) = cong (_,_ a) (unit-left p)
 
   ap-W-composition : ∀{A B C} (u : Writer (B → C)) (v : Writer (A → B)) (w : Writer A)
                   → ap-W u (ap-W v w) ≡ ap-W (ap-W (ap-W (pure-W _∘′_) u) v) w
@@ -38,7 +42,7 @@ module _ {{QP : MonoidProps Q}} where
     rewrite sym (unit-left a) | op-assoc a b c = refl
 
   ap-W-homomorphism : ∀{A B} (f : A → B) (x : A) → pure-W (f x) ≡ ap-W (pure-W f) (pure-W x)
-  ap-W-homomorphism f x rewrite sym (unit-left {{QM}} mempty) = refl
+  ap-W-homomorphism f x rewrite sym (unit-left mempty) = refl
 
   ap-W-interchange : ∀{A B} (u : Writer (A → B)) (x : A) → ap-W u (pure-W x) ≡ ap-W (pure-W λ f → f x) u
   ap-W-interchange (f , v) x rewrite sym (unit-left v) | sym (unit-right v) = refl

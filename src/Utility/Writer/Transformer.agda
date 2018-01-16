@@ -3,7 +3,7 @@ module Utility.Writer.Transformer {l} (Q : Set l) {{QM : Monoid Q}}
                                       (M : Set l → Set l) {{MM : Monad M}} where
 
 open import ThesisPrelude
-open import Algebra.Monoid
+open import Algebra.Monoid Q
 open import Utility.Writer.Writer Q
 open import Utility.Writer.Props Q
 
@@ -36,7 +36,8 @@ instance
 
 open import Algebra.ApplicativeProps (M ∘′ Writer) renaming (ApplicativeProps to MWAProps; pure-F to pure-MW; _<*F>_ to _<*MW>_)
 open import Algebra.MonadProps (M ∘′ Writer) renaming (MonadProps to MWMProps; _>>F=_ to _>>MW=_)
-module Props {{MPM : MMProps}} {{_ : MonoidProps Q}} where
+module Props {{MPM : MMProps}} {{MPQ : MonoidProps}} where
+  open MonoidProps MPQ
   open AComp.Props using (applicative-props-composition)
   >>=-assoc-MW : ∀{A B C} (x : M (Writer A)) (f : A → M (Writer B)) (g : B → M (Writer C))
                → (x >>MW= f >>MW= g) ≡ (x >>MW= (λ y → f y >>MW= g))

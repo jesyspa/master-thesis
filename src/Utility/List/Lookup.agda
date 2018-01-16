@@ -107,4 +107,3 @@ module _ {l} {A B : Set l} where
 
     combine-vals : ∀{r : Set l} (cmb : List B → r) (a : A) (xs : SearchList A B) → r
     combine-vals cmb a = cmb ∘ filter-vals a
-

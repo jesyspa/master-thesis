@@ -36,3 +36,18 @@ module _ {l : Level} where
                → Retraction g of f
                → Retraction map g of map f
   map-lift-ret = FunctorProps.fmap-lift-ret FunctorPropsList
+
+map-const : ∀{l l′} {A : Set l} {B : Set l′} (b : B) (xs : List A)
+          → replicate (length xs) b ≡ map (const b) xs
+map-const b [] = refl
+map-const b (x ∷ xs) rewrite sym (map-const b xs) = refl
+
+map-replicate : ∀{l l′} {A : Set l} {B : Set l′} (n : Nat) (f : A → B) (a : A)
+              → replicate n (f a) ≡ map f (replicate n a)
+map-replicate zero f a = refl
+map-replicate (suc n) f a rewrite sym (map-replicate n f a) = refl
+
+map-length : ∀{l l′} {A : Set l} {B : Set l′} (f : A → B) (xs : List A)
+           → length xs ≡ length (map f xs)
+map-length f [] = refl
+map-length f (x ∷ xs) rewrite sym (map-length f xs) = refl 

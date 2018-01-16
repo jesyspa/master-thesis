@@ -3,6 +3,7 @@ module Utility.List.LookupProps where
 open import ThesisPrelude
 open import Algebra.Function
 open import Algebra.Equality
+open import Utility.Product
 open import Utility.List.Elem
 open import Utility.List.ElemProps
 open import Utility.List.Props
@@ -59,6 +60,9 @@ module _ {l} {A B : Set l} where
     map-snd-annotate-const b [] = refl
     map-snd-annotate-const b (x ∷ xs) rewrite sym (map-snd-annotate-const b xs) = refl
 
+    map-snd-annotate-replicate : (b : B) → (xs : List A) → replicate (length xs) b ≡ map snd (annotate b xs)
+    map-snd-annotate-replicate b xs = map-const b xs ⟨≡⟩ map-snd-annotate-const b xs
+
     comm-annotate : (a : A) (b : B) (xs : List A)
                   → annotate b (filter (isYes ∘ (_==_ a)) xs) ≡ filter-eq a (annotate b xs)
     comm-annotate a b [] = refl
@@ -71,4 +75,33 @@ module _ {l} {A B : Set l} where
                                 → cmb ys ≡ combine-vals cmb a xs
     combine-vals-weak-invariant cmb a xs ._ refl = refl
 
+    filter-vals-append-dist : (xs ys : SearchList A B)
+                   → (a : A)
+                   → filter-vals a (xs ++ ys) ≡ filter-vals a xs ++ filter-vals a ys
+    filter-vals-append-dist xs ys a =
+      map snd (filter (isYes ∘ (_==_ a) ∘ fst) (xs ++ ys))
+        ≡⟨ cong (map snd) (filter-append-dist (isYes ∘ (_==_ a) ∘ fst) xs ys ) ⟩
+      map snd (filter (isYes ∘ (_==_ a) ∘ fst) xs ++ filter (isYes ∘ (_==_ a) ∘ fst) ys)
+        ≡⟨ map-append-dist snd (filter (isYes ∘ (_==_ a) ∘ fst) xs) (filter (isYes ∘ (_==_ a) ∘ fst) ys)  ⟩
+      map snd (filter (isYes ∘ (_==_ a) ∘ fst) xs) ++ map snd (filter (isYes ∘ (_==_ a) ∘ fst) ys)
+      ∎
 
+
+    filter-vals-concat : (xss : List (SearchList A B))
+                       → (a : A)
+                       → filter-vals a (concat xss) ≡ concat (map (filter-vals a) xss)
+    filter-vals-concat [] a = refl
+    filter-vals-concat ([] ∷ xss) a = filter-vals-concat xss a
+    filter-vals-concat (((a′ , b) ∷ xs) ∷ xss) a
+        rewrite sym (filter-vals-concat xss a)
+        with a == a′
+    ... | yes refl rewrite sym (filter-vals-append-dist xs (concat xss) a) = refl
+    ... | no neq = filter-vals-append-dist xs (concat xss) a 
+
+    
+    filter-vals-map : ∀{B′}  (f : B → B′) (xs : SearchList A B)(a : A)
+                    → filter-vals a (map (over-snd f) xs) ≡ map f (filter-vals a xs)
+    filter-vals-map f [] a = refl
+    filter-vals-map f ((a′ , b) ∷ xs) a with a == a′
+    ... | yes refl rewrite sym (filter-vals-map f xs a) = refl
+    ... | no neq rewrite no-neq a a′ neq | sym (filter-vals-map f xs a) = refl

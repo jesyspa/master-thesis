@@ -17,6 +17,9 @@ record DistMonadProps : Set₂ where
   field
     overlap {{is-monad}} : MonadProps
     overlap {{is-probability}} : ProbabilityProps
+  open Probability probability-super
+  open ProbabilityProps is-probability
+  field
     sample-equality : ∀ {A} {{_ : Eq A}} {D₁ D₂ : F A} → (∀ a → sample D₁ a ≡ sample D₂ a) → D₁ ≡D D₂
     sample-invariant : ∀ {A} {{_ : Eq A}} {D₁ D₂ : F A} → D₁ ≡D D₂ → (a : A) → sample D₁ a ≡ sample D₂ a
     uniform-is-uniform : ∀ n (xs : BitVec n) → negpow2 n ≡ sample (uniform n) xs
@@ -29,6 +32,8 @@ record DistMonadProps : Set₂ where
                         → (D : F A)
                         → (a : A)
                         → sample D a ≡ sample (fmap f D) (f a)
+    irrelevance : ∀{A} {{_ : Eq A}} n (D : F A)
+                → D ≡D (uniform n >>= const D)
   coin-bijection-invariant : (f : Bool → Bool)
                            → Bijective f
                            → coin ≡D fmap-F f coin

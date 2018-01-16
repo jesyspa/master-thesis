@@ -1,10 +1,11 @@
 open import Probability.Class using (Probability)
 module Distribution.List (Q : Set) {{QC : Probability Q}} where
 
+open Probability QC
 open import ThesisPrelude
 open import Distribution.Class
 open import Probability.Class
-open import Algebra.Monoid
+open import Algebra.MonoidHelpers Q
 open import Utility.Vector.BitVec
 open import Utility.Writer Q {{*-monoid}}
 open import Utility.List.Lookup

@@ -20,6 +20,7 @@ open DistMonad DMF
 open DistMonadProps DMPF 
 open MonadProps is-monad
 open ApplicativeProps aprops
+open Probability probability-super
 
 uniform-dist-interpretation : ∀ n → uniform n ≡ ⟦ uniform-expr n ⟧
 uniform-dist-interpretation n = return->>=-right-id (uniform n)
@@ -76,4 +77,15 @@ coin-sample-2 b = sample-equality λ a →
           ∎
 
 coin-sample-3 : ∀{A} (E : CryptoExpr A) → ⟦ coin-expr ⟧ ≡D ⟦ (E >>= λ _ → coin-expr) ⟧
-coin-sample-3 E = {!!}
+coin-sample-3 (returnCE a) = sample-equality λ x → refl
+coin-sample-3 (uniformCE n cont) rewrite sym coin-interpretation = sample-equality λ a →
+  sample coin a
+    ≡⟨ sample-invariant (irrelevance n coin ) a ⟩
+  sample (uniform n >>= λ xs → coin) a
+    ≡⟨ cong (λ e → sample e a) (>>=-ext (uniform n) (const coin) (const ⟦ coin-expr ⟧) λ xs → coin-interpretation) ⟩
+  sample (uniform n >>= λ xs → ⟦ coin-expr ⟧) a
+    ≡⟨ cong (λ e → sample e a) (>>=-ext (uniform n) (λ _ → ⟦ coin-expr ⟧)
+                                                    (λ xs → ⟦ (cont xs >>= λ _ → coin-expr) ⟧ )
+                                                    (λ xs → {!coin-sample ?!})) ⟩
+  sample (uniform n >>= λ xs → ⟦ (cont xs >>= λ _ → coin-expr) ⟧) a
+  ∎

@@ -9,9 +9,8 @@ open import Algebra.Monoid
 open import Algebra.Equality
 open import Probability.Class
 open import Algebra.SemiringProps Q
-open SemiringProps {{...}}
 open import Probability.PropsClass Q
-open ProbabilityProps {{...}}
+open import Utility.Num
 open import Utility.List.Props
 open import Utility.List.Arithmetic Q
 open import Utility.List.Lookup
@@ -20,7 +19,11 @@ open import Utility.Writer Q
 open import Utility.Vector.BitVec
 open import Utility.Product
 
+open Probability PQ
+
 module _ {{PPQ : ProbabilityProps}} where
+  open ProbabilityProps PPQ
+  open SemiringProps srprops
   import Algebra.FunctorComposition List Writer as FComp
   open import Algebra.FunctorProps ListDist
   instance
@@ -87,6 +90,45 @@ module _ {{PPQ : ProbabilityProps}} where
   sample-invariant-LD : ∀ {A} {{_ : Eq A}} {xs ys : ListDist A} → xs ≡LD ys → (a : A) → sample-LD xs a ≡ sample-LD ys a
   sample-invariant-LD (sample-equiv p) a = p a
 
+-- TODO: Acutally reverse the order of statements and update syms.
+  irrelevance-LD : ∀ {A} {{_ : Eq A}} n (xs : ListDist A)
+                 → xs ≡LD (uniform-LD n >>F= const xs)
+  irrelevance-LD {A} n xs = sample-equiv λ a → sym (
+    sample-LD (uniform-LD n >>F= const xs) a
+      ≡⟨ refl ⟩
+    combine-vals sum a (concatMap (WriterT.bind-MW-helper (const xs)) (uniform-LD n))
+      ≡⟨ cong (combine-vals sum a ∘′ concat) $
+              map-ext (WriterT.bind-MW-helper (const xs)) (cf ∘′ snd) (λ { (_ , q) → refl }) (uniform-LD n)
+              ⟨≡⟩ map-comp cf snd (annotate (negpow2 n) (all-bitvecs n))
+              ⟨≡⟩ʳ cong (map cf) (map-snd-annotate-replicate (negpow2 n) (all-bitvecs n)) ⟩
+    combine-vals sum a (concat (map cf (replicate (length $ all-bitvecs n) $ negpow2 n)))
+      ≡⟨ cong (λ e → combine-vals sum a (concat (map cf (replicate e $ negpow2 n)))) $ all-bitvecs-length n ⟩ʳ
+    combine-vals sum a (concat (map cf (replicate (pow2 n) $ negpow2 n)))
+      ≡⟨ cong (combine-vals sum a ∘′ concat) (map-replicate (pow2 n) cf $ negpow2 n) ⟩ʳ
+    combine-vals sum a (concat (replicate (pow2 n) $ cf $ negpow2 n))
+      ≡⟨ combine-sum-concat (replicate (pow2 n) $ cf $ negpow2 n) a  ⟩
+    sum (map (combine-vals sum a) (replicate (pow2 n) $ cf $ negpow2 n)) 
+      ≡⟨ cong sum (map-replicate (pow2 n) (combine-vals sum a) $ cf $ negpow2 n) ⟩ʳ
+    sum (replicate (pow2 n) (combine-vals sum a $ cf $ negpow2 n))
+      ≡⟨ sum-replicate (pow2 n) (combine-vals sum a $ cf $ negpow2 n) ⟩ʳ
+    embed (pow2 n) * (sum $ filter-vals a $ cf $ negpow2 n)
+      ≡⟨ mul-sum (embed $ pow2 n) (filter-vals a $ cf $ negpow2 n)  ⟩
+    sum (map (_*_ (embed $ pow2 n)) (filter-vals a $ cf $ negpow2 n))
+      ≡⟨ cong sum (filter-vals-map (_*_ (embed $ pow2 n)) (cf $ negpow2 n) a) ⟩ʳ
+    sum (filter-vals a (map (mul-Writer (embed $ pow2 n)) (cf $ negpow2 n))) 
+      ≡⟨ cong (sum ∘′ filter-vals a) $ map-comp (mul-Writer (embed $ pow2 n)) (mul-Writer (negpow2 n)) xs ⟩ʳ
+    sum (filter-vals a (map (mul-Writer (embed $ pow2 n) ∘′ mul-Writer (negpow2 n)) xs)) 
+      ≡⟨ cong (sum ∘′ filter-vals a) $ map-ext-id (mul-Writer (embed $ pow2 n) ∘′ mul-Writer (negpow2 n))
+                                                  (λ x → mul-Writer-id x
+                                                     ⟨≡⟩ cong (λ e → mul-Writer e x) (pow2-negpow2-cancel n)
+                                                     ⟨≡⟩ mul-Writer-assoc (embed $ pow2 n) (negpow2 n) x )
+                                                  xs ⟩ʳ
+
+    sum (filter-vals a xs) 
+    ∎)
+    where cf : Q → List (A × Q)
+          cf q = map (mul-Writer q) xs
+
   open import Distribution.PropsClass ListDist
   
   instance
@@ -99,4 +141,5 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; sample-equality = sample-equiv
                                ; sample-invariant = sample-invariant-LD
                                ; injection-invariant = injections-preserve-distributions-LD
+                               ; irrelevance = irrelevance-LD
                                }
