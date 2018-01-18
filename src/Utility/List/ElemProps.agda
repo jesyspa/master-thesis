@@ -1,4 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 module Utility.List.ElemProps where
 
 open import ThesisPrelude
@@ -144,6 +143,17 @@ module _ {l} {A : Set l} where
     filter-does-not-add-elements .x (x ∷ xs) pd (here .x ._)      | true = here x xs
     filter-does-not-add-elements a (x ∷ xs) pd (there .a .x ._ p) | true = there a x xs (filter-does-not-add-elements a xs pd p)
     ... | false = there a x xs (filter-does-not-add-elements a xs pd p)
+
+    filter-does-not-add-elements-Inj : (a : A)(xs : List A)(pd : A → Bool)
+                                     → Injective (filter-does-not-add-elements a xs pd)
+    filter-does-not-add-elements-Inj a [] pd {()} {()} eq
+    filter-does-not-add-elements-Inj a (x ∷ xs) pd {p} {q} eq with pd x
+    filter-does-not-add-elements-Inj .x (x ∷ xs) pd {here .x ._} {here .x ._} eq | true = refl
+    filter-does-not-add-elements-Inj .x (x ∷ xs) pd {here .x ._} {there .x .x ._ q} () | true
+    filter-does-not-add-elements-Inj a (.a ∷ xs) pd {there .a .a ._ p} {here .a ._} () | true
+    filter-does-not-add-elements-Inj a (x ∷ xs) pd {there .a .x ._ p} {there .a .x ._ q} eq | true
+      = cong (there a x (filter pd xs)) (filter-does-not-add-elements-Inj a xs pd (there-Inj eq))
+    ... | false = filter-does-not-add-elements-Inj a xs pd (there-Inj eq)
     
     filter-preserves-satisfying : (a : A) (xs : List A) (pd : A → Bool)
                                 → IsTrue (pd a)
@@ -154,6 +164,15 @@ module _ {l} {A : Set l} where
     filter-preserves-satisfying a .(y ∷ xs) pd pf (there .a y xs p) with pd y
     ... | true = there a y (filter pd xs) (filter-preserves-satisfying a xs pd pf p)
     ... | false = filter-preserves-satisfying a xs pd pf p
+
+    filter-preserves-Ret : (a : A)(xs : List A)(pd : A → Bool)(pf : IsTrue (pd a))
+                         → Retraction filter-does-not-add-elements a xs pd of filter-preserves-satisfying a xs pd pf
+    filter-preserves-Ret a .(a ∷ xs) pd pf (here .a xs) with pd a
+    filter-preserves-Ret a .(a ∷ xs) pd () (here .a xs) | false
+    filter-preserves-Ret a .(a ∷ xs) pd true (here .a xs) | true = refl
+    filter-preserves-Ret a .(y ∷ xs) pd pf (there .a y xs p) with pd y
+    filter-preserves-Ret a .(y ∷ xs) pd pf (there .a y xs p) | false = cong (there a y xs) $ filter-preserves-Ret a xs pd pf p
+    filter-preserves-Ret a .(y ∷ xs) pd pf (there .a y xs p) | true = cong (there a y xs) $ filter-preserves-Ret a xs pd pf p
 
     filter-not-eq-preserves-elem : (a x : A) (xs : List A)
                                  → ¬ (x ≡ a) → a ∈ xs → a ∈ filter (isNo ∘ (_==_ x)) xs
@@ -227,11 +246,18 @@ module _ {l} {A : Set l} where
     uniques-unique a .(a ∷ xs) (there .a .a xs p) (here .a ._) with a == a
     ... | yes refl = refl
     ... | no neq = ⊥-elim (neq refl)
-    uniques-unique a .(x ∷ xs) (there .a x xs p) (there .a .x ._ q) with a == x
-    ... | yes refl = ⊥-elim (not-in-filter-no a xs (filter-functional-inv a xs uniques (unique-preserves-elem-inv a xs) (isNo ∘ (_==_ a)) q))
-    ... | no neq = cong (there a x (filter (isNo ∘ (_==_ x)) (uniques xs))) lem
-      where lem : q ≡ filter-not-eq-preserves-elem a x (uniques xs) (neq ∘ sym) (unique-preserves-elem a xs p)
-            lem = {!!}
+    uniques-unique a .(x ∷ xs) (there .a x xs p) (there .a .x ._ q) with x == a | a == x
+    ... | yes refl | yes refl = ⊥-elim $ not-in-filter-no a xs $ filter-functional-inv a xs uniques (unique-preserves-elem-inv a xs) (isNo ∘ (_==_ a)) q
+    ... | no neq   | yes refl = ⊥-elim $ neq refl
+    ... | yes refl | no neq   = ⊥-elim $ neq refl
+    ... | no neq   | no neq′  = cong (there a x (filter (isNo ∘ (_==_ x)) (uniques xs))) lem
+      where
+        lem2 : filter-does-not-add-elements a (uniques xs) (isNo ∘ (_==_ x)) q
+             ≡ unique-preserves-elem a xs p
+        lem2 = uniques-unique a xs p (filter-does-not-add-elements a (uniques xs) (isNo ∘ (_==_ x)) q) 
+        lem : q ≡ filter-not-eq-preserves-elem a x (uniques xs) (neq′ ∘ sym) (unique-preserves-elem a xs p)
+        lem = filter-does-not-add-elements-Inj a (uniques xs) (isNo ∘ (_==_ x))
+                (lem2 ⟨≡⟩ filter-preserves-Ret a (uniques xs) (isNo ∘ (_==_ x)) (neq-is-no (neq′ ∘ sym)) (unique-preserves-elem a xs p) ) 
 
     uniques-gives-singleton : (a : A) (xs : List A)
                             → a ∈ xs → [ a ] ≡ filter (isYes ∘ (_==_ a)) (uniques xs)

@@ -62,3 +62,8 @@ support-LD = uniques ∘′ map fst
 
 normalize-LD : ∀{A} {{_ : Eq A}} → ListDist A → ListDist A
 normalize-LD dist = map (λ x → (x , sample-LD dist x)) (support-LD dist) 
+
+sample-over-LD : ∀{A B : Set}{{_ : Eq B}}
+                 (f : A → ListDist B)(b : B)
+               → A × Q → Q
+sample-over-LD f b (a , p) = p * sample-LD (f a) b

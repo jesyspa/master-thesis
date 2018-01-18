@@ -182,19 +182,57 @@ module _ {{PPQ : ProbabilityProps}} where
       where cf : Q → List (A × Q)
             cf q = map (mul-Writer q) xs
 
-  >>=-D-ext-LD : ∀{A B} {{_ : Eq B}}
-               → (x : ListDist A)
+  sample-map-mul-writer : ∀{A}{{_ : Eq A}}
+                          (xs : ListDist A)(p : Q)(a : A)
+                        → p * sample-LD xs a ≡ sample-LD (map (mul-Writer p) xs) a
+  sample-map-mul-writer xs p a =
+    p * sample-LD xs a
+      ≡⟨ mul-sum p (filter-vals a xs)  ⟩
+    sum (map (_*_ p) $ filter-vals a xs)
+      ≡⟨ (cong sum $ filter-vals-map (_*_ p) xs a) ⟩
+    sum (filter-vals a $ map (over-snd (_*_ p)) xs)
+    ∎
+
+  bind-universal-prop : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+                        (xs : ListDist A)(f : A → ListDist B)(b : B)
+                      → sample-LD (xs >>F= f) b ≡ sum (map (sample-over-LD f b) xs)
+  bind-universal-prop xs f b =
+    sum (filter-vals b $ concat $ map (WriterT.bind-MW-helper f) xs)
+      ≡⟨ cong sum (filter-vals-concat (map (WriterT.bind-MW-helper f) xs) b ) ⟩
+    sum (concat $ map (filter-vals b) $ map (WriterT.bind-MW-helper f) xs)
+      ≡⟨ concat-sum-swap (map (filter-vals b) $ map (WriterT.bind-MW-helper f) xs) ⟩
+    sum (map sum ∘′ map (filter-vals b) $ map (WriterT.bind-MW-helper f) xs)
+      ≡⟨ cong sum $ map-comp sum (filter-vals b) (map (WriterT.bind-MW-helper f) xs) ⟩ʳ
+    sum (map (sum ∘′ filter-vals b) $ map (WriterT.bind-MW-helper f) xs)
+      ≡⟨ cong sum $ map-comp (sum ∘′ filter-vals b) (WriterT.bind-MW-helper f) xs ⟩ʳ
+    sum (map (sum ∘′ filter-vals b ∘′ WriterT.bind-MW-helper f) xs) 
+      ≡⟨ cong sum $ map-ext (sum ∘′ filter-vals b ∘′ WriterT.bind-MW-helper f)
+                            (sample-over-LD f b)
+                            (λ { (a , p) → sym $ sample-map-mul-writer (f a) p b })
+                            xs ⟩
+    sum (map (sample-over-LD f b) xs)
+    ∎
+
+  sample-over-ext : ∀{A B : Set}{{_ : Eq B}}
+                    (f g : A → ListDist B)(b : B)
+                    (eq : ∀ a → f a ≡LD g a)
+                    (aq : A × Q)
+                  → sample-over-LD f b aq ≡ sample-over-LD g b aq
+  sample-over-ext f g b eq (a , p) = cong (_*_ p) (sample-invariant-LD (eq a) b)
+
+  >>=-D-ext-LD : ∀{A B} {{_ : Eq A}} {{_ : Eq B}}
+               → (xs : ListDist A)
                → (f g : A → ListDist B)
                → (∀ a → f a ≡LD g a)
-               → (x >>F= f) ≡LD (x >>F= g)
-  >>=-D-ext-LD x f g pf = sample-equiv λ a →
-    combine-vals sum a (concatMap (WriterT.bind-MW-helper f) x)
-      ≡⟨ {!!} ⟩
-    {!!}
-      ≡⟨ {!!} ⟩
-    {!!}
-      ≡⟨ {!!} ⟩
-    combine-vals sum a (concatMap (WriterT.bind-MW-helper g) x)
+               → (xs >>F= f) ≡LD (xs >>F= g)
+  >>=-D-ext-LD xs f g pf = sample-equiv λ b →
+    sample-LD (xs >>F= f) b
+      ≡⟨ bind-universal-prop xs f b ⟩
+    sum (map (sample-over-LD f b) xs) 
+      ≡⟨ (cong sum $ map-ext (sample-over-LD f b) (sample-over-LD g b) (sample-over-ext f g b pf) xs) ⟩
+    sum (map (sample-over-LD g b) xs)
+      ≡⟨ bind-universal-prop xs g b ⟩ʳ
+    sample-LD (xs >>F= g) b
     ∎
                
   open import Distribution.PropsClass ListDist

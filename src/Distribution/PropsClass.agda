@@ -34,7 +34,7 @@ record DistMonadProps : Set₂ where
                         → sample D a ≡ sample (fmap f D) (f a)
     irrelevance : ∀{A} {{_ : Eq A}} n (D : F A)
                 → D ≡D (uniform n >>= const D)
-    >>=-D-ext : ∀{A B} {{_ : Eq B}}
+    >>=-D-ext : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
               → (x : F A)
               → (f g : A → F B)
               → (∀ a → f a ≡D g a)
