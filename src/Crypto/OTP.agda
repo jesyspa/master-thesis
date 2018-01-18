@@ -63,6 +63,14 @@ OTP n = enc-scheme (BitVec n)
                    (λ k ct → bitvec-xor k ct)
                    {!!}
 
+CE : (S A : Set) → Set
+CE = {!!}
+
+record Oracle (In Out S : Set) : Set₁ where
+  constructor oracle
+  field
+    query : In → CE S Out
+
 record EavAdv (E : EncScheme) : Set₁ where
   constructor eav-adv
   open EncScheme E
@@ -73,6 +81,18 @@ record EavAdv (E : EncScheme) : Set₁ where
     -- How about asking the adversary to prove that his
     -- message is not the encrypted one? 
     -- ie. defend from bad-events on the type-level!
+
+record CPAAdv (E : EncScheme) : Set₁ where
+  constructor eav-adv
+  open EncScheme E
+  field 
+    STₐ  : Set
+    A₁ : ∀{σ} → Oracle PT CT σ → CE σ (STₐ × PT × PT)
+    A₂ : ∀{σ} → Oracle PT CT σ → STₐ → CT → CE σ Bool
+    -- How about asking the adversary to prove that his
+    -- message is not the encrypted one? 
+    -- ie. defend from bad-events on the type-level!
+
 
 IND-EAV : (E : EncScheme)(A : EavAdv E) → CryptoExpr Bool 
 IND-EAV E A 
