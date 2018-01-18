@@ -100,11 +100,11 @@ record CPAAdv (E : EncScheme) : Set₁ where
 
 IND-EAV : (E : EncScheme)(A : EavAdv E) → CryptoExpr Bool 
 IND-EAV E A 
-  = keygen >>= λ k 
-  → A₁     >>= λ { (s , m₀ , m₁) 
-  → coin-expr >>= λ b
+  = keygen                       >>= λ k 
+  → A₁                           >>= λ { (s , m₀ , m₁) 
+  → coin-expr                    >>= λ b
   → enc k (if b then m₀ else m₁) >>= λ ct
-  → A₂ s ct >>= λ b' 
+  → A₂ s ct                      >>= λ b' 
   → return (isYes (b == b'))
   }
   where
