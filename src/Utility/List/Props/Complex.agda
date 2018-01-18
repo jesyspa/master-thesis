@@ -1,9 +1,9 @@
-module Utility.List.ComplexProps where
+module Utility.List.Props.Complex where
 
 open import ThesisPrelude
 open import Algebra.Monoid
 open import Algebra.Function
-open import Utility.List.MonoidProps
+open import Utility.List.Props.Monoid
 
 map-append-dist : ∀{l l′} {A : Set l} {B : Set l′}
                 → (f : A → B)

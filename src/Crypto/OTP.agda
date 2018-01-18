@@ -12,7 +12,6 @@ open Probability PQ
 open ProbabilityProps PPQ
 open import Distribution.Class
 open import Distribution.List Q
-open import Distribution.ListProps Q
 open import Distribution.PropsClass ListDist {{DistMonadListDist}}
 open import Algebra.MonadProps ListDist
 open import Crypto.Valuation ListDist {{DistMonadListDist}}

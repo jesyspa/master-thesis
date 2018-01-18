@@ -1,4 +1,4 @@
-module Utility.List.MonoidProps where
+module Utility.List.Props.Monoid where
 
 open import ThesisPrelude
 open import Algebra.Monoid

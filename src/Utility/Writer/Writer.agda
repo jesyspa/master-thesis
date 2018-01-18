@@ -8,24 +8,18 @@ open import Algebra.Monoid
 Writer : Set l → Set l
 Writer A = A × Q
 
-fmap-W : ∀{A B : Set l} → (A → B) → Writer A → Writer B 
-fmap-W f (a , q) = f a , q
-
-make-W : ∀{A} → Q → A → Writer A
-make-W q a = a , q
-
 mul-Writer : ∀{A} → Q → Writer A → Writer A
 mul-Writer q = over-snd (_<>_ q)
 
 instance
   FunctorWriter : Functor Writer
-  FunctorWriter = record { fmap = fmap-W }
+  FunctorWriter = record { fmap = over-fst }
 
 ap-W : ∀{A B : Set l} → Writer (A → B) → Writer A → Writer B
 ap-W (f , v₁) (a , v₂) = f a , v₁ <> v₂
 
 pure-W : ∀{A : Set l} → A → Writer A
-pure-W = make-W mempty
+pure-W = rev-pair mempty
 
 instance
   ApplicativeWriter : Applicative Writer

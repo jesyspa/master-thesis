@@ -2,22 +2,23 @@ open import ThesisPrelude using (Monoid)
 module Utility.Writer.Props {l} (Q : Set l) {{QM : Monoid Q}} where
 
 open import ThesisPrelude
+open import Utility.Product
 open import Algebra.Monoid Q
 open import Utility.Writer.Writer Q
 
 fmap-W-ext : ∀{A B} (f g : A → B)
                → (∀ a → f a ≡ g a)
                → (x : Writer A)
-               → fmap-W f x ≡ fmap-W g x
+               → over-fst f x ≡ over-fst g x
 fmap-W-ext f g p (a , q) rewrite p a = refl
 
 fmap-W-id : ∀{A}
               → (x : Writer A)
-              → x ≡ fmap-W id x
+              → x ≡ over-fst id x
 fmap-W-id (a , q) = refl 
 
 fmap-W-comp : ∀{A B C} (g : B → C) (f : A → B) (x : Writer A)
-                → fmap-W (g ∘′ f) x ≡ fmap-W g (fmap-W f x)
+                → over-fst (g ∘′ f) x ≡ over-fst g (over-fst f x)
 fmap-W-comp g f (a , q) = refl
 
 open import Algebra.FunctorProps Writer
@@ -47,7 +48,7 @@ module _ {{QP : MonoidProps}} where
   ap-W-interchange : ∀{A B} (u : Writer (A → B)) (x : A) → ap-W u (pure-W x) ≡ ap-W (pure-W λ f → f x) u
   ap-W-interchange (f , v) x rewrite sym (unit-left v) | sym (unit-right v) = refl
 
-  fmap-is-pure-ap-W : ∀{A B} (f : A → B) (v : Writer A) → fmap-W f v ≡ ap-W (pure-W f) v
+  fmap-is-pure-ap-W : ∀{A B} (f : A → B) (v : Writer A) → over-fst f v ≡ ap-W (pure-W f) v
   fmap-is-pure-ap-W f (a , v) rewrite sym (unit-left v) = refl
 
   instance

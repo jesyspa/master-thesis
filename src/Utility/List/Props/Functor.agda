@@ -1,4 +1,4 @@
-module Utility.List.FunctorProps where
+module Utility.List.Props.Functor where
 
 open import ThesisPrelude
 open import Algebra.Function

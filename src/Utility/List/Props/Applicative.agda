@@ -1,9 +1,9 @@
-module Utility.List.ApplicativeProps where
+module Utility.List.Props.Applicative where
 
 open import ThesisPrelude
-open import Utility.List.FunctorProps
-open import Utility.List.MonoidProps
-open import Utility.List.ComplexProps
+open import Utility.List.Props.Functor
+open import Utility.List.Props.Monoid
+open import Utility.List.Props.Complex
 
 list-<*>-composition-head : ∀{l} {A B C : Set l} (x : B → C) (ys : List (A → B)) (zs : List A)
                           → map x (concat (map (λ f → map f zs) ys))

@@ -10,7 +10,7 @@ open import Utility.Writer.Props Q
 open import Algebra.FunctorComposition M Writer as FComp using ()
 open import Algebra.ApplicativeComposition M Writer as AComp using ()
 
-open import Algebra.FunctorProps Writer renaming (FunctorProps to WFProps; fmap-F to fmap-W)
+open import Algebra.FunctorProps Writer renaming (FunctorProps to WFProps) hiding (fmap-F)
 open import Algebra.ApplicativeProps Writer renaming (ApplicativeProps to WAProps; _<*F>_ to _<*W>_) hiding (pure-F)
 open import Algebra.MonadProps Writer renaming (MonadProps to WMProps; _>>F=_ to _>>W=_)
 open WFProps

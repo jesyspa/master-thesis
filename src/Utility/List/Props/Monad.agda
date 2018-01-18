@@ -1,12 +1,12 @@
-module Utility.List.MonadProps where
+module Utility.List.Props.Monad where
 
 open import ThesisPrelude
 open import Algebra.Monoid
 open import Algebra.Function
-open import Utility.List.MonoidProps
-open import Utility.List.ComplexProps
-open import Utility.List.FunctorProps
-open import Utility.List.ApplicativeProps
+open import Utility.List.Props.Monoid
+open import Utility.List.Props.Complex
+open import Utility.List.Props.Functor
+open import Utility.List.Props.Applicative
 
 list->>=-assoc : ∀{l} {A B C : Set l} → (xs : List A) → (f : A → List B) → (g : B → List C)
                → (xs >>= f >>= g) ≡ (xs >>= (λ y → f y >>= g))

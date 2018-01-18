@@ -8,8 +8,7 @@ open import Algebra.SemiringProps Q
 open import Probability.Class
 open import Probability.PropsClass Q
 open import Utility.List.Lookup
-open import Utility.List.LookupProps
-open import Utility.List.FunctorProps
+open import Utility.List.Props
 
 module _ {{PPQ : ProbabilityProps}} where
   open ProbabilityProps PPQ
