@@ -43,6 +43,54 @@ otp-goal-list n xs = sample-equiv λ a →
   sample ⟦ expr-B n xs ⟧ a
   ∎
 
+record EncScheme : Set₁ where
+  constructor enc-scheme
+  field
+    Key PT CT : Set
+    
+    keygen : CryptoExpr Key
+    enc    : Key → PT → CryptoExpr CT
+    dec    : Key → CT → PT
+
+    correct : ∀{k pt} → fmap (dec k) (enc k pt) ≡ return pt
+
+OTP : (n : Nat) → EncScheme
+OTP n = enc-scheme (BitVec n) 
+                   (BitVec n) 
+                   (BitVec n) 
+                   (uniform-expr n)
+                   (λ k pt → return (bitvec-xor k pt) )
+                   (λ k ct → bitvec-xor k ct)
+                   {!!}
+
+record EavAdv (E : EncScheme) : Set₁ where
+  constructor eav-adv
+  open EncScheme E
+  field 
+    S  : Set
+    A₁ : CryptoExpr (S × PT × PT)
+    A₂ : S → CT → CryptoExpr Bool
+    -- How about asking the adversary to prove that his
+    -- message is not the encrypted one? 
+    -- ie. defend from bad-events on the type-level!
+
+IND-EAV : (E : EncScheme)(A : EavAdv E) → CryptoExpr Bool 
+IND-EAV E A 
+  = keygen >>= λ k 
+  → A₁     >>= λ { (s , m₀ , m₁) 
+  → coin-expr >>= λ b
+  → enc k (if b then m₀ else m₁) >>= λ ct
+  → A₂ s ct >>= λ b' 
+  → return (isYes (b == b'))
+  }
+  where
+    open EncScheme E
+    open EavAdv A
+
+OTP-is-IND-EAV : ∀{n}(A : EavAdv (OTP n))
+               → ⟦ IND-EAV (OTP n) A ⟧ ≡D coin
+OTP-is-IND-EAV A = {!!}
+
 otp-game : ∀ (n : Nat)
            (A₁ : CryptoExpr (BitVec n × BitVec n))
            (A₂ : BitVec n → CryptoExpr Bool)
