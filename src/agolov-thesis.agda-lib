@@ -1,3 +1,0 @@
-name: agolov-thesis
-depend: agda-prelude
-include: .
