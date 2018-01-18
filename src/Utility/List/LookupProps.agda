@@ -100,8 +100,32 @@ module _ {l} {A B : Set l} where
 
     
     filter-vals-map : ∀{B′}  (f : B → B′) (xs : SearchList A B)(a : A)
-                    → filter-vals a (map (over-snd f) xs) ≡ map f (filter-vals a xs)
+                    → map f (filter-vals a xs) ≡ filter-vals a (map (over-snd f) xs)
     filter-vals-map f [] a = refl
     filter-vals-map f ((a′ , b) ∷ xs) a with a == a′
     ... | yes refl rewrite sym (filter-vals-map f xs a) = refl
     ... | no neq rewrite no-neq a a′ neq | sym (filter-vals-map f xs a) = refl
+
+    decide-Index : (a : A) (xs : SearchList A B)
+                 → Dec (Index a xs)
+    decide-Index a xs with decide-elem a (map fst xs)
+    ... | yes p = yes (∈-to-Index a xs p)
+    ... | no np = no (np ∘ Index-to-∈ a xs)
+
+    not-in-filter-empty : (a : A) (xs : SearchList A B)
+                        → ¬ (Index a xs) → [] ≡ filter-vals a xs
+    not-in-filter-empty a [] np = refl
+    not-in-filter-empty a ((a′ , b) ∷ xs) np with a == a′
+    ... | yes refl = ⊥-elim $ np (here a b xs)
+    ... | no neq = not-in-filter-empty a xs λ x → np (there a (a′ , b) xs x)
+
+module _ {l} {A : Set l} {{_ : Eq A}} where
+  filter-vals-diag : (xs : List A) (a : A)
+                   → filter (isYes ∘ (_==_ a)) xs ≡ filter-vals a (map diag xs)
+  filter-vals-diag [] a = refl
+  filter-vals-diag (x ∷ xs) a with a == x
+  ... | yes refl rewrite sym (filter-vals-diag xs a) = refl
+  ... | no neq rewrite sym (filter-vals-diag xs a) = refl
+
+
+

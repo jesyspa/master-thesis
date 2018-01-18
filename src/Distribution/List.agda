@@ -9,6 +9,7 @@ open import Algebra.MonoidHelpers Q
 open import Utility.Vector.BitVec
 open import Utility.Writer Q {{*-monoid}}
 open import Utility.List.Lookup
+open import Utility.List.Functions
 
 instance
   QMulMonoid : Monoid Q
@@ -55,3 +56,9 @@ instance
                              ; monad-super = MonadListDist
                              ; probability-super = QC
                              }
+
+support-LD : ∀{A} {{_ : Eq A}} → ListDist A → List A
+support-LD = uniques ∘′ map fst
+
+normalize-LD : ∀{A} {{_ : Eq A}} → ListDist A → ListDist A
+normalize-LD dist = map (λ x → (x , sample-LD dist x)) (support-LD dist) 

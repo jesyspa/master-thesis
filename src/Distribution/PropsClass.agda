@@ -34,6 +34,11 @@ record DistMonadProps : Set₂ where
                         → sample D a ≡ sample (fmap f D) (f a)
     irrelevance : ∀{A} {{_ : Eq A}} n (D : F A)
                 → D ≡D (uniform n >>= const D)
+    >>=-D-ext : ∀{A B} {{_ : Eq B}}
+              → (x : F A)
+              → (f g : A → F B)
+              → (∀ a → f a ≡D g a)
+              → (x >>= f) ≡D (x >>= g) 
   coin-bijection-invariant : (f : Bool → Bool)
                            → Bijective f
                            → coin ≡D fmap-F f coin

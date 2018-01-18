@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import Probability.Class using (Probability)
 module Distribution.ListProps (Q : Set) {{PQ : Probability Q}} where
 
@@ -13,6 +14,8 @@ open import Probability.PropsClass Q
 open import Utility.Num
 open import Utility.List.Props
 open import Utility.List.Arithmetic Q
+open import Utility.List.Elem
+open import Utility.List.ElemProps
 open import Utility.List.Lookup
 open import Utility.List.LookupProps
 open import Utility.Writer Q
@@ -86,49 +89,114 @@ module _ {{PPQ : ProbabilityProps}} where
       ≡⟨ cong (λ e → sample-LD (fmap f (uniform-LD n)) e) (pb v) ⟩ʳ
     sample-LD (fmap f (uniform-LD n)) v
     ∎
-  
-  sample-invariant-LD : ∀ {A} {{_ : Eq A}} {xs ys : ListDist A} → xs ≡LD ys → (a : A) → sample-LD xs a ≡ sample-LD ys a
-  sample-invariant-LD (sample-equiv p) a = p a
 
--- TODO: Acutally reverse the order of statements and update syms.
-  irrelevance-LD : ∀ {A} {{_ : Eq A}} n (xs : ListDist A)
-                 → xs ≡LD (uniform-LD n >>F= const xs)
-  irrelevance-LD {A} n xs = sample-equiv λ a → sym (
-    sample-LD (uniform-LD n >>F= const xs) a
-      ≡⟨ refl ⟩
-    combine-vals sum a (concatMap (WriterT.bind-MW-helper (const xs)) (uniform-LD n))
-      ≡⟨ cong (combine-vals sum a ∘′ concat) $
-              map-ext (WriterT.bind-MW-helper (const xs)) (cf ∘′ snd) (λ { (_ , q) → refl }) (uniform-LD n)
-              ⟨≡⟩ map-comp cf snd (annotate (negpow2 n) (all-bitvecs n))
-              ⟨≡⟩ʳ cong (map cf) (map-snd-annotate-replicate (negpow2 n) (all-bitvecs n)) ⟩
-    combine-vals sum a (concat (map cf (replicate (length $ all-bitvecs n) $ negpow2 n)))
-      ≡⟨ cong (λ e → combine-vals sum a (concat (map cf (replicate e $ negpow2 n)))) $ all-bitvecs-length n ⟩ʳ
-    combine-vals sum a (concat (map cf (replicate (pow2 n) $ negpow2 n)))
-      ≡⟨ cong (combine-vals sum a ∘′ concat) (map-replicate (pow2 n) cf $ negpow2 n) ⟩ʳ
-    combine-vals sum a (concat (replicate (pow2 n) $ cf $ negpow2 n))
-      ≡⟨ combine-sum-concat (replicate (pow2 n) $ cf $ negpow2 n) a  ⟩
-    sum (map (combine-vals sum a) (replicate (pow2 n) $ cf $ negpow2 n)) 
-      ≡⟨ cong sum (map-replicate (pow2 n) (combine-vals sum a) $ cf $ negpow2 n) ⟩ʳ
-    sum (replicate (pow2 n) (combine-vals sum a $ cf $ negpow2 n))
-      ≡⟨ sum-replicate (pow2 n) (combine-vals sum a $ cf $ negpow2 n) ⟩ʳ
-    embed (pow2 n) * (sum $ filter-vals a $ cf $ negpow2 n)
-      ≡⟨ mul-sum (embed $ pow2 n) (filter-vals a $ cf $ negpow2 n)  ⟩
-    sum (map (_*_ (embed $ pow2 n)) (filter-vals a $ cf $ negpow2 n))
-      ≡⟨ cong sum (filter-vals-map (_*_ (embed $ pow2 n)) (cf $ negpow2 n) a) ⟩ʳ
-    sum (filter-vals a (map (mul-Writer (embed $ pow2 n)) (cf $ negpow2 n))) 
-      ≡⟨ cong (sum ∘′ filter-vals a) $ map-comp (mul-Writer (embed $ pow2 n)) (mul-Writer (negpow2 n)) xs ⟩ʳ
-    sum (filter-vals a (map (mul-Writer (embed $ pow2 n) ∘′ mul-Writer (negpow2 n)) xs)) 
-      ≡⟨ cong (sum ∘′ filter-vals a) $ map-ext-id (mul-Writer (embed $ pow2 n) ∘′ mul-Writer (negpow2 n))
-                                                  (λ x → mul-Writer-id x
-                                                     ⟨≡⟩ cong (λ e → mul-Writer e x) (pow2-negpow2-cancel n)
-                                                     ⟨≡⟩ mul-Writer-assoc (embed $ pow2 n) (negpow2 n) x )
-                                                  xs ⟩ʳ
+  module _ {A} {{_ : Eq A }} where
+    support-preserves-elements : (xs : ListDist A) (a : A)
+                               → Index a xs → a ∈ support-LD xs
+                               -- goal: a ∈ uniques (map fst xs)
+    support-preserves-elements xs a = unique-preserves-elem a (map fst xs) ∘′ Index-to-∈ a xs
 
-    sum (filter-vals a xs) 
-    ∎)
-    where cf : Q → List (A × Q)
-          cf q = map (mul-Writer q) xs
+    support-preserves-elements-inv : (xs : ListDist A) (a : A)
+                                   → a ∈ support-LD xs → Index a xs
+    support-preserves-elements-inv xs a = ∈-to-Index a xs ∘ unique-preserves-elem-inv a (map fst xs) 
 
+    normalize-correct-lemma : (xs : ListDist A) (a : A)
+                            → sample-LD xs a ≡ sum (map (sample-LD xs) $ filter (isYes ∘ (_==_ a)) $ support-LD xs)
+    normalize-correct-lemma xs a with decide-Index a xs
+    ... | yes p =
+      sample-LD xs a
+        ≡⟨ singleton-sum-id (sample-LD xs a) ⟩
+      sum [ sample-LD xs a ]
+        ≡⟨ refl ⟩
+      sum (map (sample-LD xs) [ a ])
+        ≡⟨ (cong (sum ∘ map (sample-LD xs)) $ uniques-gives-singleton a (map fst xs)
+                                                                      (unique-preserves-elem-inv a (map fst xs)
+                                                                                                 (support-preserves-elements xs a p))) ⟩
+      sum (map (sample-LD xs) $ filter (isYes ∘ (_==_ a)) $ support-LD xs)
+      ∎
+    ... | no np = cong sum $
+      filter-vals a xs
+        ≡⟨ not-in-filter-empty a xs np ⟩ʳ
+      []
+        ≡⟨ cong (map (sample-LD xs)) $ if-not-there-filter-empty a (support-LD xs) (np ∘ support-preserves-elements-inv xs a) ⟩
+      map (sample-LD xs) (filter (isYes ∘ (_==_ a)) $ support-LD xs)
+      ∎
+
+    normalize-correct-LD : (xs : ListDist A) → xs ≡LD normalize-LD xs
+    normalize-correct-LD xs = sample-equiv λ a →
+      sum (filter-vals a xs)
+        ≡⟨ normalize-correct-lemma xs a ⟩
+      sum (map (sample-LD xs) $ filter (isYes ∘ (_==_ a)) $ support-LD xs)
+        ≡⟨ cong (sum ∘′ map (sample-LD xs)) $ filter-vals-diag (support-LD xs) a ⟩
+      sum (map (sample-LD xs) $ filter-vals a $ map diag (support-LD xs))
+        ≡⟨ cong sum $ filter-vals-map (sample-LD xs) (map diag (support-LD xs)) a ⟩
+      sum (filter-vals a $ map (over-snd (sample-LD xs)) $ map diag (support-LD xs))
+        ≡⟨ cong (sum ∘′ filter-vals a) $ map-comp (over-snd (sample-LD xs)) diag (support-LD xs) ⟩ʳ
+      sum (filter-vals a $ map (over-snd (sample-LD xs) ∘′ diag) (support-LD xs))
+        ≡⟨ cong (sum ∘′ filter-vals a) $ map-ext (over-snd (sample-LD xs) ∘′ diag)
+                                                 (λ x → (x , sample-LD xs x))
+                                                 (λ x → refl)
+                                                 (support-LD xs) ⟩
+      sum (filter-vals a $ map (λ x → (x , sample-LD xs x)) (support-LD xs))
+      ∎
+    
+    sample-invariant-LD : {xs ys : ListDist A} → xs ≡LD ys → (a : A) → sample-LD xs a ≡ sample-LD ys a
+    sample-invariant-LD (sample-equiv p) a = p a
+
+--   TODO: Acutally reverse the order of statements and update syms.
+    irrelevance-LD : ∀ n (xs : ListDist A)
+                   → xs ≡LD (uniform-LD n >>F= const xs)
+    irrelevance-LD n xs = sample-equiv λ a → sym (
+      sample-LD (uniform-LD n >>F= const xs) a
+        ≡⟨ refl ⟩
+      combine-vals sum a (concatMap (WriterT.bind-MW-helper (const xs)) (uniform-LD n))
+        ≡⟨ cong (combine-vals sum a ∘′ concat) $
+                map-ext (WriterT.bind-MW-helper (const xs)) (cf ∘′ snd) (λ { (_ , q) → refl }) (uniform-LD n)
+                ⟨≡⟩ map-comp cf snd (annotate (negpow2 n) (all-bitvecs n))
+                ⟨≡⟩ʳ cong (map cf) (map-snd-annotate-replicate (negpow2 n) (all-bitvecs n)) ⟩
+      combine-vals sum a (concat (map cf (replicate (length $ all-bitvecs n) $ negpow2 n)))
+        ≡⟨ cong (λ e → combine-vals sum a (concat (map cf (replicate e $ negpow2 n)))) $ all-bitvecs-length n ⟩ʳ
+      combine-vals sum a (concat (map cf (replicate (pow2 n) $ negpow2 n)))
+        ≡⟨ cong (combine-vals sum a ∘′ concat) (map-replicate (pow2 n) cf $ negpow2 n) ⟩ʳ
+      combine-vals sum a (concat (replicate (pow2 n) $ cf $ negpow2 n))
+        ≡⟨ combine-sum-concat (replicate (pow2 n) $ cf $ negpow2 n) a  ⟩
+      sum (map (combine-vals sum a) (replicate (pow2 n) $ cf $ negpow2 n)) 
+        ≡⟨ cong sum (map-replicate (pow2 n) (combine-vals sum a) $ cf $ negpow2 n) ⟩ʳ
+      sum (replicate (pow2 n) (combine-vals sum a $ cf $ negpow2 n))
+        ≡⟨ sum-replicate (pow2 n) (combine-vals sum a $ cf $ negpow2 n) ⟩ʳ
+      embed (pow2 n) * (sum $ filter-vals a $ cf $ negpow2 n)
+        ≡⟨ mul-sum (embed $ pow2 n) (filter-vals a $ cf $ negpow2 n)  ⟩
+      sum (map (_*_ (embed $ pow2 n)) (filter-vals a $ cf $ negpow2 n))
+        ≡⟨ cong sum (filter-vals-map (_*_ (embed $ pow2 n)) (cf $ negpow2 n) a) ⟩
+      sum (filter-vals a (map (mul-Writer (embed $ pow2 n)) (cf $ negpow2 n))) 
+        ≡⟨ cong (sum ∘′ filter-vals a) $ map-comp (mul-Writer (embed $ pow2 n)) (mul-Writer (negpow2 n)) xs ⟩ʳ
+      sum (filter-vals a (map (mul-Writer (embed $ pow2 n) ∘′ mul-Writer (negpow2 n)) xs)) 
+        ≡⟨ cong (sum ∘′ filter-vals a) $ map-ext-id (mul-Writer (embed $ pow2 n) ∘′ mul-Writer (negpow2 n))
+                                                    (λ x → mul-Writer-id x
+                                                       ⟨≡⟩ cong (λ e → mul-Writer e x) (pow2-negpow2-cancel n)
+                                                       ⟨≡⟩ mul-Writer-assoc (embed $ pow2 n) (negpow2 n) x )
+                                                    xs ⟩ʳ
+
+      sum (filter-vals a xs) 
+      ∎)
+      where cf : Q → List (A × Q)
+            cf q = map (mul-Writer q) xs
+
+  >>=-D-ext-LD : ∀{A B} {{_ : Eq B}}
+               → (x : ListDist A)
+               → (f g : A → ListDist B)
+               → (∀ a → f a ≡LD g a)
+               → (x >>F= f) ≡LD (x >>F= g)
+  >>=-D-ext-LD x f g pf = sample-equiv λ a →
+    combine-vals sum a (concatMap (WriterT.bind-MW-helper f) x)
+      ≡⟨ {!!} ⟩
+    {!!}
+      ≡⟨ {!!} ⟩
+    {!!}
+      ≡⟨ {!!} ⟩
+    combine-vals sum a (concatMap (WriterT.bind-MW-helper g) x)
+    ∎
+               
   open import Distribution.PropsClass ListDist
   
   instance
@@ -142,4 +210,5 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; sample-invariant = sample-invariant-LD
                                ; injection-invariant = injections-preserve-distributions-LD
                                ; irrelevance = irrelevance-LD
+                               ; >>=-D-ext = >>=-D-ext-LD
                                }

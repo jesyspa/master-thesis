@@ -9,3 +9,6 @@ fst-Retraction b = λ a → refl
 
 over-snd : ∀{l} {A B C : Set l} (f : B → C) → A × B → A × C
 over-snd f (a , b) = a , f b
+
+diag : ∀{l} {A : Set l} → A → A × A
+diag a = a , a

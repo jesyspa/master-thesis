@@ -67,18 +67,17 @@ module _ {l} {A : Set l} where
     drop-map-lem f fp a xs p = drop-map-lem-helper f fp a xs (map f xs) refl p
     
   module _ {{_ : Eq A}} where
-    equalFilter-fun : ∀(a : A) (xs : List A)
+    equalFilter-fun : (a : A) (xs : List A)
                     → a ∈ xs → a ∈ filter (isYes ∘ (_==_ a)) xs
     equalFilter-fun a .(a ∷ xs) (here .a xs) rewrite yes-refl a = here a (filter (isYes ∘ (_==_ a)) xs)
     equalFilter-fun a .(y ∷ xs) (there .a y xs pf) with a == y
     equalFilter-fun a .(a ∷ xs) (there .a .a xs pf) | yes refl = there a a (filter (isYes ∘ (_==_ a)) xs) (equalFilter-fun a xs pf)
     equalFilter-fun a .(y ∷ xs) (there .a y xs pf) | no p = equalFilter-fun a xs pf
     
-    equalFilter-inv : ∀(a : A) (xs : List A)
+    equalFilter-inv : (a : A) (xs : List A)
                     → a ∈ filter (isYes ∘ (_==_ a)) xs → a ∈ xs
     equalFilter-inv a [] ()
     equalFilter-inv a (x ∷ xs) p with a == x
     equalFilter-inv a (.a ∷ xs) (here .a ._) | yes refl = here a xs
     equalFilter-inv a (.a ∷ xs) (there .a .a ._ p) | yes refl = there a a xs (equalFilter-inv a xs p)
     equalFilter-inv a (x ∷ xs) p | no pne = there a x xs (equalFilter-inv a xs p) 
-    

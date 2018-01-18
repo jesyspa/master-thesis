@@ -12,6 +12,11 @@ no-neq a a′ p with a == a′
 ... | yes eq = ⊥-elim (p eq)
 ... | no neq = refl
 
+neq-is-no : ∀{l} {A : Set l} {{_ : Eq A}} {a a′ : A} → ¬ (a ≡ a′) → IsTrue (isNo (a == a′))
+neq-is-no {a = a} {a′} neq with a == a′
+... | yes refl = ⊥-elim (neq refl)
+... | no _ = true
+
 flip-transport : ∀{l l′} {A : Set l} (B : A → Set l′) {a a′}
                → (p : a ≡ a′) → (b : B a) (b′ : B a′)
                → b ≡ transport B (sym p) b′
