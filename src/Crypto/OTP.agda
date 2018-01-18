@@ -63,6 +63,10 @@ OTP n = enc-scheme (BitVec n)
                    (λ k ct → bitvec-xor k ct)
                    {!!}
 
+-- We want a "opaque" way of passing S around.
+-- The CPAAdv can NOT inspect it!
+
+-- AG: monad state in CPS style?
 CE : (S A : Set) → Set
 CE = {!!}
 
