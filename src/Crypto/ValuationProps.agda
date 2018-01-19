@@ -84,8 +84,10 @@ coin-sample-3 (uniformCE n cont) rewrite sym coin-interpretation = sample-equali
   sample (uniform n >>= λ xs → coin) a
     ≡⟨ cong (λ e → sample e a) (>>=-ext (uniform n) (const coin) (const ⟦ coin-expr ⟧) λ xs → coin-interpretation) ⟩
   sample (uniform n >>= λ xs → ⟦ coin-expr ⟧) a
-    ≡⟨ cong (λ e → sample e a) (>>=-ext (uniform n) (λ _ → ⟦ coin-expr ⟧)
-                                                    (λ xs → ⟦ (cont xs >>= λ _ → coin-expr) ⟧ )
-                                                    (λ xs → {!coin-sample ?!})) ⟩
+    ≡⟨ sample-invariant (>>=-D-ext (uniform n)
+                                   (λ _ → ⟦ coin-expr ⟧)
+                                   (λ xs → ⟦ (cont xs >>= λ _ → coin-expr) ⟧ )
+                                   (λ xs → coin-sample-3 (cont xs))) 
+                        a ⟩
   sample (uniform n >>= λ xs → ⟦ (cont xs >>= λ _ → coin-expr) ⟧) a
   ∎
