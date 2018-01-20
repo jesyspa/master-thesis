@@ -37,19 +37,23 @@ fmap-interpretation f (uniformCE n cont) =
   uniform n >>= (λ y → ⟦ fmap f (cont y) ⟧)
   ∎
 
-bind-interpretation : ∀{A B}(F : A → CryptoExpr B)(E : CryptoExpr A)
+bind-interpretation : ∀{A B}(E : CryptoExpr A)(F : A → CryptoExpr B)
                     → (⟦ E ⟧ >>= λ e → ⟦ F e ⟧) ≡ ⟦ E >>= F ⟧
-bind-interpretation F (returnCE a) = return->>=-left-id a (⟦_⟧ ∘′ F)
-bind-interpretation F (uniformCE n cont) =
+bind-interpretation (returnCE a) F       = return->>=-left-id a (⟦_⟧ ∘′ F)
+bind-interpretation (uniformCE n cont) F =
   uniform n >>= (⟦_⟧ ∘′ cont) >>= ⟦_⟧ ∘′ F
     ≡⟨ >>=-assoc (uniform n) (⟦_⟧ ∘′ cont) (⟦_⟧ ∘′ F) ⟩
   uniform n >>= (λ z → ⟦ cont z ⟧ >>= λ e → ⟦ F e ⟧)
     ≡⟨ >>=-ext (uniform n)
                (λ z → ⟦ cont z ⟧ >>= λ e → ⟦ F e ⟧)
                (λ z → ⟦ cont z >>= F ⟧)
-               (λ z → bind-interpretation F (cont z)) ⟩
+               (λ z → bind-interpretation (cont z) F) ⟩
   uniform n >>= (λ z → ⟦ cont z >>= F ⟧)
   ∎
+
+bind-const-interpretation : ∀{A B}(E : CryptoExpr A)(F : CryptoExpr B)
+                    → (⟦ E ⟧ >>= const ⟦ F ⟧) ≡ ⟦ E >>= const F ⟧
+bind-const-interpretation E F = bind-interpretation E (const F)
 
 coin-interpretation : coin ≡ ⟦ coin-expr ⟧
 coin-interpretation = cong (fmap head) (uniform-dist-interpretation 1) ⟨≡⟩ fmap-interpretation head (uniform-expr 1)
@@ -90,6 +94,15 @@ coin-sample-2 b = sample-equality λ a →
           ⟦ coin-expr >>= (λ b′ → return (nxor b b′)) ⟧
           ∎
 
+coin-sample-2-interpretation : ∀ b → ⟦ coin-expr ⟧ ≡D (⟦ coin-expr ⟧ >>= λ b′ → ⟦ return (nxor b b′) ⟧)
+coin-sample-2-interpretation b = sample-equality λ a →
+  sample ⟦ coin-expr ⟧ a
+    ≡⟨ flip sample-invariant a $ coin-sample-2 b ⟩
+  sample ⟦ (coin-expr >>= λ b′ → return (nxor b b′)) ⟧ a
+    ≡⟨ cong (λ e → sample e a) $ bind-interpretation coin-expr (λ b′ → return (nxor b b′)) ⟩ʳ
+  sample (⟦ coin-expr ⟧ >>= λ b′ → ⟦ return (nxor b b′) ⟧) a
+  ∎
+
 coin-sample-3 : ∀{A} (E : CryptoExpr A) → ⟦ coin-expr ⟧ ≡D ⟦ (E >>= λ _ → coin-expr) ⟧
 coin-sample-3 (returnCE a) = sample-equality λ x → refl
 coin-sample-3 (uniformCE n cont) rewrite sym coin-interpretation = sample-equality λ a →
@@ -104,4 +117,39 @@ coin-sample-3 (uniformCE n cont) rewrite sym coin-interpretation = sample-equali
                                    (λ xs → coin-sample-3 (cont xs))) 
                         a ⟩
   sample (uniform n >>= λ xs → ⟦ (cont xs >>= λ _ → coin-expr) ⟧) a
+  ∎
+
+coin-sample-3-interpretation : ∀{A}(E : CryptoExpr A)
+                             → ⟦ coin-expr ⟧ ≡D (⟦ E ⟧ >>= const ⟦ coin-expr ⟧)
+coin-sample-3-interpretation E = sample-equality λ b →
+  sample ⟦ coin-expr ⟧ b
+    ≡⟨ (flip sample-invariant b $ coin-sample-3 E ) ⟩
+  sample (⟦ E >>= const coin-expr ⟧) b
+    ≡⟨ cong (λ e → sample e b) $ bind-interpretation E (const coin-expr) ⟩ʳ
+  sample (⟦ E ⟧ >>= const ⟦ coin-expr ⟧) b
+  ∎
+
+general-irrelevance : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A)(F : CryptoExpr B)
+                    → ⟦ F ⟧ ≡D ⟦ E >>= const F ⟧
+general-irrelevance (returnCE a) F = sample-equality λ b → refl
+general-irrelevance (uniformCE n cont) F = sample-equality λ b → 
+  sample ⟦ F ⟧ b
+    ≡⟨ flip sample-invariant b $ irrelevance n ⟦ F ⟧  ⟩
+  sample (uniform n >>= (λ xs → ⟦ F ⟧)) b
+    ≡⟨ flip sample-invariant b
+                           $ >>=-D-ext (uniform n)
+                                       (const ⟦ F ⟧)
+                                       (λ xs → ⟦ cont xs >>= const F ⟧)
+                                       (λ xs → general-irrelevance (cont xs) F) ⟩
+  sample (uniform n >>= (λ xs → ⟦ cont xs >>= const F ⟧)) b
+  ∎
+
+general-irrelevance-interpretation : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A)(F : CryptoExpr B)
+                                → ⟦ F ⟧ ≡D (⟦ E ⟧ >>= const ⟦ F ⟧)
+general-irrelevance-interpretation E F = sample-equality λ b →
+  sample ⟦ F ⟧ b
+    ≡⟨ flip sample-invariant b (general-irrelevance E F) ⟩
+  sample ⟦ E >>= const F ⟧ b
+    ≡⟨ cong (λ e → sample e b) (bind-const-interpretation E F)  ⟩ʳ
+  sample (⟦ E ⟧ >>= const ⟦ F ⟧) b
   ∎

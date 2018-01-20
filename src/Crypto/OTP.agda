@@ -34,32 +34,130 @@ OTP n = enc-scheme (BitVec n)
 
 
 OTP-is-IND-EAV : ∀{n}(A : SimpleEavAdv (OTP n))
-               → ⟦ simple-IND-EAV (OTP n) A ⟧ ≡D coin
-OTP-is-IND-EAV A = {!!}
-
-OTP-game-2 : ∀{n}(A : SimpleEavAdv (OTP n))
-          → CryptoExpr Bool
-OTP-game-2 {n} A
-  = uniform-expr n  >>= λ xs
-  → coin-expr       >>= λ b
-  → A₂ xs           >>= λ b′
-  → return (nxor b b′)
+               → coin ≡D ⟦ simple-IND-EAV (OTP n) A ⟧
+OTP-is-IND-EAV {n} A = sample-equality λ b →
+  sample coin b
+    ≡⟨ cong (λ e → sample e b) coin-interpretation ⟩
+  sample ⟦ coin-expr ⟧ b
+    ≡⟨ flip sample-invariant b
+          $ general-irrelevance-interpretation (uniform-expr n) coin-expr ⟩
+  sample (
+    ⟦ uniform-expr n ⟧ >>= λ xs
+  → ⟦ coin-expr      ⟧
+  ) b
+    ≡⟨ flip sample-invariant b
+          $ >>=-D-ext ⟦ uniform-expr n ⟧
+                      (λ xs → ⟦ coin-expr ⟧)
+                      (λ xs → ⟦ A₂ xs ⟧ >>= const ⟦ coin-expr ⟧)
+                      (λ xs → general-irrelevance-interpretation (A₂ xs) coin-expr) ⟩
+  sample (
+    ⟦ uniform-expr n ⟧ >>= λ xs
+  → ⟦ A₂ xs          ⟧ >>= λ b′
+  → ⟦ coin-expr      ⟧
+  ) b
+    ≡⟨ flip sample-invariant b
+          $ >>=-D-ext ⟦ uniform-expr n ⟧
+                      (λ xs → ⟦ A₂ xs ⟧ >>= λ b′ → ⟦ coin-expr ⟧)
+                      (λ xs → ⟦ A₂ xs ⟧ >>= λ b′ → ⟦ coin-expr ⟧ >>= λ b → ⟦ return (nxor b′ b) ⟧)
+                      (λ xs → >>=-D-ext ⟦ A₂ xs ⟧
+                                      (λ b′ → ⟦ coin-expr ⟧)
+                                      (λ b′ → ⟦ coin-expr ⟧ >>= λ b → ⟦ return (nxor b′ b) ⟧)
+                                      coin-sample-2-interpretation) ⟩
+  sample (
+    ⟦ uniform-expr n ⟧ >>= λ xs
+  → ⟦ A₂ xs          ⟧ >>= λ b′
+  → ⟦ coin-expr      ⟧ >>= λ b
+  → ⟦ return (nxor b′ b) ⟧
+  ) b
+    ≡⟨ flip sample-invariant b
+          $ >>=-D-ext ⟦ uniform-expr n ⟧
+                       (λ xs → ⟦ A₂ xs ⟧ >>= λ b′ → ⟦ coin-expr ⟧ >>= λ b → ⟦ return (nxor b′ b) ⟧)
+                       (λ xs → ⟦ coin-expr ⟧ >>= λ b → ⟦ A₂ xs ⟧ >>= λ b′ → ⟦ return (nxor b′ b) ⟧)
+                       (λ xs → independence ⟦ coin-expr ⟧ {! ⟦ A₂ xs ⟧!} λ b′ b → ⟦ return (nxor b′ b) ⟧) ⟩
+  sample (
+    ⟦ uniform-expr n ⟧ >>= λ ct
+  → ⟦ coin-expr ⟧      >>= λ b
+  → ⟦ A₂ ct ⟧          >>= λ b′
+  → ⟦ return (nxor b′ b) ⟧
+  ) b
+    ≡⟨ {!!} ⟩
+  sample (
+    ⟦ coin-expr ⟧      >>= λ b
+  → ⟦ uniform-expr n ⟧ >>= λ ct
+  → ⟦ A₂ ct ⟧          >>= λ b′
+  → ⟦ return (nxor b′ b) ⟧
+  ) b
+    ≡⟨ {!!} ⟩
+  sample (
+    ⟦ coin-expr ⟧                                    >>= λ b
+  → ⟦ if b then uniform-expr n else uniform-expr n ⟧ >>= λ ct
+  → ⟦ A₂ ct ⟧                                        >>= λ b′
+  → ⟦ return (nxor b′ b) ⟧
+  ) b
+    ≡⟨ {!!} ⟩
+  sample (
+    ⟦ A₁ ⟧                                           >>F= λ { (m₀ , m₁)
+  → ⟦ coin-expr ⟧                                    >>= λ b
+  → ⟦ if b then uniform-expr n else uniform-expr n ⟧ >>= λ ct
+  → ⟦ A₂ ct ⟧                                        >>= λ b′
+  → ⟦ return (nxor b′ b) ⟧
+  }) b
+    ≡⟨ {!!} ⟩
+  sample (
+    ⟦ A₁ ⟧                               >>= λ { (m₀ , m₁)
+  → ⟦ coin-expr ⟧                        >>= λ b
+  → ⟦ if b
+      then fmap (λ k → bitvec-xor k m₀) (uniform-expr n)
+      else fmap (λ k → bitvec-xor k m₁) (uniform-expr n)
+      ⟧                                  >>= λ ct
+  → ⟦ A₂ ct ⟧                            >>= λ b′
+  → ⟦ return (nxor b′ b) ⟧
+  }) b
+    ≡⟨ {!!} ⟩
+  sample (
+    ⟦ A₁ ⟧                               >>= λ { (m₀ , m₁)
+  → ⟦ coin-expr ⟧                        >>= λ b
+  → ⟦ fmap (λ k → bitvec-xor k (if b
+                                then m₀
+                                else m₁))
+           (uniform-expr n)            ⟧ >>= λ ct
+  → ⟦ A₂ ct ⟧                            >>= λ b′
+  → ⟦ return (nxor b′ b) ⟧
+  }) b
+    ≡⟨ {!!} ⟩
+  sample (
+    ⟦ A₁ ⟧                               >>= λ { (m₀ , m₁)
+  → ⟦ coin-expr ⟧                        >>= λ b
+  → ⟦ uniform-expr n ⟧                   >>= (λ k
+  → ⟦ return (bitvec-xor k (if b
+                            then m₀
+                            else m₁)) ⟧) >>= λ ct
+  → ⟦ A₂ ct ⟧                            >>= λ b′
+  → ⟦ return (nxor b′ b) ⟧
+  }) b
+    ≡⟨ {!!} ⟩
+  sample (
+    ⟦ A₁ ⟧                              >>= λ { (m₀ , m₁)
+  → ⟦ coin-expr ⟧                       >>= λ b
+  → ⟦ uniform-expr n ⟧                  >>= λ k
+  → ⟦ return (bitvec-xor k (if b
+                            then m₀
+                            else m₁)) ⟧ >>= λ ct
+  → ⟦ A₂ ct ⟧                           >>= λ b′
+  → ⟦ return (nxor b′ b) ⟧
+  }) b
+    ≡⟨ {!!} ⟩
+  sample (
+    ⟦ uniform-expr n ⟧                               >>= λ k
+  → ⟦ A₁ ⟧                                           >>= λ { (m₀ , m₁)
+  → ⟦ coin-expr ⟧                                    >>= λ b
+  → ⟦ return (bitvec-xor k (if b then m₀ else m₁)) ⟧ >>= λ ct
+  → ⟦ A₂ ct ⟧                                        >>= λ b′
+  → ⟦ return (nxor b′ b) ⟧
+  }) b
+    ≡⟨ {!!} ⟩
+  sample ⟦ simple-IND-EAV (OTP n) A ⟧ b
+  ∎
   where
     open SimpleEavAdv A
-
-OTP-game-3 : ∀{n}(A : SimpleEavAdv (OTP n))
-           → CryptoExpr Bool
-OTP-game-3 {n} A
-  = uniform-expr n  >>= λ xs
-  → A₂ xs           >>= λ b′
-  → coin-expr       >>= λ b
-  → return (nxor b b′)
-  where
-    open SimpleEavAdv A
-           
-
-{-
-OTP-game-2-unwinnable : ∀{n}(A : SimpleEavAdv (OTP n))
-                     → negpow2 1 ≡ sample ⟦ OTP-game′ A ⟧ true
-OTP-game-2-unwinnable A = {!!}
--}
+    open EncScheme (OTP n)

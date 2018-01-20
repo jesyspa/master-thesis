@@ -43,7 +43,7 @@ record DistMonadProps : Set₂ where
     -- a's and b's.  Any way to avoid this?
     independence : ∀{A B C}{{_ : Eq C}}(DA : F A)(DB : F B)
                    (f : A → B → F C)
-                 → (DA >>= λ a → DB >>= f a) ≡D (DB >>= λ b → DA >>= λ a → f a b)
+                 → (DA >>= λ a → DB >>= λ b → f a b) ≡D (DB >>= λ b → DA >>= λ a → f a b)
   coin-bijection-invariant : (f : Bool → Bool)
                            → Bijective f
                            → coin ≡D fmap-F f coin
