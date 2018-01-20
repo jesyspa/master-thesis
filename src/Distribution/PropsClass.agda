@@ -68,6 +68,17 @@ record DistMonadProps : Set₂ where
     sample (fmap-F f (fmap-F head (uniform 1))) a
     ∎
 
+  coin-is-fair : ∀ b → negpow2 1 ≡ sample coin b
+  coin-is-fair b =
+    negpow2 1
+      ≡⟨ uniform-is-uniform 1 (b ∷ []) ⟩
+    sample (uniform 1) (b ∷ [])
+      ≡⟨ injection-invariant head head1-Inj (uniform 1) ((b ∷ [])) ⟩
+    sample (fmap head (uniform 1)) b
+      ≡⟨ refl ⟩
+    sample coin b
+    ∎
+
 -- The FPF paper/thesis suggests the following laws as well:
 -- Commutativity:
 -- a >>= λ x → b >>= λ y → f a b ≡D b >>= λ y → a >>= λ x → f a b
