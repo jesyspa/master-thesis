@@ -24,10 +24,10 @@ open MonadProps is-monad
 open ApplicativeProps aprops
 open Probability probability-super
 
-cong->>= : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A){F G : A → CryptoExpr B}
+cong->>= : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A)(F G : A → CryptoExpr B)
          → (∀ a → ⟦ F a ⟧ ≡D ⟦ G a ⟧)
          → ⟦ E >>= F ⟧ ≡D ⟦ E >>= G ⟧
-cong->>= E {F} {G} eq =
+cong->>= E F G eq =
   ⟦ E >>= F ⟧
     ≡D⟨ bind-interpretation E F ⟩ˡʳ
   ⟦ E ⟧ >>= ⟦_⟧ ∘′ F
@@ -37,10 +37,10 @@ cong->>= E {F} {G} eq =
   ⟦ E >>= G ⟧
   ∎D
 
-cong->>=ˡ : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A){F G : A → CryptoExpr B}
+cong->>=ˡ : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A)(F G : A → CryptoExpr B)
           → (∀ a → ⟦ F a ⟧ ≡ ⟦ G a ⟧)
           → ⟦ E >>= F ⟧ ≡ ⟦ E >>= G ⟧
-cong->>=ˡ E {F} {G} eq =
+cong->>=ˡ E F G eq =
   ⟦ E >>= F ⟧
     ≡⟨ bind-interpretation E F ⟩ʳ
   ⟦ E ⟧ >>= ⟦_⟧ ∘′ F
