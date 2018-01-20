@@ -37,6 +37,20 @@ fmap-interpretation f (uniformCE n cont) =
   uniform n >>= (λ y → ⟦ fmap f (cont y) ⟧)
   ∎
 
+bind-interpretation : ∀{A B}(F : A → CryptoExpr B)(E : CryptoExpr A)
+                    → (⟦ E ⟧ >>= λ e → ⟦ F e ⟧) ≡ ⟦ E >>= F ⟧
+bind-interpretation F (returnCE a) = return->>=-left-id a (⟦_⟧ ∘′ F)
+bind-interpretation F (uniformCE n cont) =
+  uniform n >>= (⟦_⟧ ∘′ cont) >>= ⟦_⟧ ∘′ F
+    ≡⟨ >>=-assoc (uniform n) (⟦_⟧ ∘′ cont) (⟦_⟧ ∘′ F) ⟩
+  uniform n >>= (λ z → ⟦ cont z ⟧ >>= λ e → ⟦ F e ⟧)
+    ≡⟨ >>=-ext (uniform n)
+               (λ z → ⟦ cont z ⟧ >>= λ e → ⟦ F e ⟧)
+               (λ z → ⟦ cont z >>= F ⟧)
+               (λ z → bind-interpretation F (cont z)) ⟩
+  uniform n >>= (λ z → ⟦ cont z >>= F ⟧)
+  ∎
+
 coin-interpretation : coin ≡ ⟦ coin-expr ⟧
 coin-interpretation = cong (fmap head) (uniform-dist-interpretation 1) ⟨≡⟩ fmap-interpretation head (uniform-expr 1)
 
