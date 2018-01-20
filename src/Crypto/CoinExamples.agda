@@ -26,21 +26,7 @@ open ApplicativeProps aprops
 open Probability probability-super
 
 coin-sample : ∀ b → negpow2 1 ≡ sample ⟦ coin-expr ⟧ b
-coin-sample b = coin-is-fair b ⟨≡⟩ sample-invariant-at b {!lift-D-eq coin-interpretation!}
-{-
-  negpow2 1
-    ≡⟨ uniform-is-uniform 1 (b ∷ []) ⟩
-  sample (uniform 1) (b ∷ [])
-    ≡⟨ cong (λ e → sample e (b ∷ [])) (uniform-dist-interpretation 1) ⟩ 
-  sample ⟦ uniform-expr 1 ⟧ (b ∷ [])
-    ≡⟨ injection-invariant head head1-Inj ⟦ uniform-expr 1 ⟧ ((b ∷ [])) ⟩
-  sample (fmap head ⟦ uniform-expr 1 ⟧) b
-    ≡⟨ cong (λ e → sample e b) (fmap-interpretation head (uniform-expr 1)) ⟩
-  sample ⟦ fmap head (uniform-expr 1) ⟧ b
-    ≡⟨ refl ⟩
-  sample ⟦ coin-expr ⟧ b
-  ∎
-  -}
+coin-sample b = coin-is-fair b ⟨≡⟩ sample-invariant-at b (lift-D-eq coin-interpretation)
 
 coin-sample-2 : ∀ b → ⟦ coin-expr ⟧ ≡D ⟦ coin-expr >>= (λ b′ → return (nxor b b′)) ⟧
 coin-sample-2 b =

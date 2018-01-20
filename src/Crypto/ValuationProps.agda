@@ -53,4 +53,3 @@ bind-interpretation F (uniformCE n cont) =
 
 coin-interpretation : coin ≡ ⟦ coin-expr ⟧
 coin-interpretation = cong (fmap head) (uniform-dist-interpretation 1) ⟨≡⟩ fmap-interpretation head (uniform-expr 1)
-

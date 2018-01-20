@@ -37,16 +37,16 @@ record DistMonadProps : Set₂ where
                         → sample D a ≡ sample (fmap f D) (f a)
     irrelevance : ∀{A} {{_ : Eq A}} n (D : F A)
                 → D ≡D (uniform n >>= const D)
-    >>=-D-ext : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+    >>=-D-ext : ∀{A B}{{_ : Eq B}}
               → (x : F A)
               → (f g : A → F B)
               → (∀ a → f a ≡D g a)
               → (x >>= f) ≡D (x >>= g) 
     -- The equality tests are needed for this to be provable, since we want to reason about
     -- a's and b's.  Any way to avoid this?
-    independence : ∀{A B C}{{_ : Eq C}}(DA : F A)(DB : F B)
+    interchange : ∀{A B C}{{_ : Eq C}}(DA : F A)(DB : F B)
                    (f : A → B → F C)
-                 → (DA >>= λ a → DB >>= f a) ≡D (DB >>= λ b → DA >>= λ a → f a b)
+                → (DA >>= λ a → DB >>= f a) ≡D (DB >>= λ b → DA >>= λ a → f a b)
 
   sample-invariant-at : ∀{A}{{_ : Eq A}}{D₁ D₂ : F A} → (a : A) → D₁ ≡D D₂ → sample D₁ a ≡ sample D₂ a
   sample-invariant-at = flip sample-invariant
