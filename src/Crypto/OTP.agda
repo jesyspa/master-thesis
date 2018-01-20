@@ -99,7 +99,7 @@ OTP-is-IND-EAV {n} A =
    → (if b then uniform-expr n else uniform-expr n) >>= λ ct
    → A₂ ct                                          >>= λ b′
    → return (nxor b′ b) ))⟧
-    ≡D⟨ ? ⟩
+    ≡D⟨ {!!} ⟩
    {-
     ≡D⟨ cong->>=ˡ A₁
                   (const (coin-expr                                     >>= λ b
