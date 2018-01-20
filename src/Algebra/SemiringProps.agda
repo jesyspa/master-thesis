@@ -16,6 +16,10 @@ record SemiringProps : Set where
     zro-right-nil       : (a : A) → zro ≡ a * zro
   *-unit-left : (a : A) → a ≡ one * a
   *-unit-left = *MProps.unit-left *-is-monoid
+  *-unit-right : (a : A) → a ≡ a * one
+  *-unit-right = *MProps.unit-right *-is-monoid
+  *-assoc : (a b c : A) → a * (b * c) ≡ (a * b) * c
+  *-assoc = *MProps.op-assoc *-is-monoid
   +-unit-left : (a : A) → a ≡ zro + a
   +-unit-left = +MProps.unit-left (+CMProps.forget-comm +-is-comm-monoid)
   +-unit-right : (a : A) → a ≡ a + zro

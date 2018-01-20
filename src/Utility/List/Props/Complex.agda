@@ -60,3 +60,8 @@ length-append-dist : ∀{l} {A : Set l} (xs ys : List A)
                    → length (xs ++ ys) ≡ length xs +N length ys
 length-append-dist [] ys = refl
 length-append-dist (x ∷ xs) ys rewrite sym (length-append-dist xs ys) = refl
+
+concat-replicate-empty : ∀{l}{A : Set l}(n : Nat)
+                       → [] ≡ concat (replicate {A = List A} n [])
+concat-replicate-empty zero = refl
+concat-replicate-empty (suc n) = concat-replicate-empty n

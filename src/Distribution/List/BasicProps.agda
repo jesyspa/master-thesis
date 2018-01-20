@@ -94,7 +94,7 @@ module _ {{PPQ : ProbabilityProps}} where
     sum (filter-vals a $ map (over-snd (_*_ p)) xs)
     ∎
 
-  bind-universal-prop : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+  bind-universal-prop : ∀{A B}{{_ : Eq B}}
                         (xs : ListDist A)(f : A → ListDist B)(b : B)
                       → sample-LD (xs >>= f) b ≡ sum (map (sample-over-LD f b) xs)
   bind-universal-prop xs f b =

@@ -148,6 +148,76 @@ module _ {{PPQ : ProbabilityProps}} where
     sum (q * x ∷ map (_*_ q) xs)
     ∎
 
+  sum-map-dist : ∀{l}{A : Set l}(f g : A → Q)(xs : List A)
+               → sum (map (λ a → f a + g a) xs) ≡ sum (map f xs) + sum (map g xs)
+  sum-map-dist f g [] = +-unit-right zro
+  sum-map-dist f g (x ∷ xs) =
+    sum (f x + g x ∷ map (λ a → f a + g a) xs)
+      ≡⟨ sum-rewrite (f x + g x) (map (λ a → f a + g a) xs) ⟩ʳ
+    (f x + g x) + sum (map (λ a → f a + g a) xs)
+      ≡⟨ cong (λ e → (f x + g x) + e) $ sum-map-dist f g xs ⟩
+    (f x + g x) + (sum (map f xs) + sum (map g xs))
+      ≡⟨ op-assoc (f x + g x) (sum (map f xs)) (sum (map g xs)) ⟩
+    ((f x + g x) + (sum (map f xs))) + sum (map g xs)
+      ≡⟨ cong (λ e → (e + (sum (map f xs))) + sum (map g xs)) $ op-comm (f x) (g x) ⟩
+    ((g x + f x) + sum (map f xs)) + sum (map g xs)
+      ≡⟨ cong (λ e → e + sum (map g xs)) $ op-assoc (g x) (f x) (sum (map f xs)) ⟩ʳ
+    (g x + (f x + sum (map f xs))) + sum (map g xs)
+      ≡⟨ cong (λ e → e + sum (map g xs)) $ op-comm (g x) (f x + sum (map f xs)) ⟩
+    ((f x + sum (map f xs)) + g x) + sum (map g xs)
+      ≡⟨ op-assoc (f x + sum (map f xs)) (g x) (sum (map g xs)) ⟩ʳ
+    (f x + sum (map f xs)) + (g x + sum (map g xs))
+      ≡⟨ cong₂ _+_ (sum-rewrite (f x) (map f xs)) (sum-rewrite (g x) (map g xs)) ⟩
+    sum (f x ∷ map f xs) + sum (g x ∷ map g xs)
+    ∎
+
+  flip-sum : ∀{A B}(f : A → B → Q)(xs : List A)(ys : List B)
+           → sum (f <$> xs <*> ys) ≡ sum (flip f <$> ys <*> xs)
+  flip-sum f [] ys =
+    zro
+      ≡⟨ cong sum (concat-replicate-empty (length ys)) ⟩
+    sum (concat $ replicate (length ys) [])
+      ≡⟨ cong (sum ∘′ concat) pf ⟩
+    sum (concat $ map (const []) $ map (flip f) ys)
+    ∎
+    where
+      pf : replicate (length ys) [] ≡ map (const []) (map (flip f) ys)
+      pf =
+        replicate (length ys) []
+          ≡⟨ map-const [] ys ⟩
+        map (const []) ys
+          ≡⟨ map-ext (const []) (const [] ∘′ flip f) (λ a → refl) ys ⟩
+        map (const [] ∘′ flip f) ys
+          ≡⟨ map-comp (const []) (flip f) ys ⟩
+        map (const []) (map (flip f) ys)
+        ∎
+  flip-sum f (x ∷ xs) ys =
+    sum (map (f x) ys ++ concat (map (λ g → map g ys) (map f xs)))
+      ≡⟨ sum-append-dist (map (f x) ys) (concat (map (λ g → map g ys) (map f xs))) ⟩
+    sum (map (f x) ys) + sum (concat $ map (λ g → map g ys) (map f xs))
+      ≡⟨ cong (λ e → sum (map (f x) ys) + e) $ flip-sum f xs ys ⟩
+    sum (map (f x) ys) + sum (concat $ map (λ g → map g xs) (map (flip f) ys))
+      ≡⟨ cong (λ e → sum (map (f x) ys) + sum (concat e)) $ map-comp (λ g → map g xs) (flip f) ys ⟩ʳ
+    sum (map (f x) ys) + sum (concat $ map (λ b → map (flip f b) xs) ys)
+      ≡⟨ cong (λ e → sum (map (f x) ys) + e) $ concat-sum-swap (map (λ b → map (flip f b) xs) ys) ⟩
+    sum (map (f x) ys) + sum (map sum (map (λ b → map (flip f b) xs) ys))
+      ≡⟨ cong (λ e → sum (map (f x) ys) + sum e) $ map-comp sum (λ b → map (flip f b) xs) ys ⟩ʳ
+    sum (map (f x) ys) + sum (map (λ b → sum (map (flip f b) xs)) ys)
+      ≡⟨ sum-map-dist (f x) (λ b → sum (map (flip f b) xs)) ys ⟩ʳ
+    sum (map (λ b → f x b + sum (map (flip f b) xs)) ys)
+      ≡⟨ (cong sum $ map-ext (λ b → f x b + sum (map (flip f b) xs))
+                             (λ b → sum (f x b ∷ map (flip f b) xs))
+                             (λ b → sum-rewrite (f x b) (map (flip f b) xs))
+                             ys) ⟩
+    sum (map (λ b → sum $ f x b ∷ map (flip f b) xs) ys)
+      ≡⟨ cong sum $ map-comp sum (λ b → f x b ∷ map (flip f b) xs) ys ⟩
+    sum (map sum $ map (λ b → f x b ∷ map (flip f b) xs) ys)
+      ≡⟨ concat-sum-swap (map (λ b → f x b ∷ map (flip f b) xs) ys)  ⟩ʳ
+    sum (concat $ map (λ b → f x b ∷ map (flip f b) xs) ys)
+      ≡⟨ cong (sum ∘′ concat) $ map-comp (λ g → g x ∷ map g xs) (flip f) ys ⟩
+    sum (concat $ map (λ g → g x ∷ map g xs) (map (flip f) ys))
+    ∎
+
 {-
   sum-perm-invariant : PermInvariant {A = A} sum
   sum-perm-invariant [] φ = {!!}

@@ -9,7 +9,7 @@ fst-Retraction b = λ a → refl
 
 rev-pair : ∀{l}{A B : Set l} → B → A → A × B
 rev-pair = flip _,_
-  
+
 over-fst : ∀{l} {A B C : Set l} (f : A → C) → A × B → C × B
 over-fst f (a , b) = f a , b
 

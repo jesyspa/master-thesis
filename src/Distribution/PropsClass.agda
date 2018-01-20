@@ -39,6 +39,11 @@ record DistMonadProps : Set₂ where
               → (f g : A → F B)
               → (∀ a → f a ≡D g a)
               → (x >>= f) ≡D (x >>= g) 
+    -- The equality tests are needed for this to be provable, since we want to reason about
+    -- a's and b's.  Any way to avoid this?
+    independence : ∀{A B C}{{_ : Eq C}}(DA : F A)(DB : F B)
+                   (f : A → B → F C)
+                 → (DA >>= λ a → DB >>= f a) ≡D (DB >>= λ b → DA >>= λ a → f a b)
   coin-bijection-invariant : (f : Bool → Bool)
                            → Bijective f
                            → coin ≡D fmap-F f coin

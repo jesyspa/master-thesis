@@ -12,9 +12,10 @@ record ProbabilityProps : Set where
   open Probability PA
   field
     overlap {{srprops}} : SemiringProps
+    overlap {{poprops}} : PreorderProps A
   open SemiringProps srprops
   field
-    ≤-is-preorder       : PreorderProps A
+    *-comm              : (a b : A) → a * b ≡ b * a
     embed-zero          : zro ≡ embed 0
     embed-succ          : ∀ n → one + embed n ≡ embed (suc n)
     negpow2-add         : ∀ n → negpow2 n ≡ negpow2 (suc n) + negpow2 (suc n)
