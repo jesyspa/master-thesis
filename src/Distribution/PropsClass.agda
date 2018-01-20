@@ -5,8 +5,8 @@ open DistMonad DF
 open import ThesisPrelude
 open import Probability.Class
 open import Algebra.MonadProps F
+open import Algebra.ApplicativeProps F
 open import Algebra.FunctorProps F
-open FunctorProps {{...}}
 open import Utility.Vector
 open import Algebra.Function
 open import Algebra.LiftingProps F
@@ -17,6 +17,9 @@ record DistMonadProps : Set₂ where
   field
     overlap {{is-monad}} : MonadProps
     overlap {{is-probability}} : ProbabilityProps
+  open MonadProps is-monad
+  open ApplicativeProps aprops
+  open FunctorProps fprops
   open Probability probability-super
   open ProbabilityProps is-probability
   field
@@ -44,6 +47,10 @@ record DistMonadProps : Set₂ where
     independence : ∀{A B C}{{_ : Eq C}}(DA : F A)(DB : F B)
                    (f : A → B → F C)
                  → (DA >>= λ a → DB >>= f a) ≡D (DB >>= λ b → DA >>= λ a → f a b)
+
+  sample-invariant-at : ∀{A}{{_ : Eq A}}{D₁ D₂ : F A} → (a : A) → D₁ ≡D D₂ → sample D₁ a ≡ sample D₂ a
+  sample-invariant-at = flip sample-invariant
+
   coin-bijection-invariant : (f : Bool → Bool)
                            → Bijective f
                            → coin ≡D fmap-F f coin
