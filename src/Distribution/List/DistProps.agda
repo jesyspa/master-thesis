@@ -81,94 +81,41 @@ module _ {{PPQ : ProbabilityProps}} where
     sample-LD (xs >>= g) b
     ∎
 
-  interchange-LD : ∀{A B C}{{_ : Eq C}}(xs : ListDist A)(ys : ListDist B)
-                    (f : A → B → ListDist C)
-                  → (xs >>= λ a → ys >>= f a) ≡LD (ys >>= λ b → xs >>= λ a → f a b)
-  interchange-LD {A} {B} {C} xs ys f = sample-equiv lem
-    where
-      lem : (c : C) → sample-LD (xs >>= λ a → ys >>= f a) c ≡ sample-LD (ys >>= λ b → xs >>= λ a → f a b) c
-      lem c =
-        sample-LD (xs >>= λ a → ys >>= f a) c 
-          ≡⟨ bind-universal-prop xs (λ a → ys >>= f a) c ⟩
-        sum (map (sample-over-LD (λ a → ys >>= f a) c) xs)
-          ≡⟨ cong sum $ map-ext (sample-over-LD (λ a → ys >>= f a) c)
-                                (λ a → sum (map (fun-a a) ys))
-                                fun-a-equiv
-                                xs ⟩
-        sum (map (λ a → sum (map (fun-a a) ys)) xs)
-          ≡⟨ cong sum $ map-comp sum (λ a → map (fun-a a) ys) xs ⟩
-        sum (map sum $ map (λ a → map (fun-a a) ys) xs)
-          ≡⟨ concat-sum-swap (map (λ a → map (fun-a a) ys) xs) ⟩ʳ
-        sum (concat $ map (λ a → map (fun-a a) ys) xs)
-          ≡⟨ cong (sum ∘′ concat) $ map-comp (flip map ys) fun-a xs ⟩
-        sum (concat $ map (flip map ys) (map fun-a xs))
-          ≡⟨ flip-sum fun-a xs ys ⟩
-        sum (concat $ map (flip map xs) (map (flip fun-a) ys))
-          ≡⟨ cong (sum ∘′ concat) $ map-comp (flip map xs) (flip fun-a) ys ⟩ʳ
-        sum (concat $ map (λ b → map (flip fun-a b) xs) ys)
-          ≡⟨ cong (sum ∘′ concat) $ map-ext (λ b → map (flip fun-a b) xs)
-                                            (λ b → map (fun-b b) xs)
-                                            (λ b → map-ext (flip fun-a b)
-                                                           (fun-b b)
-                                                           (fun-equiv b)
-                                                           xs)
-                                            ys ⟩
-        sum (concat $ map (λ b → map (fun-b b) xs) ys)
-          ≡⟨ concat-sum-swap (map (λ b → map (fun-b b) xs) ys) ⟩
-        sum (map sum $ map (λ b → map (fun-b b) xs) ys)
-          ≡⟨ cong sum $ map-comp sum (λ b → map (fun-b b) xs) ys ⟩ʳ
-        sum (map (λ b → sum (map (fun-b b) xs)) ys)
-          ≡⟨ (cong sum $ map-ext (λ b → sum (map (fun-b b) xs))
-                                 (sample-over-LD (λ b → xs >>= λ a → f a b) c)
-                                 (sym ∘ fun-b-equiv)
-                                 ys) ⟩
-        sum (map (sample-over-LD (λ b → xs >>= λ a → f a b) c) ys)
-          ≡⟨ bind-universal-prop ys (λ b → xs >>= λ a → f a b) c ⟩ʳ
-        sample-LD (ys >>= λ b → xs >>= λ a → f a b) c
-        ∎
-        where
-          fun-gen : (A′ B′ : Set)(f′ : A′ → B′ → ListDist C) → (A′ × Q) → (B′ × Q) → Q
-          fun-gen _ _ f′ (a , p) (b , q) = p * q * sample-LD (f′ a b) c
-          fun-gen-equiv : (A′ B′ : Set)(f′ : A′ → B′ → ListDist C)(ys′ : ListDist B′)(pa : A′ × Q)
-                        → sample-over-LD (λ a → ys′ >>= f′ a) c pa ≡ sum (map (fun-gen A′ B′ f′ pa) ys′)
-          fun-gen-equiv A′ B′ f′ ys′ (a , p) =
-            p * sum (filter-vals c (concat $ map (WriterT.bind-MW-helper (f′ a)) ys′))
-              ≡⟨ cong (λ e → p * sum e) $ filter-vals-concat (map (WriterT.bind-MW-helper (f′ a)) ys′) c ⟩
-            p * sum (concat $ map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′))
-              ≡⟨ cong (_*_ p) $ concat-sum-swap (map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′)) ⟩
-            p * sum (map sum $ map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′))
-              ≡⟨ mul-sum p (map sum (map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′))) ⟩
-            sum (map (_*_ p) ∘′ map sum $ map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′))
-              ≡⟨ cong sum $ map-comp (_*_ p) sum (map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′)) ⟩ʳ
-            sum (map (_*_ p ∘′ sum) (map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′)))
-              ≡⟨ cong sum $ map-comp (_*_ p ∘′ sum) (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′) ⟩ʳ
-            sum (map (_*_ p ∘′ sum ∘′ filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′))
-              ≡⟨ cong sum $ map-comp (_*_ p ∘′ sum ∘′ filter-vals c) (WriterT.bind-MW-helper (f′ a)) ys′ ⟩ʳ
-            sum (map (_*_ p ∘′ sum ∘′ filter-vals c ∘′ WriterT.bind-MW-helper (f′ a)) ys′)
-              ≡⟨ cong sum $ map-ext (_*_ p ∘′ sum ∘′ filter-vals c ∘′ WriterT.bind-MW-helper (f′ a))
-                                    (fun-gen A′ B′ f′ (a , p))
-                                    (λ { (b , q) →
-                                      p * sum (filter-vals c (map (over-snd (_*_ q)) (f′ a b)))
-                                        ≡⟨ cong (λ e → p * sum e) $ filter-vals-map (_*_ q) (f′ a b) c ⟩ʳ
-                                      p * (sum (map (_*_ q) (filter-vals c (f′ a b))))
-                                        ≡⟨ cong (_*_ p) $ mul-sum q (filter-vals c (f′ a b))   ⟩ʳ
-                                      p * (q * sum (filter-vals c (f′ a b)))
-                                        ≡⟨ *-assoc p q (sum (filter-vals c (f′ a b))) ⟩
-                                      p * q * sum (filter-vals c (f′ a b))
-                                      ∎ })
-                                    ys′ ⟩
-            sum (map (fun-gen A′ B′ f′ (a , p)) ys′)
-            ∎
-          fun-a : (A × Q) → (B × Q) → Q
-          fun-a = fun-gen A B f
-          fun-a-equiv : (pa : A × Q) → sample-over-LD (λ a → ys >>= f a) c pa ≡ sum (map (fun-a pa) ys)
-          fun-a-equiv = fun-gen-equiv A B f ys
-          fun-b : (B × Q) → (A × Q) → Q
-          fun-b = fun-gen B A (flip f)
-          fun-b-equiv : (pb : B × Q) → sample-over-LD (λ b → xs >>= flip f b) c pb ≡ sum (map (fun-b pb) xs)
-          fun-b-equiv = fun-gen-equiv B A (flip f) xs
-          fun-equiv : (pb : B × Q)(pa : A × Q) → flip fun-a pb pa ≡ fun-b pb pa
-          fun-equiv (b , q) (a , p) = cong (λ e → e * sample-LD (f a b) c) $ *-comm p q
+  >>=-D-inv-normal2-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+                       → (xs ys : ListDist A)
+                       → (f : A → ListDist B)
+                       → xs ≡LD ys
+                       → (normalize-LD xs >>= f) ≡LD (normalize-LD ys >>= f)
+  >>=-D-inv-normal2-LD xs ys f eq = sample-equiv λ b →
+    {!!}
+      ≡⟨ {!!} ⟩
+    {!!}
+    ∎
+
+  >>=-D-inv-normal-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+                      → (xs : ListDist A)
+                      → (f : A → ListDist B)
+                      → (xs >>= f) ≡LD (normalize-LD xs >>= f)
+  >>=-D-inv-normal-LD xs f = sample-equiv λ b →
+    sum (filter-vals b (xs >>= f))
+      ≡⟨ {!!} ⟩
+    sum (filter-vals b (normalize-LD xs >>= f))
+    ∎
+
+  >>=-D-inv-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+               → (xs ys : ListDist A)
+               → (f : A → ListDist B)
+               → xs ≡LD ys
+               → (xs >>= f) ≡LD (ys >>= f) 
+  >>=-D-inv-LD xs ys f eq = sample-equiv λ b →
+    sample-LD (xs >>= f) b
+      ≡⟨ sample-invariant-LD (>>=-D-inv-normal-LD xs f) b ⟩
+    sample-LD (normalize-LD xs >>= f) b
+      ≡⟨ sample-invariant-LD (>>=-D-inv-normal2-LD xs ys f eq) b ⟩
+    sample-LD (normalize-LD ys >>= f) b
+      ≡⟨ sample-invariant-LD (>>=-D-inv-normal-LD ys f) b ⟩ʳ
+    sample-LD (ys >>= f) b
+    ∎
                
   open import Distribution.PropsClass ListDist
   
@@ -185,4 +132,5 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; irrelevance = irrelevance-LD
                                ; interchange = interchange-LD
                                ; >>=-D-ext = >>=-D-ext-LD
+                               ; >>=-D-inv = >>=-D-inv-LD
                                }
