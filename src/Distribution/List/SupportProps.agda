@@ -44,10 +44,10 @@ module _ {{PPQ : ProbabilityProps}} where
 
     data IsSupport : ListDist A → List A → Set where
       EmptySupport : IsSupport [] []
-      ConsExistingSupport : (a : A)(q : Q)(xs : ListDist A)(S : List A) → (a ∈ S) → IsSupport xs S → IsSupport ((a , q) ∷ xs) S
-      ConsNewSupport : (a : A)(q : Q)(xs : ListDist A)(S : List A) → ¬(a ∈ S) → IsSupport xs S → IsSupport ((a , q) ∷ xs) (a ∷ S)
+      ConsExistingSupport : (a : A)(q : Q)(xs : ListDist A)(S : List A) → (ix : a ∈ S) → IsSupport xs S → IsSupport ((a , q) ∷ xs) S
+      ConsNewSupport : (a : A)(q : Q)(xs : ListDist A)(S : List A) → (nix : ¬(a ∈ S)) → IsSupport xs S → IsSupport ((a , q) ∷ xs) (a ∷ S)
       -- AG: It's really annoying to have this, but it can't be derived from the other three.
-      PermuteSupport : (a : A)(xs : ListDist A)(S : List A) → (a ∈ S) → IsSupport xs S → IsSupport xs (a ∷ filter-is-not a S)
+      PermuteSupport : (a : A)(xs : ListDist A)(S : List A) → (ix : a ∈ S) → IsSupport xs S → IsSupport xs (a ∷ filter-is-not a S)
 
     support-is-support-LD : (xs : ListDist A) → IsSupport xs (support-LD xs)
     support-is-support-LD [] = EmptySupport
@@ -55,6 +55,47 @@ module _ {{PPQ : ProbabilityProps}} where
     ... | yes p = PermuteSupport a ((a , q) ∷ xs) (support-LD xs) p (ConsExistingSupport a q xs (support-LD xs) p (support-is-support-LD xs))
     ... | no np rewrite sym (if-not-there-filter-equal a (support-LD xs) np)
                       = ConsNewSupport a q xs (support-LD xs) np (support-is-support-LD xs)
+
+    support-of-empty-is-empty : (S : List A)
+                              → IsSupport [] S
+                              → [] ≡ S
+    support-of-empty-is-empty .[] EmptySupport = refl
+    support-of-empty-is-empty ._ (PermuteSupport a .[] S ix sup) with support-of-empty-is-empty S sup
+    support-of-empty-is-empty .(a ∷ filter-is-not a []) (PermuteSupport a .[] .[] () sup) | refl
+
+    support-sample-invariant-dist : (f : A → Q)(a : A)(q : Q)(xs : ListDist A){S : List A}
+                                    → IsSupport ((a , q) ∷ xs) S
+                                    → q * f a + sum (map (λ x → sample-LD xs x * f x) S) ≡ sum (map (λ x → sample-LD ((a , q) ∷ xs) x * f x) S)
+    support-sample-invariant-dist f a q [] (ConsExistingSupport .a .q .[] S ix sup)
+      with support-of-empty-is-empty S sup
+    support-sample-invariant-dist f a q [] (ConsExistingSupport .a .q .[] .[] () sup) | refl
+    support-sample-invariant-dist f a q [] (ConsNewSupport .a .q .[] S nix sup)
+      rewrite sym (support-of-empty-is-empty S sup)
+            | yes-refl a
+            =
+      q * f a + force (zro + zro * f a) id
+        ≡⟨ (cong (λ e → q * f a + e) $ forceLemma (zro + zro * f a) id) ⟩
+      q * f a + (zro + zro * f a)
+        ≡⟨ cong (λ e → q * f a + e) (+-unit-left (zro * f a)) ⟩ʳ
+      q * f a + (zro * f a)
+        ≡⟨ cong (λ e →  q * f a + e) (zro-left-nil (f a)) ⟩ʳ
+      q * f a + zro
+        ≡⟨ +-unit-right (q * f a) ⟩ʳ
+      q * f a
+        ≡⟨ cong (λ e → e * f a) (+-unit-left q) ⟩
+      (zro + q) * f a
+        ≡⟨ +-unit-left ((zro + q) * f a) ⟩
+      zro + (zro + q) * f a
+        ≡⟨ cong (λ e → zro + e * f a) (forceLemma (zro + q) id) ⟩ʳ
+      zro + force (zro + q) id * f a
+        ≡⟨ forceLemma (zro + force (zro + q) id * f a) id ⟩ʳ
+      force (zro + force (zro + q) id * f a) id
+      ∎
+    support-sample-invariant-dist f a q [] (PermuteSupport a₁ .((a , q) ∷ []) S ix sup) with a₁ == a
+    ... | yes refl = {!!}
+    ... | no neq = {!!}
+      
+    support-sample-invariant-dist f a q ((a′ , q′) ∷ xs) sup = {!!}
 
     support-sample-invariant-lem : (f : A → Q)(xs : ListDist A){S : List A}
                                  → IsSupport xs S
