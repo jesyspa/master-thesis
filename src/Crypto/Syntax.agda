@@ -46,10 +46,8 @@ bind-CE (callOracleCE p a cont) f = callOracleCE p a (λ z → bind-CE (cont z) 
 bind-CE (addOracleCE g ce) f = addOracleCE g (bind-CE ce f )
 
 strong-bind-CE : ∀{O A B} → CryptoExpr O A → (∀{O′} → O′ ⊑ O → A → CryptoExpr O′ B) → CryptoExpr O B
-strong-bind-CE {O} (returnCE a) f = f (refl-⊑ O) a
-strong-bind-CE {O} (uniformCE n cont) f = uniformCE n (λ z → strong-bind-CE (cont z) f)
-strong-bind-CE {O} (callOracleCE p a cont) f = callOracleCE p a (λ z → strong-bind-CE (cont z) f)
-strong-bind-CE {O} {A} {B} (addOracleCE {X = X′} {Y = Y′} g ce) f = addOracleCE g (strong-bind-CE ce {!!})
-  where f′ : ∀{O′} → O′ ⊑ O → A → CryptoExpr O′ B
-        f′ sub = {!!}
+strong-bind-CE (returnCE a) f = f (refl-⊑ _) a
+strong-bind-CE (uniformCE n cont) f = uniformCE n (λ z → strong-bind-CE (cont z) f)
+strong-bind-CE (callOracleCE p a cont) f = callOracleCE p a (λ z → strong-bind-CE (cont z) f)
+strong-bind-CE (addOracleCE {X = X′} {Y = Y′} g ce) f = addOracleCE g (strong-bind-CE ce λ sub → f (Drop _ sub))
 
