@@ -6,12 +6,12 @@ open import Crypto.Schemes
 open import Crypto.Oracle
 
 record CPAAdv (E : EncScheme) : Set₁ where
-  constructor eav-adv
+  constructor cpa-adv
   open EncScheme E
   field 
     STₐ  : Set
-    A₁ : ∀{σ} → Oracle PT CT σ → CE σ (STₐ × PT × PT)
-    A₂ : ∀{σ} → Oracle PT CT σ → STₐ → CT → CE σ Bool
+    A₁ : ∀{O} → Oracle PT CT O → CryptoExpr O O (STₐ × PT × PT)
+    A₂ : ∀{O} → Oracle PT CT O → STₐ → CT → CryptoExpr O O Bool
     -- How about asking the adversary to prove that his
     -- message is not the encrypted one? 
     -- ie. defend from bad-events on the type-level!

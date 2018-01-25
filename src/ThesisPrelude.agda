@@ -29,7 +29,3 @@ eq-as _ = _≡_
 
 syntax eq-as A x y = x ≡ y as A
 
--- Taken from https://stackoverflow.com/a/42417188/559931
-record Lift {l l′} (A : Set l) : Set (l ⊔ l′) where
-  constructor lift
-  field lower : A
