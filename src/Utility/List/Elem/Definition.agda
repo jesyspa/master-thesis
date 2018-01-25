@@ -5,7 +5,7 @@ open import Utility.List.Props
 open import Algebra.Function
 
 infix 4 _∈_
-data _∈_ : A → List A → Set l where
+data _∈_ : A → List A → Set where
   here : ∀ x xs → x ∈ (x ∷ xs)
   there : ∀ x y xs → x ∈ xs → x ∈ (y ∷ xs)
 
