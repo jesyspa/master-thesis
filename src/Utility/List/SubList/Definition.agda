@@ -9,3 +9,7 @@ data SubList : List A → List A → Set where
 
 _⊑_ : List A → List A → Set
 xs ⊑ ys = SubList xs ys
+
+postulate
+  refl-⊑ : ∀ xs → xs ⊑ xs
+  cons-⊑ : ∀{x xs ys}→ (x ∷ xs) ⊑ ys → xs ⊑ ys
