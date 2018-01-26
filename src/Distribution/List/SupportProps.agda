@@ -33,11 +33,11 @@ module _ {{PPQ : ProbabilityProps}} where
     support-preserves-elements : (xs : ListDist A) (a : A)
                                → Index a xs → a ∈ support-LD xs
                                -- goal: a ∈ uniques (map fst xs)
-    support-preserves-elements xs a = unique-preserves-elem a (map fst xs) ∘′ Index-to-∈ a xs
+    support-preserves-elements xs a = unique-preserves-elem (map fst xs) ∘′ Index-to-∈ a xs
 
     support-preserves-elements-inv : (xs : ListDist A) (a : A)
                                    → a ∈ support-LD xs → Index a xs
-    support-preserves-elements-inv xs a = ∈-to-Index a xs ∘ unique-preserves-elem-inv a (map fst xs) 
+    support-preserves-elements-inv xs a = ∈-to-Index a xs ∘ unique-preserves-elem-inv (map fst xs) 
 
     collect-with : (A → Q) → A × Q → Q
     collect-with f (a , q) = q * f a
@@ -46,26 +46,87 @@ module _ {{PPQ : ProbabilityProps}} where
       EmptySupport : IsSupport [] []
       ConsExistingSupport : (a : A)(q : Q)(xs : ListDist A)(S : List A) → (ix : a ∈ S) → IsSupport xs S → IsSupport ((a , q) ∷ xs) S
       ConsNewSupport : (a : A)(q : Q)(xs : ListDist A)(S : List A) → (nix : ¬(a ∈ S)) → IsSupport xs S → IsSupport ((a , q) ∷ xs) (a ∷ S)
-      -- AG: It's really annoying to have this, but it can't be derived from the other three.
-      PermuteSupport : (a : A)(xs : ListDist A)(S : List A) → (ix : a ∈ S) → IsSupport xs S → IsSupport xs (a ∷ filter-is-not a S)
 
     support-is-support-LD : (xs : ListDist A) → IsSupport xs (support-LD xs)
     support-is-support-LD [] = EmptySupport
-    support-is-support-LD ((a , q) ∷ xs) with decide-elem a (support-LD xs)
-    ... | yes p = PermuteSupport a ((a , q) ∷ xs) (support-LD xs) p (ConsExistingSupport a q xs (support-LD xs) p (support-is-support-LD xs))
-    ... | no np rewrite sym (if-not-there-filter-equal a (support-LD xs) np)
-                      = ConsNewSupport a q xs (support-LD xs) np (support-is-support-LD xs)
+    support-is-support-LD ((a , q) ∷ xs) with decide-elem a (map fst xs)
+    ... | yes p = ConsExistingSupport a q xs (support-LD xs) (unique-preserves-elem _ p) (support-is-support-LD xs)
+    ... | no np = ConsNewSupport a q xs (support-LD xs) (np ∘ unique-preserves-elem-inv _) (support-is-support-LD xs)
 
     support-of-empty-is-empty : (S : List A)
                               → IsSupport [] S
                               → [] ≡ S
-    support-of-empty-is-empty .[] EmptySupport = refl
-    support-of-empty-is-empty ._ (PermuteSupport a .[] S ix sup) with support-of-empty-is-empty S sup
-    support-of-empty-is-empty .(a ∷ filter-is-not a []) (PermuteSupport a .[] .[] () sup) | refl
+    support-of-empty-is-empty [] EmptySupport = refl
+    support-of-empty-is-empty (x ∷ xs) ()
 
-    support-sample-invariant-dist : (f : A → Q)(a : A)(q : Q)(xs : ListDist A){S : List A}
-                                    → IsSupport ((a , q) ∷ xs) S
-                                    → q * f a + sum (map (λ x → sample-LD xs x * f x) S) ≡ sum (map (λ x → sample-LD ((a , q) ∷ xs) x * f x) S)
+    sample-step : ∀(a : A) q xs → q + sample-LD xs a ≡ sample-LD ((a , q) ∷ xs) a
+    sample-step a q xs rewrite yes-refl a = sum-rewrite q (filter-vals a xs)
+
+    sample-missing-irrelevant : ∀(a : A) q xs {S} (p : ¬ (a ∈ S))
+                              → (cmb : A × Q → Q)
+                              → IsSupport xs S
+                              → map (λ x → cmb (x , (sample-LD xs x))) S ≡ map (λ x → cmb (x , (sample-LD ((a , q) ∷ xs) x))) S
+    sample-missing-irrelevant a q xs p cmb sup = {!!}
+
+    sample-missing-zero : ∀(a : A) xs {S} (p : ¬ (a ∈ S))
+                        → IsSupport xs S
+                        → zro ≡ sample-LD xs a
+    sample-missing-zero a xs p sup = {!!}
+
+    private
+      -- A helper necessary for the next function.
+      ssid-cmb : (A → Q) → (A × Q) → Q
+      ssid-cmb f (a , q) = q * f a
+
+      ssid-sample-cmb : ListDist A → (A → Q) → A → Q
+      ssid-sample-cmb xs f a = ssid-cmb f (a , sample-LD xs a)
+
+    support-sample-invariant-dist : (f : A → Q)(xs : ListDist A){S : List A}
+                                    → IsSupport xs S
+                                    → sum (map (ssid-cmb f) xs) ≡ sum (map (ssid-sample-cmb xs f) S)
+    support-sample-invariant-dist f .[] {[]} EmptySupport = refl
+    support-sample-invariant-dist f ._ {[]} (ConsExistingSupport a q xs .[] () sup)
+    support-sample-invariant-dist f .((a , q) ∷ xs) {s ∷ S} (ConsExistingSupport a q xs .(s ∷ S) ix sup) =
+      sum (q * f a ∷ map (ssid-cmb f) xs)
+        ≡⟨ sum-rewrite (q * f a) (map (ssid-cmb f) xs) ⟩ʳ
+      q * f a + sum (map (ssid-cmb f) xs)
+        ≡⟨ {!lem!} ⟩
+      sample-LD ((a , q) ∷ xs) s * f s + sum (map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
+        ≡⟨ sum-rewrite (sample-LD ((a , q) ∷ xs) s * f s) (map (ssid-sample-cmb ((a , q) ∷ xs) f) S) ⟩
+      sum (sample-LD ((a , q) ∷ xs) s * f s ∷ map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
+      ∎
+      where
+        lem : q * f a + sum (map (ssid-cmb f) xs) ≡ sample-LD ((a , q) ∷ xs) s * f s + sum (map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
+        lem with s == a
+        ... | yes refl =
+          q * f s + sum (map (ssid-cmb f) xs)
+            ≡⟨ {!!} ⟩
+          (q + sample-LD xs s) * f s + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S)
+            ≡⟨ cong (λ e → e * f s + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S)) $ sum-rewrite q (filter-vals s xs) ⟩
+          sum (q ∷ filter-vals s xs) * f s + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S)
+          ∎
+        ... | no neq = {!!}
+    support-sample-invariant-dist f .((a , q) ∷ xs) {a ∷ S} (ConsNewSupport .a q xs .S nix sup) =
+      sum (q * f a ∷ map (ssid-cmb f) xs)
+        ≡⟨ sum-rewrite (q * f a) (map (ssid-cmb f) xs) ⟩ʳ
+      q * f a + sum (map (ssid-cmb f) xs)
+        ≡⟨ cong (λ e → e * f a + sum (map (ssid-cmb f) xs)) (+-unit-right q) ⟩
+      (q + zro) * f a + sum (map (ssid-cmb f) xs)
+        ≡⟨ cong (λ e → (q + e) * f a + sum (map (ssid-cmb f) xs)) (sample-missing-zero a xs nix sup) ⟩
+      (q + sample-LD xs a) * f a + sum (map (ssid-cmb f) xs)
+        ≡⟨ cong (λ e → (q + sample-LD xs a) * f a + e) $
+             support-sample-invariant-dist f xs sup  ⟩
+      (q + sample-LD xs a) * f a + sum (map (ssid-sample-cmb xs f) S)
+        ≡⟨ cong (λ e → (q + sample-LD xs a) * f a + sum e) $
+             sample-missing-irrelevant a q xs nix (ssid-cmb f) sup ⟩
+      (q + sample-LD xs a) * f a + sum (map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
+        ≡⟨ cong (λ e → e * f a + sum (map (ssid-sample-cmb ((a , q) ∷ xs) f) S)) $ sample-step a q xs ⟩
+      sample-LD ((a , q) ∷ xs) a * f a + sum (map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
+        ≡⟨ sum-rewrite (sample-LD ((a , q) ∷ xs) a * f a) (map (ssid-sample-cmb ((a , q) ∷ xs) f) S) ⟩
+      sum (sample-LD ((a , q) ∷ xs) a * f a ∷ map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
+      ∎
+
+                                    {-
     support-sample-invariant-dist f a q [] (ConsExistingSupport .a .q .[] S ix sup)
       with support-of-empty-is-empty S sup
     support-sample-invariant-dist f a q [] (ConsExistingSupport .a .q .[] .[] () sup) | refl
@@ -91,12 +152,23 @@ module _ {{PPQ : ProbabilityProps}} where
         ≡⟨ forceLemma (zro + force (zro + q) id * f a) id ⟩ʳ
       force (zro + force (zro + q) id * f a) id
       ∎
-    support-sample-invariant-dist f a q [] (PermuteSupport a₁ .((a , q) ∷ []) S ix sup) with a₁ == a
-    ... | yes refl = {!!}
-    ... | no neq = {!!}
-      
-    support-sample-invariant-dist f a q ((a′ , q′) ∷ xs) sup = {!!}
+    support-sample-invariant-dist f a q ((a′ , q′) ∷ xs) (ConsExistingSupport .a .q .((a′ , q′) ∷ xs) S ix sup) =
+      q * f a + sum (map (λ x → sample-LD ((a′ , q′) ∷ xs) x * f x) S)
+        ≡⟨ {!!} ⟩
+      sum (map (λ x → sample-LD ((a , q) ∷ (a′ , q′) ∷ xs) x * f x) S)
+      ∎
+    support-sample-invariant-dist f a q ((a′ , q′) ∷ xs) (ConsNewSupport .a .q .((a′ , q′) ∷ xs) S nix sup) =
+      q * f a + sum (sample-LD ((a′ , q′) ∷ xs) a * f a ∷ map (λ x → sample-LD ((a′ , q′) ∷ xs) x * f x) S)
+        ≡⟨ {!!} ⟩
+      sample-LD dist a * f a + sum (map (λ x → sample-LD dist x * f x) S)
+        ≡⟨ sum-rewrite (sample-LD dist a * f a)
+                       (map (λ x → sample-LD dist x * f x) S) ⟩
+      sum (sample-LD dist a * f a ∷ map (λ x → sample-LD dist x * f x) S)
+      ∎
+      where dist = (a , q) ∷ (a′ , q′) ∷ xs
+      -}
 
+    {-
     support-sample-invariant-lem : (f : A → Q)(xs : ListDist A){S : List A}
                                  → IsSupport xs S
                                  → sum (map (collect-with f) xs) ≡ sum (map (λ x → sample-LD xs x * f x) S)
@@ -108,5 +180,6 @@ module _ {{PPQ : ProbabilityProps}} where
     support-sample-invariant-LD : (f : A → Q)(xs : ListDist A)
                                 → sum (map (collect-with f) xs) ≡ sum (map (λ x → sample-LD xs x * f x) (support-LD xs))
     support-sample-invariant-LD f xs = {!!}
+                      -}
 
 

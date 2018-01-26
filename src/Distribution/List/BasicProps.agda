@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import Probability.Class using (Probability)
 module Distribution.List.BasicProps (Q : Set) {{PQ : Probability Q}} where
 
@@ -44,8 +45,8 @@ module _ {{PPQ : ProbabilityProps}} where
       sum [ sample-LD xs a ]
         ≡⟨ refl ⟩
       sum (map (sample-LD xs) [ a ])
-        ≡⟨ (cong (sum ∘ map (sample-LD xs)) $ uniques-gives-singleton a (map fst xs)
-                                                                      (unique-preserves-elem-inv a (map fst xs)
+        ≡⟨ (cong (sum ∘ map (sample-LD xs)) $ uniques-gives-singleton (map fst xs)
+                                                                      (unique-preserves-elem-inv (map fst xs)
                                                                                                  (support-preserves-elements xs a p))) ⟩
       sum (map (sample-LD xs) $ filter (isYes ∘ (_==_ a)) $ support-LD xs)
       ∎
