@@ -4,6 +4,11 @@ open import ThesisPrelude
 open import Utility.Vector.BitVec
 open import Utility.Vector.Functions
 
+-- What if instead of modelling CryptoExpres as monads we model them as arrows?
+-- The one constructor we (currently) need is merging uniform into existing states,
+-- so A × BitVec n → B into A → B
+-- Later we may want separate channels for oracles and for values.
+
 data CryptoExpr (A : Set) : Set where
   returnCE : A → CryptoExpr A
   uniformCE : ∀ n → (BitVec n → CryptoExpr A) → CryptoExpr A
