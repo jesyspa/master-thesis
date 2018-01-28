@@ -34,8 +34,8 @@ uniform-interpretation : ∀{A B} n (ce : CryptoExpr (BitVec n × A) B)(a : A)
                        → (uniform n >>= λ xs → ⟦ ce ⟧ (xs , a)) ≡ ⟦ uniform-CE n ce ⟧ a
 uniform-interpretation n ce a = refl
 
-uniform-dist-interpretation : ∀{A} n (a : A) → (uniform n >>= λ xs → return (xs , a)) ≡ ⟦ uniform-expr n ⟧ a
-uniform-dist-interpretation n a = refl
+uniform-expr-interpretation : ∀{A} n (a : A) → (uniform n >>= λ xs → return (xs , a)) ≡ ⟦ uniform-expr n ⟧ a
+uniform-expr-interpretation n a = refl
 
 fmap-interpretation : ∀{A B B′} (f : B → B′)(E : CryptoExpr A B)(a : A)
                     → fmap f (⟦ E ⟧ a) ≡ ⟦ fmap f E ⟧ a
@@ -103,4 +103,22 @@ first-interpretation (uniform-CE n ce) a c =
                              ∎
                              )⟩
   uniform n >>= (λ xs → ⟦ cofmap-CE unassoc (first-CE ce) ⟧ (xs , a , c))
+  ∎
+
+coin-expr-interpretation : ∀{A}(a : A)
+                         → (coin >>= λ b → return (b , a)) ≡ ⟦ coin-expr ⟧ a
+coin-expr-interpretation a =
+  fmap head (uniform 1) >>= (λ b → return (b , a))
+    ≡⟨ fmap-bind-simplify head (λ b → return (b , a)) (uniform 1) ⟩
+  uniform 1 >>= (λ xs → return (head xs , a))
+    ≡⟨ >>=-ext (uniform 1) (λ xs → return (head xs , a))
+                           (λ xs → fmap (first head) (return (xs , a)))
+                           (λ xs → fmap-return (first head) (xs , a)) ⟩
+  uniform 1 >>= (λ xs → fmap (first head) (return (xs , a)))
+    ≡⟨ fmap-bind (first head) (uniform 1) (λ xs → return (xs , a)) ⟩ʳ
+  fmap (first head) (uniform 1 >>= λ xs → return (xs , a))
+    ≡⟨ refl ⟩
+  fmap (first head) (⟦ uniform-expr 1 ⟧ a)
+    ≡⟨ fmap-interpretation (first head) (uniform-expr 1) a ⟩
+  ⟦ fmap (first head) (uniform-expr 1) ⟧ a
   ∎
