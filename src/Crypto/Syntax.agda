@@ -37,9 +37,6 @@ second-CE ce = embed-CE (uncurry rev-pair) >>>-CE first-CE ce >>>-CE embed-CE (u
 attach-CE : ∀{A B} → B → CryptoExpr A (B × A)
 attach-CE c = embed-CE (_,_ c)
 
-forget-CE : ∀{A B} → CryptoExpr (B × A) A
-forget-CE = embed-CE snd
-
 infixr 3 _***-CE_
 _***-CE_ : ∀{A B A′ B′} → CryptoExpr A B → CryptoExpr A′ B′ → CryptoExpr (A × A′) (B × B′)
 lhs ***-CE rhs = first-CE lhs >>>-CE second-CE rhs

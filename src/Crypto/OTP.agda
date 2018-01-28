@@ -23,43 +23,19 @@ open DistMonad DistMonadListDist
 open DistMonadProps DistMonadPropsListDist
 open MonadProps is-monad
 
+OTP-enc : ∀{n} → BitVec n × BitVec n → BitVec n
+OTP-enc = uncurry′ bitvec-xor
+
 OTP : (n : Nat) → EncScheme
 OTP n = enc-scheme (BitVec n) 
                    (BitVec n) 
                    (BitVec n) 
-                   (uniform-expr n)
-                   (λ k pt → return (bitvec-xor k pt) )
-                   (λ k ct → bitvec-xor k ct)
-                   (λ {k} {pt} → cong return (bitvec-xor-self-inverse k pt))
+                   (uniform-expr n >>>-CE embed-CE fst)
+                   (embed-CE OTP-enc)
+                   bitvec-xor
 
 
 OTP-is-IND-EAV : ∀{n}(A : SimpleEavAdv (OTP n))
-               → ⟦ simple-IND-EAV (OTP n) A ⟧ ≡D coin
+               → ⟦ simple-IND-EAV (OTP n) A ⟧ tt ≡D coin
 OTP-is-IND-EAV A = {!!}
 
-OTP-game-2 : ∀{n}(A : SimpleEavAdv (OTP n))
-          → CryptoExpr Bool
-OTP-game-2 {n} A
-  = uniform-expr n  >>= λ xs
-  → coin-expr       >>= λ b
-  → A₂ xs           >>= λ b′
-  → return (nxor b b′)
-  where
-    open SimpleEavAdv A
-
-OTP-game-3 : ∀{n}(A : SimpleEavAdv (OTP n))
-           → CryptoExpr Bool
-OTP-game-3 {n} A
-  = uniform-expr n  >>= λ xs
-  → A₂ xs           >>= λ b′
-  → coin-expr       >>= λ b
-  → return (nxor b b′)
-  where
-    open SimpleEavAdv A
-           
-
-{-
-OTP-game-2-unwinnable : ∀{n}(A : SimpleEavAdv (OTP n))
-                     → negpow2 1 ≡ sample ⟦ OTP-game′ A ⟧ true
-OTP-game-2-unwinnable A = {!!}
--}
