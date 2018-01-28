@@ -1,6 +1,7 @@
 module Crypto.Syntax where
 
 open import ThesisPrelude
+open import Utility.Product
 open import Utility.Vector.BitVec
 open import Utility.Vector.Functions
 
@@ -9,32 +10,33 @@ open import Utility.Vector.Functions
 -- so A × BitVec n → B into A → B
 -- Later we may want separate channels for oracles and for values.
 
-data CryptoExpr (A : Set) : Set where
-  returnCE : A → CryptoExpr A
-  uniformCE : ∀ n → (BitVec n → CryptoExpr A) → CryptoExpr A
+data CryptoExpr : Set → Set → Set where
+  embed-CE : ∀{A B} → (g : A → B) → CryptoExpr A B
+  uniform-CE : ∀{A B} n → CryptoExpr (BitVec n × A) B → CryptoExpr A B
 
-uniform-expr : ∀ n → CryptoExpr (BitVec n)
-uniform-expr n = uniformCE n returnCE
+fmap-CE : ∀{A B B′} → (B → B′) → CryptoExpr A B → CryptoExpr A B′
+fmap-CE f (embed-CE g) = embed-CE λ z → f (g z)
+fmap-CE f (uniform-CE n ce) = uniform-CE n $ fmap-CE f ce
 
-fmap-CE : ∀{A B} → (A → B) → CryptoExpr A → CryptoExpr B
-fmap-CE f (returnCE a) = returnCE (f a)
-fmap-CE f (uniformCE n cont) = uniformCE n (λ z → fmap-CE f (cont z))
+cofmap-CE : ∀{A A′ B} → (A → A′) → CryptoExpr A′ B → CryptoExpr A B
+cofmap-CE f (embed-CE g) = embed-CE λ z → g (f z)
+cofmap-CE f (uniform-CE n ce) = uniform-CE n $ cofmap-CE (second f) ce
 
-ap-CE : ∀{A B} → CryptoExpr (A → B) → CryptoExpr A → CryptoExpr B
-ap-CE (returnCE f) e = fmap-CE f e
-ap-CE (uniformCE n f) e = uniformCE n λ xs → ap-CE (f xs) e
+_>>>-CE_ : ∀{A B C} → CryptoExpr A B → CryptoExpr B C → CryptoExpr A C
+embed-CE g >>>-CE rhs = cofmap-CE g rhs
+uniform-CE n lhs >>>-CE rhs = uniform-CE n $ lhs >>>-CE rhs
 
-bind-CE : ∀{A B} → CryptoExpr A → (A → CryptoExpr B) → CryptoExpr B
-bind-CE (returnCE x) f = f x
-bind-CE (uniformCE n x) f = uniformCE n (λ z → bind-CE (x z) f)
+first-CE : ∀{A B C} → CryptoExpr A B → CryptoExpr (A × C) (B × C)
+first-CE (embed-CE g) = embed-CE $ first g
+first-CE (uniform-CE n ce) = uniform-CE n $ cofmap-CE unassoc $ first-CE ce
+
+uniform-expr : ∀{A} n → CryptoExpr A (BitVec n × A)
+uniform-expr n = uniform-CE n $ embed-CE id
 
 instance
-  FunctorCryptoExpr : Functor CryptoExpr
+  FunctorCryptoExpr : ∀{A} → Functor (CryptoExpr A)
   FunctorCryptoExpr = record { fmap = fmap-CE }
-  ApplicativeCryptoExpr : Applicative CryptoExpr
-  ApplicativeCryptoExpr = record { pure = returnCE ; _<*>_ = ap-CE }
-  MonadCryptoExpr : Monad CryptoExpr 
-  MonadCryptoExpr = record { _>>=_ = bind-CE }
 
-coin-expr : CryptoExpr Bool
-coin-expr = fmap head (uniform-expr 1)
+coin-expr : ∀{A} → CryptoExpr A (Bool × A)
+coin-expr = fmap (first head) (uniform-expr 1)
+

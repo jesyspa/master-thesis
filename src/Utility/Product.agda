@@ -18,3 +18,9 @@ over-snd f (a , b) = a , f b
 
 diag : ∀{l} {A : Set l} → A → A × A
 diag a = a , a
+
+assoc : ∀{l} {A B C : Set l} → (A × B) × C → A × B × C
+assoc ((a , b) , c) = (a , (b , c))
+
+unassoc : ∀{l} {A B C : Set l} → A × B × C → (A × B) × C
+unassoc (a , (b , c)) = ((a , b) , c)
