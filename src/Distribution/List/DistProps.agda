@@ -148,7 +148,7 @@ module _ {{PPQ : ProbabilityProps}} where
               ≡⟨ cong sum $ map-ext (_*_ p ∘′ sum ∘′ filter-vals c ∘′ WriterT.bind-MW-helper (f′ a))
                                     (fun-gen A′ B′ f′ (a , p))
                                     (λ { (b , q) →
-                                      p * sum (filter-vals c (map (over-snd (_*_ q)) (f′ a b)))
+                                      p * sum (filter-vals c (map (second (_*_ q)) (f′ a b)))
                                         ≡⟨ cong (λ e → p * sum e) $ filter-vals-map (_*_ q) (f′ a b) c ⟩ʳ
                                       p * (sum (map (_*_ q) (filter-vals c (f′ a b))))
                                         ≡⟨ cong (_*_ p) $ mul-sum q (filter-vals c (f′ a b))   ⟩ʳ
