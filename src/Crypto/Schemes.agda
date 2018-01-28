@@ -8,8 +8,10 @@ record EncScheme : Set₁ where
   field
     Key PT CT : Set
     
-    keygen : CryptoExpr Key
-    enc    : Key → PT → CryptoExpr CT
+    keygen : CryptoExpr ⊤ Key
+    enc    : CryptoExpr (Key × PT) CT
     dec    : Key → CT → PT
 
-    correct : ∀{k pt} → return pt ≡ fmap (dec k) (enc k pt)
+    -- Note that we do not carry around a proof of correctness, since
+    -- that only makes sense with respect to a particular valuation.
+

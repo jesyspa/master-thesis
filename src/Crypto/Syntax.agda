@@ -22,6 +22,7 @@ cofmap-CE : ∀{A A′ B} → (A → A′) → CryptoExpr A′ B → CryptoExpr 
 cofmap-CE f (embed-CE g) = embed-CE λ z → g (f z)
 cofmap-CE f (uniform-CE n ce) = uniform-CE n $ cofmap-CE (second f) ce
 
+infixr 1 _>>>-CE_ 
 _>>>-CE_ : ∀{A B C} → CryptoExpr A B → CryptoExpr B C → CryptoExpr A C
 embed-CE g >>>-CE rhs = cofmap-CE g rhs
 uniform-CE n lhs >>>-CE rhs = uniform-CE n $ lhs >>>-CE rhs
@@ -29,6 +30,19 @@ uniform-CE n lhs >>>-CE rhs = uniform-CE n $ lhs >>>-CE rhs
 first-CE : ∀{A B C} → CryptoExpr A B → CryptoExpr (A × C) (B × C)
 first-CE (embed-CE g) = embed-CE $ first g
 first-CE (uniform-CE n ce) = uniform-CE n $ cofmap-CE unassoc $ first-CE ce
+
+second-CE : ∀{A B C} → CryptoExpr A B → CryptoExpr (C × A) (C × B)
+second-CE ce = embed-CE (uncurry rev-pair) >>>-CE first-CE ce >>>-CE embed-CE (uncurry rev-pair)
+
+attach-CE : ∀{A B} → B → CryptoExpr A (B × A)
+attach-CE c = embed-CE (_,_ c)
+
+forget-CE : ∀{A B} → CryptoExpr (B × A) A
+forget-CE = embed-CE snd
+
+infixr 3 _***-CE_
+_***-CE_ : ∀{A B A′ B′} → CryptoExpr A B → CryptoExpr A′ B′ → CryptoExpr (A × A′) (B × B′)
+lhs ***-CE rhs = first-CE lhs >>>-CE second-CE rhs
 
 uniform-expr : ∀{A} n → CryptoExpr A (BitVec n × A)
 uniform-expr n = uniform-CE n $ embed-CE id
