@@ -2,35 +2,27 @@ module Crypto.Props where
 
 open import ThesisPrelude
 open import Crypto.Syntax
-open import Algebra.FunctorProps CryptoExpr
-open import Algebra.ApplicativeProps CryptoExpr
-open import Algebra.MonadProps CryptoExpr
 open import Algebra.FunExt
+  
+fmap-ext-CE : ∀{A B B′} (f g : B → B′)
+            → (∀ b → f b ≡ g b)
+            → (ce : CryptoExpr A B)
+            → fmap-CE f ce ≡ fmap-CE g ce
+fmap-ext-CE f g pf (embed-CE h) = cong embed-CE $ fun-ext (λ z → f (h z)) (λ z → g (h z)) (λ z → pf (h z))
+fmap-ext-CE f g pf (uniform-CE n ce) = cong (uniform-CE n) $ fmap-ext-CE f g pf ce
 
-fmap-ext-CE : ∀{A B} (f g : A → B)
-            → (∀ a → f a ≡ g a)
-            → (x : CryptoExpr A)
-            → fmap-CE f x ≡ fmap-CE g x
-fmap-ext-CE f g pf (returnCE a) rewrite pf a = refl
-fmap-ext-CE f g pf (uniformCE n cont) = cong (uniformCE n) (fun-ext (fmap-CE f ∘′ cont) (fmap-CE g ∘′ cont) λ a → fmap-ext-CE f g pf (cont a)) 
+fmap-id-CE : ∀{A B} → (ce : CryptoExpr A B) → ce ≡ fmap-CE id ce
+fmap-id-CE (embed-CE g) = refl
+fmap-id-CE (uniform-CE n ce) = cong (uniform-CE n) (fmap-id-CE ce)
 
-fmap-id-CE : ∀{A} → (x : CryptoExpr A) → x ≡ fmap-CE id x
-fmap-id-CE (returnCE a) = refl
-fmap-id-CE (uniformCE n cont) = cong (uniformCE n) (fun-ext cont (fmap-CE id ∘′ cont) λ a → fmap-id-CE (cont a))
+fmap-comp-CE : ∀{A B B′ B′′} (g : B′ → B′′) (f : B → B′) (ce : CryptoExpr A B) 
+             → fmap-CE (g ∘′ f) ce ≡ fmap-CE g (fmap-CE f ce)
+fmap-comp-CE g f (embed-CE h) = cong embed-CE $ fun-ext (λ z → g (f (h z))) (λ z → g (f (h z))) (λ z → refl)
+fmap-comp-CE g f (uniform-CE n ce) = cong (uniform-CE n) $ fmap-comp-CE g f ce
 
-fmap-comp-CE : ∀{A B C} (g : B → C) (f : A → B) (x : CryptoExpr A) 
-             → fmap-CE (g ∘′ f) x ≡ fmap-F g (fmap-CE f x)
-fmap-comp-CE g f (returnCE a) = refl
-fmap-comp-CE g f (uniformCE n cont) = cong (uniformCE n) (fun-ext (fmap-CE (g ∘ f) ∘′ cont)
-                                                                  (fmap-CE g ∘′ fmap-CE f ∘′ cont)
-                                                                  λ a → fmap-comp-CE g f (cont a)) 
+open import Algebra.FunctorProps
 
 instance
-  FunctorPropsCryptoExpr : FunctorProps
+  FunctorPropsCryptoExpr : ∀{A} → FunctorProps (CryptoExpr A)
   FunctorPropsCryptoExpr = record { fmap-ext = fmap-ext-CE ; fmap-id = fmap-id-CE ; fmap-comp = fmap-comp-CE }
 
-open FunctorProps FunctorPropsCryptoExpr
-
-postulate
-  ApplicativePropsCryptoExpr : ApplicativeProps
-  MonadPropsCryptoExpr : MonadProps
