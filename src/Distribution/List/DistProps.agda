@@ -66,7 +66,7 @@ module _ {{PPQ : ProbabilityProps}} where
     sample-LD (fmap f (uniform-LD n)) v
     ∎
 
-  >>=-D-ext-LD : ∀{A B} {{_ : Eq A}} {{_ : Eq B}}
+  >>=-D-ext-LD : ∀{A B}{{_ : Eq B}}
                → (xs : ListDist A)
                → (f g : A → ListDist B)
                → (∀ a → f a ≡LD g a)
@@ -81,10 +81,10 @@ module _ {{PPQ : ProbabilityProps}} where
     sample-LD (xs >>= g) b
     ∎
 
-  independence-LD : ∀{A B C}{{_ : Eq C}}(xs : ListDist A)(ys : ListDist B)
+  interchange-LD : ∀{A B C}{{_ : Eq C}}(xs : ListDist A)(ys : ListDist B)
                     (f : A → B → ListDist C)
                   → (xs >>= λ a → ys >>= f a) ≡LD (ys >>= λ b → xs >>= λ a → f a b)
-  independence-LD {A} {B} {C} xs ys f = sample-equiv lem
+  interchange-LD {A} {B} {C} xs ys f = sample-equiv lem
     where
       lem : (c : C) → sample-LD (xs >>= λ a → ys >>= f a) c ≡ sample-LD (ys >>= λ b → xs >>= λ a → f a b) c
       lem c =
@@ -183,6 +183,6 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; sample-invariant = sample-invariant-LD
                                ; injection-invariant = injections-preserve-distributions-LD
                                ; irrelevance = irrelevance-LD
-                               ; independence = independence-LD
+                               ; interchange = interchange-LD
                                ; >>=-D-ext = >>=-D-ext-LD
                                }
