@@ -13,30 +13,37 @@ OracleList = List (Set × Set)
 data CryptoExpr : OracleList → OracleList → Set → Set → Set₁ where
   embed-CE : ∀{O A B} → (g : A → B) → CryptoExpr O O A B
   uniform-CE : ∀{O O′ A B} n → CryptoExpr O O′ (BitVec n × A) B → CryptoExpr O O′ A B
-  addOracle-CE : ∀{O O′ A B X Y} → (X → Y) → CryptoExpr ((X , Y) ∷ O) O′ A B → CryptoExpr O O′ A B
+  addOracle-CE : ∀{O O′ O′′ A B C X Y}
+               → CryptoExpr O O′ A ((X → Y) × B) → CryptoExpr ((X , Y) ∷ O′) O′′ B C
+               → CryptoExpr O O′′ A C
   -- This is crazy. (But it works?)
   callOracle-CE : ∀{O O′ O′′ A B C X Y} (p : (X , Y) ∈ O)
                 → CryptoExpr O O′ A (X × B) → CryptoExpr O′ O′′ (Y × B) C
                 → CryptoExpr O O′′ A C
+  -- The problem here is that semantically equivalent CryptoExprs can have different
+  -- denotations this way due to a difference in the choice of B in addOracle and SetOracle.
+  -- This makes sense, but means that certain equality results that we'd like to prove
+  -- are no longer provable.  Really, I want some kind of setoid to reason in, and then
+  -- show that valuations are equivalent up to that setoid.
 
 
 fmap-CE : ∀{O O′ A B B′} → (B → B′) → CryptoExpr O O′ A B → CryptoExpr O O′ A B′
 fmap-CE f (embed-CE g) = embed-CE λ z → f (g z)
 fmap-CE f (uniform-CE n ce) = uniform-CE n $ fmap-CE f ce
-fmap-CE f (addOracle-CE g ce) = addOracle-CE g $ fmap-CE f ce
+fmap-CE f (addOracle-CE ce cf) = addOracle-CE ce $ fmap-CE f cf
 fmap-CE f (callOracle-CE p ce cf) = callOracle-CE p ce $ fmap-CE f cf
 
 cofmap-CE : ∀{O O′ A A′ B} → (A → A′) → CryptoExpr O O′ A′ B → CryptoExpr O O′ A B
 cofmap-CE f (embed-CE g) = embed-CE λ z → g (f z)
 cofmap-CE f (uniform-CE n ce) = uniform-CE n $ cofmap-CE (second f) ce
-cofmap-CE f (addOracle-CE g ce) = addOracle-CE g $ cofmap-CE f ce
+cofmap-CE f (addOracle-CE ce cf) = addOracle-CE (cofmap-CE f ce) cf
 cofmap-CE f (callOracle-CE p ce cf) = callOracle-CE p (cofmap-CE f ce) cf
 
 infixr 2 _>>>-CE_ 
 _>>>-CE_ : ∀{O O′ O′′ A B C} → CryptoExpr O O′ A B → CryptoExpr O′ O′′ B C → CryptoExpr O O′′ A C
 embed-CE g >>>-CE rhs = cofmap-CE g rhs
 uniform-CE n lhs >>>-CE rhs = uniform-CE n $ lhs >>>-CE rhs
-addOracle-CE g lhs >>>-CE rhs = addOracle-CE g $ lhs >>>-CE rhs
+addOracle-CE lhs lhs′ >>>-CE rhs = addOracle-CE lhs $ lhs′ >>>-CE rhs
 callOracle-CE p lhs lhs′ >>>-CE rhs = callOracle-CE p lhs $ lhs′ >>>-CE rhs
 
 rev-first : ∀{l}{A A′ B : Set l} → A × A′ × B → A′ × A × B
@@ -48,13 +55,13 @@ reverse-CE = embed-CE rev-first
 first-CE : ∀{O O′ A B C} → CryptoExpr O O′ A B → CryptoExpr O O′ (A × C) (B × C)
 first-CE (embed-CE g) = embed-CE $ first g
 first-CE (uniform-CE n ce) = uniform-CE n $ cofmap-CE unassoc $ first-CE ce
-first-CE (addOracle-CE g ce) = addOracle-CE g $ first-CE ce
+first-CE (addOracle-CE ce cf) = addOracle-CE (fmap-CE assoc (first-CE ce)) (first-CE cf)
 first-CE (callOracle-CE p ce cf) = callOracle-CE p (fmap-CE assoc $ first-CE ce) (cofmap-CE unassoc $ first-CE cf)
 
 second-CE : ∀{O O′ A B C} → CryptoExpr O O′ A B → CryptoExpr O O′ (C × A) (C × B)
 second-CE (embed-CE g) = embed-CE $ second g
 second-CE (uniform-CE n ce) = uniform-CE n $ cofmap-CE rev-first $ second-CE ce
-second-CE (addOracle-CE g ce) = addOracle-CE g $ second-CE ce
+second-CE (addOracle-CE ce cf) = addOracle-CE (fmap-CE rev-first (second-CE ce)) (second-CE cf)
 second-CE (callOracle-CE p ce cf) = callOracle-CE p (fmap-CE rev-first $ second-CE ce) (cofmap-CE rev-first $ second-CE cf)
 
 attach-CE : ∀{O A B} → B → CryptoExpr O O A (B × A)
