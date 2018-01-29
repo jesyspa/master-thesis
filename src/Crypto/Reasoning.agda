@@ -7,6 +7,7 @@ open import Crypto.Syntax
 open import Crypto.Valuation F
 open import Probability.Class
 open import Utility.Vector
+open import Utility.Product
 open import Utility.Bool
 open import Algebra.ApplicativeProps F
 open import Algebra.MonadProps F
@@ -14,9 +15,8 @@ open import Distribution.Class
 open import Distribution.PropsClass F
 open import Distribution.Reasoning F
 open import Crypto.Props
-open import Algebra.FunctorProps CryptoExpr using () renaming (FunctorProps to CFProps)
-open import Algebra.MonadProps CryptoExpr using () renaming (MonadProps to CMProps)
-open import Crypto.ValuationProps F
+--open import Algebra.FunctorProps CryptoExpr using () renaming (FunctorProps to CFProps)
+open import Crypto.ValuationProps F 
 
 open DistMonad DMF
 open DistMonadProps DMPF 
@@ -24,19 +24,20 @@ open MonadProps is-monad
 open ApplicativeProps aprops
 open Probability probability-super
 
-cong->>= : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A){F G : A → CryptoExpr B}
-         → (∀ a → ⟦ F a ⟧ ≡D ⟦ G a ⟧)
-         → ⟦ E >>= F ⟧ ≡D ⟦ E >>= G ⟧
-cong->>= E {F} {G} eq =
-  ⟦ E >>= F ⟧
-    ≡D⟨ bind-interpretation F E ⟩ˡʳ
-  ⟦ E ⟧ >>= ⟦_⟧ ∘′ F
-    ≡D⟨ >>=-D-ext ⟦ E ⟧ (⟦_⟧ ∘′ F) (⟦_⟧ ∘′ G) eq  ⟩
-  ⟦ E ⟧ >>= ⟦_⟧ ∘′ G
-    ≡D⟨  bind-interpretation G E ⟩ˡ
-  ⟦ E >>= G ⟧
+cong->>>-right : ∀{A B C}{{_ : Eq C}}(E : CryptoExpr A B)(F G : CryptoExpr B C)
+         → (∀ b → ⟦ F ⟧ b ≡D ⟦ G ⟧ b)
+         → (a : A) → ⟦ E >>>-CE F ⟧ a ≡D ⟦ E >>>-CE G ⟧ a
+cong->>>-right E F G eq a =
+  ⟦ E >>>-CE F ⟧ a
+    ≡D⟨ comp-interpretation E F a ⟩ˡʳ
+  ⟦ E ⟧ a >>= ⟦ F ⟧
+    ≡D⟨ >>=-D-ext (⟦ E ⟧ a) ⟦ F ⟧ ⟦ G ⟧ eq ⟩
+  ⟦ E ⟧ a >>= ⟦ G ⟧
+    ≡D⟨ comp-interpretation E G a ⟩ˡ
+  ⟦ E >>>-CE G ⟧ a
   ∎D
 
+{-
 cong->>=ˡ : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A){F G : A → CryptoExpr B}
           → (∀ a → ⟦ F a ⟧ ≡ ⟦ G a ⟧)
           → ⟦ E >>= F ⟧ ≡ ⟦ E >>= G ⟧
@@ -49,30 +50,12 @@ cong->>=ˡ E {F} {G} eq =
     ≡⟨ bind-interpretation G E ⟩
   ⟦ E >>= G ⟧
   ∎
-  
+  -}
 
-interchange-interpretation : ∀{A B C}{{_ : Eq C}}(EA : CryptoExpr A)(EB : CryptoExpr B)
-                              (f : A → B → CryptoExpr C)
-                           → ⟦ (EA >>= λ a → EB >>= f a) ⟧ ≡D ⟦ (EB >>= λ b → EA >>= λ a → f a b) ⟧ 
-interchange-interpretation {C = C} EA EB f =
-  ⟦ (EA >>= λ a → EB >>= f a) ⟧
-    ≡D⟨ lem EA EB f ⟩ˡ
-  (⟦ EA ⟧ >>= λ a → ⟦ EB ⟧ >>= λ b → ⟦ f a b ⟧)
-    ≡D⟨ interchange ⟦ EA ⟧ ⟦ EB ⟧ (λ a b → ⟦ f a b ⟧) ⟩
-  (⟦ EB ⟧ >>= λ b → ⟦ EA ⟧ >>= λ a → ⟦ f a b ⟧)
-    ≡D⟨ lem EB EA (flip f) ⟩ˡʳ
-  ⟦ (EB >>= λ b → EA >>= λ a → f a b) ⟧ 
-  ∎D
-  where
-    lem : ∀{A′ B′}(EA′ : CryptoExpr A′)(EB′ : CryptoExpr B′)(f′ : A′ → B′ → CryptoExpr C)
-        → ⟦ (EA′ >>= λ a → EB′ >>= f′ a) ⟧ ≡ (⟦ EA′ ⟧ >>= λ a → ⟦ EB′ ⟧ >>= λ b → ⟦ f′ a b ⟧)
-    lem EA′ EB′ f′ =
-      ⟦ (EA′ >>= λ a → EB′ >>= f′ a) ⟧
-        ≡⟨ bind-interpretation (λ a → EB′ >>= f′ a) EA′ ⟩ʳ
-      (⟦ EA′ ⟧ >>= λ a → ⟦ EB′ >>= f′ a ⟧)
-        ≡⟨ >>=-ext ⟦ EA′ ⟧
-                    (λ a → ⟦ EB′ >>= f′ a ⟧)
-                    (λ a → ⟦ EB′ ⟧ >>= λ b → ⟦ f′ a b ⟧)
-                    (λ a → sym (bind-interpretation (f′ a) EB′)) ⟩
-      (⟦ EA′ ⟧ >>= λ a → ⟦ EB′ ⟧ >>= λ b → ⟦ f′ a b ⟧)
-      ∎
+interchange-interpretation : ∀{A B A′ B′}{{_ : Eq B}}{{_ : Eq B′}}(E : CryptoExpr A B)(F : CryptoExpr A′ B′)(a : A)(a′ : A′)
+                           → ⟦ E ***-CE F ⟧ (a , a′) ≡D ⟦ second-CE F >>>-CE first-CE E ⟧ (a , a′)
+interchange-interpretation (embed-CE g) F a a′ = lift-D-eq $ cong (λ e → ⟦ e ⟧ (a , a′)) $ embed-interchangeable g F
+interchange-interpretation (uniform-CE n E) (embed-CE g) a a′ = lift-D-eq $ {!!} -- follows by similar argument
+interchange-interpretation (uniform-CE n E) (uniform-CE m F) a a′ = {!!}
+
+  
