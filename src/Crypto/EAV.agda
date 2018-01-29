@@ -9,23 +9,28 @@ record EavAdv (E : EncScheme) : Set₁ where
   constructor eav-adv
   open EncScheme E
   field 
-    S  : Set
-    A₁ : CryptoExpr (S × PT × PT)
-    A₂ : S → CT → CryptoExpr Bool
-    -- How about asking the adversary to prove that his
-    -- message is not the encrypted one? 
-    -- ie. defend from bad-events on the type-level!
+    S : Set -- State of the adversary
+    A₁ : ∀{O} → CryptoExpr O O ⊤ (PT × PT × S)
+    A₂ : ∀{O} → CryptoExpr O O (CT × S) Bool
 
 
-IND-EAV : (E : EncScheme)(A : EavAdv E) → CryptoExpr Bool 
-IND-EAV E A 
-  = keygen                       >>= λ k 
-  → A₁                           >>= λ { (s , m₀ , m₁) 
-  → coin-expr                    >>= λ b
-  → enc k (if b then m₀ else m₁) >>= λ ct
-  → A₂ s ct                      >>= λ b′ 
-  → return (nxor b b′) 
-  }
+IND-EAV : ∀{O}(E : EncScheme)(A : EavAdv E) → CryptoExpr O O ⊤ Bool 
+IND-EAV {O} E A =
+  keygen                  >>>-CE
+  attach-CE tt            >>>-CE
+  first-CE A₁             >>>-CE
+  coin-expr               >>>-CE
+  enc-rnd                 >>>-CE
+  second-CE (first-CE A₂) >>>-CE
+  is-correct
   where
     open EncScheme E
     open EavAdv A
+    enc-rnd′ : (Bool × (PT × PT × S) × Key) → (Bool × ((Key × PT) × S) × Key)
+    enc-rnd′ (b , (m₁ , m₂ , s) , k) = b , ((k , (if b then m₁ else m₂)) , s) , k
+    enc-rnd : CryptoExpr O O (Bool × (PT × PT × S) × Key) (Bool × (CT × S) × Key)
+    enc-rnd = embed-CE enc-rnd′ >>>-CE second-CE (first-CE $ first-CE enc) 
+    is-correct′ : Bool × Bool × Key → Bool
+    is-correct′ (b , b′ , k) = nxor b b′
+    is-correct : CryptoExpr O O (Bool × Bool × Key) Bool
+    is-correct = embed-CE is-correct′ 

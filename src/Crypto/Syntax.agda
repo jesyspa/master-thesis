@@ -17,8 +17,8 @@ data CryptoExpr : OracleList → OracleList → Set → Set → Set₁ where
                → CryptoExpr O O′ A ((X → Y) × B) → CryptoExpr ((X , Y) ∷ O′) O′′ B C
                → CryptoExpr O O′′ A C
   -- This is crazy. (But it works?)
-  callOracle-CE : ∀{O O′ O′′ A B C X Y} (p : (X , Y) ∈ O)
-                → CryptoExpr O O′ A (X × B) → CryptoExpr O′ O′′ (Y × B) C
+  callOracle-CE : ∀{O O′ O′′ A B C X Y}
+                → CryptoExpr O O′ A (((X , Y) ∈ O′ × X) × B) → CryptoExpr O′ O′′ (Y × B) C
                 → CryptoExpr O O′′ A C
   -- The problem here is that semantically equivalent CryptoExprs can have different
   -- denotations this way due to a difference in the choice of B in addOracle and SetOracle.
@@ -31,20 +31,20 @@ fmap-CE : ∀{O O′ A B B′} → (B → B′) → CryptoExpr O O′ A B → Cr
 fmap-CE f (embed-CE g) = embed-CE λ z → f (g z)
 fmap-CE f (uniform-CE n ce) = uniform-CE n $ fmap-CE f ce
 fmap-CE f (addOracle-CE ce cf) = addOracle-CE ce $ fmap-CE f cf
-fmap-CE f (callOracle-CE p ce cf) = callOracle-CE p ce $ fmap-CE f cf
+fmap-CE f (callOracle-CE ce cf) = callOracle-CE ce $ fmap-CE f cf
 
 cofmap-CE : ∀{O O′ A A′ B} → (A → A′) → CryptoExpr O O′ A′ B → CryptoExpr O O′ A B
 cofmap-CE f (embed-CE g) = embed-CE λ z → g (f z)
 cofmap-CE f (uniform-CE n ce) = uniform-CE n $ cofmap-CE (second f) ce
 cofmap-CE f (addOracle-CE ce cf) = addOracle-CE (cofmap-CE f ce) cf
-cofmap-CE f (callOracle-CE p ce cf) = callOracle-CE p (cofmap-CE f ce) cf
+cofmap-CE f (callOracle-CE ce cf) = callOracle-CE (cofmap-CE f ce) cf
 
 infixr 2 _>>>-CE_ 
 _>>>-CE_ : ∀{O O′ O′′ A B C} → CryptoExpr O O′ A B → CryptoExpr O′ O′′ B C → CryptoExpr O O′′ A C
 embed-CE g >>>-CE rhs = cofmap-CE g rhs
 uniform-CE n lhs >>>-CE rhs = uniform-CE n $ lhs >>>-CE rhs
 addOracle-CE lhs lhs′ >>>-CE rhs = addOracle-CE lhs $ lhs′ >>>-CE rhs
-callOracle-CE p lhs lhs′ >>>-CE rhs = callOracle-CE p lhs $ lhs′ >>>-CE rhs
+callOracle-CE lhs lhs′ >>>-CE rhs = callOracle-CE lhs $ lhs′ >>>-CE rhs
 
 rev-first : ∀{l}{A A′ B : Set l} → A × A′ × B → A′ × A × B
 rev-first (a , a′ , b) = (a′ , a , b)
@@ -56,13 +56,13 @@ first-CE : ∀{O O′ A B C} → CryptoExpr O O′ A B → CryptoExpr O O′ (A 
 first-CE (embed-CE g) = embed-CE $ first g
 first-CE (uniform-CE n ce) = uniform-CE n $ cofmap-CE unassoc $ first-CE ce
 first-CE (addOracle-CE ce cf) = addOracle-CE (fmap-CE assoc (first-CE ce)) (first-CE cf)
-first-CE (callOracle-CE p ce cf) = callOracle-CE p (fmap-CE assoc $ first-CE ce) (cofmap-CE unassoc $ first-CE cf)
+first-CE (callOracle-CE ce cf) = callOracle-CE (fmap-CE assoc $ first-CE ce) (cofmap-CE unassoc $ first-CE cf)
 
 second-CE : ∀{O O′ A B C} → CryptoExpr O O′ A B → CryptoExpr O O′ (C × A) (C × B)
 second-CE (embed-CE g) = embed-CE $ second g
 second-CE (uniform-CE n ce) = uniform-CE n $ cofmap-CE rev-first $ second-CE ce
 second-CE (addOracle-CE ce cf) = addOracle-CE (fmap-CE rev-first (second-CE ce)) (second-CE cf)
-second-CE (callOracle-CE p ce cf) = callOracle-CE p (fmap-CE rev-first $ second-CE ce) (cofmap-CE rev-first $ second-CE cf)
+second-CE (callOracle-CE ce cf) = callOracle-CE (fmap-CE rev-first $ second-CE ce) (cofmap-CE rev-first $ second-CE cf)
 
 attach-CE : ∀{O A B} → B → CryptoExpr O O A (B × A)
 attach-CE c = embed-CE (_,_ c)
@@ -88,7 +88,7 @@ left-CE : ∀{O O′ A B C} → CryptoExpr O O′ A B → CryptoExpr O O′ (Eit
 left-CE (embed-CE g) = embed-CE (mapLeft g)
 left-CE (uniform-CE n ce) = uniform-CE n $ embed-CE (mapRight snd ∘′ distribute) >>>-CE left-CE ce
 left-CE (addOracle-CE g ce) = addOracle-CE g $ left-CE ce
-left-CE (callOracle-CE p ce cf) = callOracle-CE p (fmap-CE {!!} {!!}) (cofmap-CE {!!} {!!})
+left-CE (callOracle-CE ce cf) = callOracle-CE (fmap-CE {!!} {!!}) (cofmap-CE {!!} {!!})
 
 right-CE : ∀{A B C} → CryptoExpr A B → CryptoExpr (Either C A) (Either C B)
 right-CE (embed-CE g) = embed-CE (mapRight g)
@@ -117,4 +117,13 @@ coin-expr = fmap (first head) (uniform-expr 1)
 
 coin-expr′ : ∀{O} → CryptoExpr O O ⊤ Bool
 coin-expr′ = coin-expr >>>-CE embed-CE fst
+
+add-oracle-expr : ∀{O A X Y} → CryptoExpr O ((X , Y) ∷ O) ((X → Y) × A) A 
+add-oracle-expr = addOracle-CE (embed-CE id) (embed-CE id)
+
+add-oracle-expr′ : ∀{O X Y} → CryptoExpr O ((X , Y) ∷ O) (X → Y) ⊤ 
+add-oracle-expr′ = cofmap-CE (λ z → z , tt) add-oracle-expr
+
+call-oracle-expr : ∀{O A X Y} → CryptoExpr O O ((((X , Y) ∈ O) × X) × A) (Y × A)
+call-oracle-expr = callOracle-CE (embed-CE id) (embed-CE id)
 

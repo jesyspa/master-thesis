@@ -8,8 +8,8 @@ record EncScheme : Set₁ where
   field
     Key PT CT : Set
     
-    keygen : CryptoExpr ⊤ Key
-    enc    : CryptoExpr (Key × PT) CT
+    keygen : ∀{O} → CryptoExpr O O ⊤ Key
+    enc    : ∀{O} → CryptoExpr O O (Key × PT) CT
     dec    : Key → CT → PT
 
     -- Note that we do not carry around a proof of correctness, since
