@@ -2,6 +2,7 @@ module Crypto.Syntax where
 
 open import ThesisPrelude
 open import Utility.Product
+open import Utility.Sum
 open import Utility.Vector.BitVec
 open import Utility.Vector.Functions
 
@@ -44,9 +45,35 @@ second-CE (uniform-CE n ce) = uniform-CE n $ cofmap-CE rev-first $ second-CE ce
 attach-CE : ∀{A B} → B → CryptoExpr A (B × A)
 attach-CE c = embed-CE (_,_ c)
 
-infixr 4 _***-CE_
+infixr 4 _***-CE_ _&&&-CE_
 _***-CE_ : ∀{A B A′ B′} → CryptoExpr A B → CryptoExpr A′ B′ → CryptoExpr (A × A′) (B × B′)
 lhs ***-CE rhs = first-CE lhs >>>-CE second-CE rhs
+
+_&&&-CE_ : ∀{A B B′} → CryptoExpr A B → CryptoExpr A B′ → CryptoExpr A (B × B′)
+lhs &&&-CE rhs = embed-CE diag >>>-CE lhs ***-CE rhs
+
+distribute : ∀{l}{A B C : Set l} → B × Either A C → Either (B × A) C
+distribute (b , left a) = left (b , a)
+distribute (b , right c) = right c
+
+left-CE : ∀{A B C} → CryptoExpr A B → CryptoExpr (Either A C) (Either B C)
+left-CE (embed-CE g) = embed-CE (mapLeft g)
+left-CE (uniform-CE n ce) = uniform-CE n $ embed-CE distribute >>>-CE left-CE ce
+
+undistribute : ∀{l}{A B C : Set l} → B × Either C A → Either C (B × A)
+undistribute (b , left c) = left c
+undistribute (b , right a) = right (b , a)
+
+right-CE : ∀{A B C} → CryptoExpr A B → CryptoExpr (Either C A) (Either C B)
+right-CE (embed-CE g) = embed-CE (mapRight g)
+right-CE (uniform-CE n ce) = uniform-CE n $ embed-CE undistribute >>>-CE right-CE ce
+
+infixr 3 _+++-CE_ _|||-CE_
+_+++-CE_ : ∀{A B A′ B′} → CryptoExpr A B → CryptoExpr A′ B′ → CryptoExpr (Either A A′) (Either B B′)
+lhs +++-CE rhs = left-CE lhs >>>-CE right-CE rhs
+
+_|||-CE_ : ∀{A A′ B} → CryptoExpr A B → CryptoExpr A′ B → CryptoExpr (Either A A′) B
+lhs |||-CE rhs = lhs +++-CE rhs >>>-CE embed-CE codiag
 
 uniform-expr : ∀{A} n → CryptoExpr A (BitVec n × A)
 uniform-expr n = uniform-CE n $ embed-CE id
