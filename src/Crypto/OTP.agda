@@ -56,79 +56,104 @@ OTP-is-IND-EAV {n} A =
              expr f ct = A₂ ct >>= f in
          cong->>= (uniform-expr n)
                   (expr (const coin-expr))
-                  (expr (λ b′ → coin-expr >>= λ b → return (nxor b′ b)))
+                  (expr (λ b′ → coin-expr >>= λ b → return (nxor b b′)))
                   (λ ct → cong->>= (A₂ ct)
                                    (const coin-expr)
-                                   (λ b′ → coin-expr >>= λ b → return (nxor b′ b))
-                                   coin-sample-2)) ⟩
-  ⟦( uniform-expr n >>= λ ct
-   → A₂ ct          >>= λ b′
+                                   (λ b′ → coin-expr >>= λ b → return (nxor b b′))
+                                   coin-sample-2ʳ)) ⟩
+  ⟦( uniform-expr n >>= λ k 
+   → A₂ k           >>= λ b′
    → coin-expr      >>= λ b
-   → return (nxor b′ b) )⟧
+   → return (nxor b b′) )⟧
     ≡D⟨ cong->>= (uniform-expr n)
-                 (λ ct → A₂ ct >>= λ b′ → coin-expr >>= λ b → return (nxor b′ b))
-                 (λ ct → coin-expr >>= λ b → A₂ ct >>= λ b′ → return (nxor b′ b))
-                 (λ ct → interchange-interpretation (A₂ ct) coin-expr (λ b′ b → return (nxor b′ b))) ⟩
-  ⟦( uniform-expr n   >>= λ ct
+                 (λ k → A₂ k >>= λ b′ → coin-expr >>= λ b → return (nxor b b′))
+                 (λ k → coin-expr >>= λ b → A₂ k >>= λ b′ → return (nxor b b′))
+                 (λ k → interchange-interpretation (A₂ k) coin-expr (λ b′ b → return (nxor b b′))) ⟩
+  ⟦( uniform-expr n   >>= λ k
    → coin-expr        >>= λ b
-   → A₂ ct            >>= λ b′
-   → return (nxor b′ b) )⟧
+   → A₂ k             >>= λ b′
+   → return (nxor b b′) )⟧
     ≡D⟨ interchange-interpretation (uniform-expr n) coin-expr
-           (λ ct b → A₂ ct >>= λ b′ → return (nxor b′ b)) ⟩
+           (λ k b → A₂ k >>= λ b′ → return (nxor b b′)) ⟩
   ⟦( coin-expr      >>= λ b
-   → uniform-expr n >>= λ ct
-   → A₂ ct          >>= λ b′
-   → return (nxor b′ b) )⟧
-    ≡D⟨ (let expr : (Bool → CryptoExpr (BitVec n)) → Bool → CryptoExpr Bool
-             expr f b = f b >>= λ ct → A₂ ct >>= λ b′ → return (nxor b′ b) in
-         cong->>= coin-expr
-                  (expr (const (uniform-expr n)))
-                  (expr λ b → if b then uniform-expr n else uniform-expr n)
-                  (λ b → {!!})) ⟩
-  ⟦( coin-expr                                      >>= λ b
-   → (if b then uniform-expr n else uniform-expr n) >>= λ ct
-   → A₂ ct                                          >>= λ b′
-   → return (nxor b′ b) )⟧
-    ≡D⟨ irrelevance-interpretation A₁
-          ( coin-expr                                      >>= λ b
-          → (if b then uniform-expr n else uniform-expr n) >>= λ ct
-          → A₂ ct                                          >>= λ b′
-          → return (nxor b′ b)) ⟩
-  ⟦( A₁                                             >>= const (
-     coin-expr                                      >>= λ b
-   → (if b then uniform-expr n else uniform-expr n) >>= λ ct
-   → A₂ ct                                          >>= λ b′
-   → return (nxor b′ b) ))⟧
-    ≡D⟨ {!!} ⟩
-   {-
+   → uniform-expr n >>= λ k 
+   → A₂ k           >>= λ b′
+   → return (nxor b b′) )⟧
+    ≡D⟨ irrelevance-interpretation A₁ _ ⟩
+  ⟦( A₁             >>= λ m
+   → coin-expr      >>= λ b
+   → uniform-expr n >>= λ k 
+   → A₂ k           >>= λ b′
+   → return (nxor b b′) )⟧
     ≡D⟨ cong->>=ˡ A₁
-                  (const (coin-expr                                     >>= λ b
-                  → (if b then uniform-expr n else uniform-expr n) >>= λ ct
-                  → A₂ ct                                          >>= λ b′
-                  → return (nxor b′ b) ))
-                   (λ { (m₀ , m₁) → coin-expr                                     >>= λ b
-                  → (if b then uniform-expr n else uniform-expr n) >>= λ ct
-                  → A₂ ct                                          >>= λ b′
-                  → return (nxor b′ b)})
-                   (λ { (m₀ , m₁) → ?}) ⟩ˡ
-                   -}
-  ⟦( A₁                                             >>= λ { (m₀ , m₁)
-   → coin-expr                                      >>= λ b
-   → (if b then uniform-expr n else uniform-expr n) >>= λ ct
-   → A₂ ct                                          >>= λ b′
-   → return (nxor b′ b) })⟧
-    ≡D⟨ {!!} ⟩
-  {!!}
+                  (λ m → coin-expr >>= λ b → uniform-expr n >>= λ k → A₂ k >>= λ b′ → return (nxor b b′))
+                  (λ m → coin-expr >>= λ b → (if b then uniform-expr n else uniform-expr n) >>= λ k → A₂ k >>= λ b′ → return (nxor b b′))
+                  (λ m → cong->>=ˡ coin-expr
+                                   (λ b → uniform-expr n >>= λ k → A₂ k >>= λ b′ → return (nxor b b′))
+                                   (λ b → (if b then uniform-expr n else uniform-expr n) >>= λ k → A₂ k >>= λ b′ → return (nxor b b′))
+                                   (λ b → congl->>=ˡ (uniform-expr n)
+                                                     (if b then uniform-expr n else uniform-expr n)
+                                                     (λ k → A₂ k >>= λ b′ → return (nxor b b′))
+                                                     (cong ⟦_⟧ (if-dist b (uniform-expr n))))) ⟩ˡ
+  ⟦( A₁                         >>= λ m
+   → coin-expr                  >>= λ b
+   → (if b then uniform-expr n
+           else uniform-expr n) >>= λ k 
+   → A₂ k                       >>= λ b′
+   → return (nxor b b′))⟧
+    ≡D⟨ cong->>= A₁
+                 (λ m → coin-expr >>= λ b → (if b then uniform-expr n else uniform-expr n) >>= λ k → A₂ k >>= λ b′ → return (nxor b b′))
+                 (λ m → coin-expr >>= λ b → (if b then fmap (bitvec-xorʳ (fst m)) (uniform-expr n) else fmap (bitvec-xorʳ (snd m)) (uniform-expr n)) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                 (λ m → cong->>= coin-expr
+                                 (λ b → (if b then uniform-expr n else uniform-expr n) >>= λ k → A₂ k >>= λ b′ → return (nxor b b′))
+                                 (λ b → (if b then fmap (bitvec-xorʳ (fst m)) (uniform-expr n) else fmap (bitvec-xorʳ (snd m)) (uniform-expr n)) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                                 (λ b → congl->>= (if b then uniform-expr n else uniform-expr n)
+                                                  (if b then fmap (bitvec-xorʳ (fst m)) (uniform-expr n)
+                                                        else fmap (bitvec-xorʳ (snd m)) (uniform-expr n))
+                                                  (λ k → A₂ k >>= λ b′ → return (nxor b b′))
+                                                  (if-cong b (uniform-expr n) (fmap (bitvec-xorʳ (fst m)) (uniform-expr n))
+                                                             (uniform-expr n) (fmap (bitvec-xorʳ (snd m)) (uniform-expr n))
+                                                           (uniform-bijection-invariant-interpretation n (bitvec-xorʳ (fst m)) (bitvec-xorʳ-Bij (fst m)))
+                                                           (uniform-bijection-invariant-interpretation n (bitvec-xorʳ (snd m)) (bitvec-xorʳ-Bij (snd m))))))⟩
+  ⟦( A₁                   >>= λ m
+   → coin-expr            >>= λ b
+   → (if b then fmap (bitvec-xorʳ (fst m)) (uniform-expr n)
+           else fmap (bitvec-xorʳ (snd m)) (uniform-expr n))
+                          >>= λ ct 
+   → A₂ ct                >>= λ b′
+   → return (nxor b b′))⟧
+    ≡D⟨ {!!} ⟩ -- magic
+  ⟦( A₁                   >>= λ m
+   → coin-expr            >>= λ b
+   → uniform-expr n       >>= λ k
+   → enc k (if b then fst m else snd m)
+                          >>= λ ct 
+   → A₂ ct                >>= λ b′
+   → return (nxor b b′))⟧
+    ≡D⟨ cong->>= A₁
+                 (λ m → coin-expr >>= λ b → uniform-expr n >>= λ k → enc k (if b then fst m else snd m) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                 (λ m → uniform-expr n >>= λ k → coin-expr >>= λ b → enc k (if b then fst m else snd m) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                 (λ m → interchange-interpretation coin-expr (uniform-expr n)
+                                                   (λ b k →  enc k (if b then fst m else snd m) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))) ⟩
+  ⟦( A₁                   >>= λ m
+   → uniform-expr n       >>= λ k
+   → coin-expr            >>= λ b
+   → enc k (if b then fst m else snd m)
+                          >>= λ ct 
+   → A₂ ct                >>= λ b′
+   → return (nxor b b′))⟧
+    ≡D⟨ interchange-interpretation A₁ (uniform-expr n) (λ m k → coin-expr >>= λ b → enc k (if b then fst m else snd m) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′)) ⟩
+  ⟦( uniform-expr n                     >>= λ k 
+   → A₁                                 >>= λ m
+   → coin-expr                          >>= λ b
+   → enc k (if b then fst m else snd m) >>= λ ct
+   → A₂ ct                              >>= λ b′ 
+   → return (nxor b b′))⟧
   ∎D
   where
     open SimpleEavAdv A
     open EncScheme (OTP n)
                       {-
-  ) b
-    ≡⟨ {!!} ⟩
-  sample (
-  }) b
-    ≡⟨ {!!} ⟩
   sample (
     ⟦ A₁ ⟧                               >>= λ { (m₀ , m₁)
   → ⟦ coin-expr ⟧                        >>= λ b

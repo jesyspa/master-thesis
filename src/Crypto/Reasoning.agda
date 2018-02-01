@@ -10,6 +10,7 @@ open import Utility.Vector
 open import Utility.Bool
 open import Algebra.ApplicativeProps F
 open import Algebra.MonadProps F
+open import Algebra.Function
 open import Distribution.Class
 open import Distribution.PropsClass F
 open import Distribution.Reasoning F
@@ -49,7 +50,32 @@ cong->>=ˡ E F G eq =
     ≡⟨ bind-interpretation E G ⟩
   ⟦ E >>= G ⟧
   ∎
-  
+
+congl->>= : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}(E F : CryptoExpr A)(G : A → CryptoExpr B)
+          → ⟦ E ⟧ ≡D ⟦ F ⟧
+          → ⟦ E >>= G ⟧ ≡D ⟦ F >>= G ⟧
+congl->>= E F G eq =
+  ⟦ E >>= G ⟧
+    ≡D⟨ bind-interpretation E G ⟩ˡʳ
+  ⟦ E ⟧ >>= ⟦_⟧ ∘′ G
+    ≡D⟨ >>=-D-inv ⟦ E ⟧ ⟦ F ⟧ (⟦_⟧ ∘′ G) eq ⟩
+  ⟦ F ⟧ >>= ⟦_⟧ ∘′ G
+    ≡D⟨ bind-interpretation F G ⟩ˡ
+  ⟦ F >>= G ⟧
+  ∎D
+
+congl->>=ˡ : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}(E F : CryptoExpr A)(G : A → CryptoExpr B)
+          → ⟦ E ⟧ ≡ ⟦ F ⟧
+          → ⟦ E >>= G ⟧ ≡ ⟦ F >>= G ⟧
+congl->>=ˡ E F G eq =
+  ⟦ E >>= G ⟧
+    ≡⟨ bind-interpretation E G ⟩ʳ
+  ⟦ E ⟧ >>= ⟦_⟧ ∘′ G
+    ≡⟨ cong (λ e → e >>= ⟦_⟧ ∘′ G) eq ⟩
+  ⟦ F ⟧ >>= ⟦_⟧ ∘′ G
+    ≡⟨ bind-interpretation F G ⟩
+  ⟦ F >>= G ⟧
+  ∎
 
 interchange-interpretation : ∀{A B C}{{_ : Eq C}}(EA : CryptoExpr A)(EB : CryptoExpr B)
                               (f : A → B → CryptoExpr C)
@@ -76,6 +102,27 @@ interchange-interpretation {C = C} EA EB f =
                     (λ a → sym (bind-interpretation EB′ (f′ a))) ⟩
       (⟦ EA′ ⟧ >>= λ a → ⟦ EB′ ⟧ >>= λ b → ⟦ f′ a b ⟧)
       ∎
+
+if-cong : ∀{A}{{_ : Eq A}}(b : Bool)(E E′ F F′ : CryptoExpr A)
+        → (⟦ E ⟧ ≡D ⟦ E′ ⟧) → (⟦ F ⟧ ≡D ⟦ F′ ⟧)
+        → ⟦( if b then E else F )⟧ ≡D ⟦( if b then E′ else F′ )⟧
+if-cong false E E′ F F′ pE pF = pF
+if-cong true E E′ F F′ pE pF = pE
+
+uniform-bijection-invariant-interpretation : ∀ n (f : BitVec n → BitVec n)
+                                           → Bijective f
+                                           → ⟦ uniform-expr n ⟧ ≡D ⟦ fmap f (uniform-expr n) ⟧
+uniform-bijection-invariant-interpretation n f pf =
+  ⟦ uniform-expr n ⟧
+    ≡D⟨ uniform-dist-interpretation n ⟩ˡʳ
+  uniform n
+    ≡D⟨ uniform-bijection-invariant n f pf ⟩
+  fmap f (uniform n)
+    ≡D⟨ cong (fmap f) (uniform-dist-interpretation n) ⟩ˡ
+  fmap f ⟦ uniform-expr n ⟧
+    ≡D⟨ fmap-interpretation f (uniform-expr n) ⟩ˡ
+  ⟦ fmap f (uniform-expr n) ⟧
+  ∎D
 
 irrelevance-interpretation : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A)(F : CryptoExpr B)
                     → ⟦ F ⟧ ≡D ⟦ E >>= const F ⟧

@@ -171,6 +171,14 @@ module _ {{PPQ : ProbabilityProps}} where
           fun-equiv (b , q) (a , p) = cong (λ e → e * sample-LD (f a b) c) $ *-comm p q
                
   open import Distribution.PropsClass ListDist
+
+  postulate
+    >>=-D-inv-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+                 → (x y : ListDist A)
+                 → (f : A → ListDist B)
+                 → (x ≡LD y)
+                 → (x >>= f) ≡LD (y >>= f) 
+
   
   instance
     DistMonadPropsListDist : DistMonadProps
@@ -185,4 +193,5 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; irrelevance = irrelevance-LD
                                ; interchange = interchange-LD
                                ; >>=-D-ext = >>=-D-ext-LD
+                               ; >>=-D-inv = >>=-D-inv-LD
                                }

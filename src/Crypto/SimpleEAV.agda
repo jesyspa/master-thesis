@@ -18,13 +18,12 @@ record SimpleEavAdv (E : EncScheme) : Set₁ where
 
 simple-IND-EAV : (E : EncScheme)(A : SimpleEavAdv E) → CryptoExpr Bool 
 simple-IND-EAV E A 
-  = keygen                       >>= λ k 
-  → A₁                           >>= λ { (m₀ , m₁) 
-  → coin-expr                    >>= λ b
-  → enc k (if b then m₀ else m₁) >>= λ ct
-  → A₂ ct                        >>= λ b′ 
+  = keygen                             >>= λ k 
+  → A₁                                 >>= λ m
+  → coin-expr                          >>= λ b
+  → enc k (if b then fst m else snd m) >>= λ ct
+  → A₂ ct                              >>= λ b′ 
   → return (nxor b b′) 
-  }
   where
     open EncScheme E
     open SimpleEavAdv A

@@ -42,6 +42,11 @@ record DistMonadProps : Set₂ where
               → (f g : A → F B)
               → (∀ a → f a ≡D g a)
               → (x >>= f) ≡D (x >>= g) 
+    >>=-D-inv : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+              → (x y : F A)
+              → (f : A → F B)
+              → (x ≡D y)
+              → (x >>= f) ≡D (y >>= f) 
     -- The equality tests are needed for this to be provable, since we want to reason about
     -- a's and b's.  Any way to avoid this?
     interchange : ∀{A B C}{{_ : Eq C}}(DA : F A)(DB : F B)
