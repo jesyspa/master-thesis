@@ -10,11 +10,11 @@ open import Utility.List.Elem
 OracleList : Set₁
 OracleList = List (Set × Set)
 
-data CryptoExpr : OracleList → OracleList → Set₁ → Set₁ → Set₁ where
+data CryptoExpr : OracleList → OracleList → Set → Set → Set₁ where
   embed-CE : ∀{O A B} → (g : A → B) → CryptoExpr O O A B
   uniform-CE : ∀{O O′ A B} n → CryptoExpr O O′ (BitVec n × A) B → CryptoExpr O O′ A B
   addOracle-CE : ∀{O O′ O′′ A B C X Y}
-               → CryptoExpr O O′ A (CryptoExpr [] [] X Y × B) → CryptoExpr ((X , Y) ∷ O′) O′′ B C
+               → CryptoExpr O O′ A ((X → Y) × B) → CryptoExpr ((X , Y) ∷ O′) O′′ B C
                → CryptoExpr O O′′ A C
   -- This is crazy. (But it works?)
   callOracle-CE : ∀{O O′ O′′ A B C X Y}
