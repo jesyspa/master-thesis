@@ -4,6 +4,7 @@ module Crypto.OTP (Q : Set) {{PQ : PC.Probability Q}} {{PPQ : PPC.ProbabilityPro
 
 open import ThesisPrelude
 open import Crypto.Syntax
+open import Crypto.Props
 open import Utility.Vector
 open import Utility.Bool
 open import Probability.Class
@@ -15,6 +16,7 @@ open import Distribution.List Q
 open import Distribution.PropsClass ListDist {{DistMonadListDist}}
 open import Distribution.Reasoning ListDist {{DistMonadListDist}}
 open import Algebra.MonadProps ListDist
+import Algebra.MonadProps CryptoExpr {{MonadCryptoExpr}} as CEMP 
 open import Crypto.Valuation ListDist {{DistMonadListDist}}
 open import Crypto.ValuationProps ListDist {{DistMonadListDist}}
 open import Crypto.Schemes
@@ -94,7 +96,7 @@ OTP-is-IND-EAV {n} A =
                                    (λ b → congl->>=ˡ (uniform-expr n)
                                                      (if b then uniform-expr n else uniform-expr n)
                                                      (λ k → A₂ k >>= λ b′ → return (nxor b b′))
-                                                     (cong ⟦_⟧ (if-dist b (uniform-expr n))))) ⟩ˡ
+                                                     (cong ⟦_⟧ (if-const-dist b (uniform-expr n))))) ⟩ˡ
   ⟦( A₁                         >>= λ m
    → coin-expr                  >>= λ b
    → (if b then uniform-expr n
@@ -122,7 +124,48 @@ OTP-is-IND-EAV {n} A =
                           >>= λ ct 
    → A₂ ct                >>= λ b′
    → return (nxor b b′))⟧
-    ≡D⟨ {!!} ⟩ -- magic
+    ≡D⟨ cong->>=ˡ A₁
+                  (λ m → coin-expr >>= λ b → (if b then fmap (bitvec-xorʳ (fst m)) (uniform-expr n) else fmap (bitvec-xorʳ (snd m)) (uniform-expr n)) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                  (λ m → coin-expr >>= λ b → fmap (bitvec-xorʳ (if b then fst m else snd m)) (uniform-expr n) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                  (λ m → cong->>=ˡ coin-expr
+                                   (λ b → (if b then fmap (bitvec-xorʳ (fst m)) (uniform-expr n) else fmap (bitvec-xorʳ (snd m)) (uniform-expr n)) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                                   (λ b → fmap (bitvec-xorʳ (if b then fst m else snd m)) (uniform-expr n) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                                   (λ b → congl->>=ˡ (if b then fmap (bitvec-xorʳ (fst m)) (uniform-expr n) else fmap (bitvec-xorʳ (snd m)) (uniform-expr n))
+                                                     (fmap (bitvec-xorʳ (if b then fst m else snd m)) (uniform-expr n))
+                                                     (λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                                                     (cong ⟦_⟧ $ sym $ if-dist b (λ xs → fmap (bitvec-xorʳ xs) (uniform-expr n)) (fst m) (snd m)))) ⟩ˡ
+  ⟦( A₁                   >>= λ m
+   → coin-expr            >>= λ b
+   → fmap (bitvec-xorʳ (if b then fst m else snd m)) (uniform-expr n)
+                          >>= λ ct 
+   → A₂ ct                >>= λ b′
+   → return (nxor b b′))⟧
+    ≡D⟨ cong->>=ˡ A₁
+                  (λ m → coin-expr >>= λ b → fmap (bitvec-xorʳ (if b then fst m else snd m)) (uniform-expr n) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                  (λ m → coin-expr >>= λ b → (uniform-expr n >>= λ k → enc k (if b then fst m else snd m)) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                  (λ m → cong->>=ˡ coin-expr
+                                   (λ b → fmap (bitvec-xorʳ (if b then fst m else snd m)) (uniform-expr n) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                                   (λ b → (uniform-expr n >>= λ k → enc k (if b then fst m else snd m)) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                                   (λ b → congl->>=ˡ (fmap (bitvec-xorʳ (if b then fst m else snd m)) (uniform-expr n))
+                                                     (uniform-expr n >>= λ k → enc k (if b then fst m else snd m))
+                                                     (λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                                                     (return-simplify-interpretation (λ k → bitvec-xor k (if b then fst m else snd m)) (uniform-expr n)))) ⟩ˡ
+  ⟦( A₁                   >>= λ m
+   → coin-expr            >>= λ b
+   → (uniform-expr n       >>= λ k
+   → enc k (if b then fst m else snd m))
+                          >>= λ ct 
+   → A₂ ct                >>= λ b′
+   → return (nxor b b′))⟧
+    ≡D⟨ cong->>=ˡ A₁
+                  (λ m → coin-expr >>= λ b → (uniform-expr n >>= λ k → enc k (if b then fst m else snd m)) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                  (λ m → coin-expr >>= λ b → uniform-expr n >>= λ k → enc k (if b then fst m else snd m) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                  (λ m → cong->>=ˡ coin-expr
+                                   (λ b → (uniform-expr n >>= λ k → enc k (if b then fst m else snd m)) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                                   (λ b → uniform-expr n >>= λ k → enc k (if b then fst m else snd m) >>= λ ct → A₂ ct >>= λ b′ → return (nxor b b′))
+                                   (λ b → sym $ >>=-assoc-interpretation (uniform-expr n)
+                                                                         (λ k → enc k (if b then fst m else snd m))
+                                                                         (λ ct → A₂ ct >>= λ b′ → return (nxor b b′)))) ⟩ˡ
   ⟦( A₁                   >>= λ m
    → coin-expr            >>= λ b
    → uniform-expr n       >>= λ k
@@ -153,60 +196,4 @@ OTP-is-IND-EAV {n} A =
   where
     open SimpleEavAdv A
     open EncScheme (OTP n)
-                      {-
-  sample (
-    ⟦ A₁ ⟧                               >>= λ { (m₀ , m₁)
-  → ⟦ coin-expr ⟧                        >>= λ b
-  → ⟦ if b
-      then fmap (λ k → bitvec-xor k m₀) (uniform-expr n)
-      else fmap (λ k → bitvec-xor k m₁) (uniform-expr n)
-      ⟧                                  >>= λ ct
-  → ⟦ A₂ ct ⟧                            >>= λ b′
-  → ⟦ return (nxor b′ b) ⟧
-  }) b
-    ≡⟨ {!!} ⟩
-  sample (
-    ⟦ A₁ ⟧                               >>= λ { (m₀ , m₁)
-  → ⟦ coin-expr ⟧                        >>= λ b
-  → ⟦ fmap (λ k → bitvec-xor k (if b
-                                then m₀
-                                else m₁))
-           (uniform-expr n)            ⟧ >>= λ ct
-  → ⟦ A₂ ct ⟧                            >>= λ b′
-  → ⟦ return (nxor b′ b) ⟧
-  }) b
-    ≡⟨ {!!} ⟩
-  sample (
-    ⟦ A₁ ⟧                               >>= λ { (m₀ , m₁)
-  → ⟦ coin-expr ⟧                        >>= λ b
-  → ⟦ uniform-expr n ⟧                   >>= (λ k
-  → ⟦ return (bitvec-xor k (if b
-                            then m₀
-                            else m₁)) ⟧) >>= λ ct
-  → ⟦ A₂ ct ⟧                            >>= λ b′
-  → ⟦ return (nxor b′ b) ⟧
-  }) b
-    ≡⟨ {!!} ⟩
-  sample (
-    ⟦ A₁ ⟧                              >>= λ { (m₀ , m₁)
-  → ⟦ coin-expr ⟧                       >>= λ b
-  → ⟦ uniform-expr n ⟧                  >>= λ k
-  → ⟦ return (bitvec-xor k (if b
-                            then m₀
-                            else m₁)) ⟧ >>= λ ct
-  → ⟦ A₂ ct ⟧                           >>= λ b′
-  → ⟦ return (nxor b′ b) ⟧
-  }) b
-    ≡⟨ {!!} ⟩
-  sample (
-    ⟦ uniform-expr n ⟧                               >>= λ k
-  → ⟦ A₁ ⟧                                           >>= λ { (m₀ , m₁)
-  → ⟦ coin-expr ⟧                                    >>= λ b
-  → ⟦ return (bitvec-xor k (if b then m₀ else m₁)) ⟧ >>= λ ct
-  → ⟦ A₂ ct ⟧                                        >>= λ b′
-  → ⟦ return (nxor b′ b) ⟧
-  }) b
-    ≡⟨ {!!} ⟩
-  sample ⟦ simple-IND-EAV (OTP n) A ⟧ b
-
--}
+                      

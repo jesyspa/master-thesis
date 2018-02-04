@@ -47,8 +47,13 @@ nxor-self-inverse true true = refl
 nxor-Bij : (x : Bool) → Bijective (nxor x)
 nxor-Bij x = nxor x , nxor-self-inverse x , nxor-self-inverse x 
 
-if-dist : ∀{l}{A : Set l}(b : Bool)(a : A)
-        → a ≡ (if b then a else a)
-if-dist false a = refl
-if-dist true a = refl
+if-dist : ∀{l}{A B : Set l}(b : Bool)(f : A → B)(a₀ a₁ : A)
+        → f (if b then a₀ else a₁) ≡ (if b then f a₀ else f a₁) 
+if-dist false f a₀ a₁ = refl
+if-dist true f a₀ a₁ = refl
+
+if-const-dist : ∀{l}{A : Set l}(b : Bool)(a : A)
+              → a ≡ (if b then a else a)
+if-const-dist false a = refl
+if-const-dist true a = refl
     

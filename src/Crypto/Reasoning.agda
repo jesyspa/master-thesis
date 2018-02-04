@@ -109,6 +109,34 @@ if-cong : ∀{A}{{_ : Eq A}}(b : Bool)(E E′ F F′ : CryptoExpr A)
 if-cong false E E′ F F′ pE pF = pF
 if-cong true E E′ F F′ pE pF = pE
 
+return-simplify-interpretation : ∀{A B}(f : A → B)(E : CryptoExpr A)
+                               → ⟦ fmap-CE f E ⟧ ≡ ⟦ E >>= return ∘′ f ⟧
+return-simplify-interpretation f E =
+  ⟦ fmap-CE f E ⟧
+    ≡⟨ fmap-interpretation f E ⟩ʳ
+  fmap f ⟦ E ⟧
+    ≡⟨ return-simplify f ⟦ E ⟧ ⟩
+  ⟦ E ⟧ >>= return ∘′ f 
+    ≡⟨ bind-interpretation E (return ∘′ f) ⟩
+  ⟦ E >>= return ∘′ f ⟧
+  ∎
+
+>>=-assoc-interpretation : ∀{A B C}(E : CryptoExpr A)(F : A → CryptoExpr B)(G : B → CryptoExpr C)
+                         → ⟦ E >>= F >>= G ⟧ ≡ ⟦ E >>= (λ a → F a >>= G) ⟧
+>>=-assoc-interpretation E F G =
+  ⟦ E >>= F >>= G ⟧
+    ≡⟨ bind-interpretation (E >>= F) G ⟩ʳ
+  ⟦ E >>= F ⟧ >>= ⟦_⟧ ∘′ G 
+    ≡⟨ cong (λ e → e >>= ⟦_⟧ ∘′ G) (bind-interpretation E F) ⟩ʳ
+  ⟦ E ⟧ >>= (λ a → ⟦ F a ⟧) >>= ⟦_⟧ ∘′ G
+    ≡⟨ >>=-assoc ⟦ E ⟧ (λ a → ⟦ F a ⟧) (⟦_⟧ ∘′ G) ⟩
+  ⟦ E ⟧ >>= (λ a → ⟦ F a ⟧ >>= ⟦_⟧ ∘′ G)
+    ≡⟨ >>=-ext ⟦ E ⟧ ((λ a → ⟦ F a ⟧ >>= ⟦_⟧ ∘′ G)) (λ a → ⟦ F a >>= G ⟧) (λ a → bind-interpretation (F a) G) ⟩
+  ⟦ E ⟧ >>= (λ a → ⟦ F a >>= G ⟧)
+    ≡⟨ bind-interpretation E (λ a → F a >>= G) ⟩
+  ⟦ E >>= (λ a → F a >>= G) ⟧
+  ∎
+
 uniform-bijection-invariant-interpretation : ∀ n (f : BitVec n → BitVec n)
                                            → Bijective f
                                            → ⟦ uniform-expr n ⟧ ≡D ⟦ fmap f (uniform-expr n) ⟧
