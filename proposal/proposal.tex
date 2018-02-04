@@ -1,0 +1,87 @@
+\documentclass{article}
+
+\title{Thesis Proposal}
+\author{Anton Golov\\Under the supervision of Jaap van Oosten, Wouter Swiestra, and Victor Miraldo}
+
+\begin{document}
+    \maketitle
+
+    Given an encryption scheme, it is desirable to show that it is secure against particular forms of attack.  For my
+    thesis, I wish to develop a library for the Agda programming language which would aid in expressing proofs of this
+    nature.
+
+    \section{Problem Statement}
+
+    An encryption scheme is a formal description of a procedure for generating keys and encrypting and decrypting
+    messages.  We can express the security of such a scheme by specifying `games' we play against a hypothetical
+    adversary, and proving that the optimal strategy for such a game is only slightly better than random chance.  If
+    this is the case then we say that the scheme is secure with respect to this attack.
+
+    For example, consider the One-Time Pad encryption scheme for bitstrings of length $n$: to generate a key we take a
+    random bitstring $k$ of length $n$, and to encrypt or decrypt the message $m$ we take the XOR $k \oplus m$.  One
+    `game' we can play goes as follows: we generate a key $k$ and let the adversary choose two messages $m_1$ and $m_2$.
+    We then flip a coin and encrypt $m_1$ if it is heads and $m_2$ if it is tails, and give the encrypted message to the
+    adversary, who must tell us whether the coin landed heads or tails.  If the adversary answers correctly, they win;
+    otherwise, they lose.
+
+    We say that the One-Time Pad encryption scheme is secure to Eavesdropping if any adversary has at most 1/2
+    probability of winning in the above game.  It turns out that this does indeed hold for the One-Time Pad.  A stronger
+    version of this condition we may want to look at is whether this is still the case if the adversary may first
+    encrypt any number of strings; this is called security against a Chosen-Plaintext Attack, and it turns out that the
+    One-Time Pad is \emph{not} secure against it.
+
+    To prove such a property, one typically constructs a sequence of games, where the probability of an adversary
+    winning only improves by at most some very small value in each transition.  The final game in the construction is
+    typically one where the probability is clear: for example, if whether the adversary wins or loses does not depend on
+    the choice made by the adversary.
+
+    The aim of this research project is to create a system in which both encryption schemes and such proofs of security
+    can be expressed and automatically verified.  This system will be built on top of the Agda programming language,
+    allowing the prover to use other Agda libraries, and allowing this system to be used in larger Agda programs.
+
+    \section{Background}
+
+    The game-playing approach to cryptographic proofs is an existing and popular technique~\cite{codebasedgames}.
+
+    There are several systems for expressing cryptographic proofs in Coq or in special-purpose
+    languages\footnote{EasyCrypt, FCF}.  However, these all put the imperative style that cryptographic algorithms are
+    typically written in at the forefront, which shapes the remainder of the system.  We intend to put more focus on the
+    search for an elegant type-theoretic formulation of these properties, which should make the resulting proofs more
+    elegant.
+
+    TODO: Stochastic lambda calculus papers, dist monad papers?
+
+    \section{Preliminary Results}
+
+    We have now created a basic version of the system in which we can reason about the security of the One-Time Pad
+    construction described above, and show that it is secure with respect to the Eavesdropper attack.  The proofs are
+    incredibly verbose, but the properties we are looking for hold.  
+
+    Further work is necessary to express more complicated games, for example where the adversary has access to a
+    (stateful) oracle\footnote{TODO: define oracle}.  We also expect to be able to greatly improve the readability of
+    proofs and reduce the need for repetition in them.
+
+    Momentarily, the the formulation of the security conditions require security to be absolute---it must be impossible
+    for the adversary to do better than exactly random chance.  It is, in fact, of more interest to allow for some small
+    `advantage', as long as it is asymptotically vanishing or at least bounded by some small constant.  Finding elegant
+    ways to express this will be a considerable part of the project.
+
+    Finally, in practice it is often interesting to consider only polynomial-time adversaries.  Due to the opaque nature
+    of functions in Agda this will be a challenge to implement, but would be an interesting endeavour if there is
+    time remaining.
+
+    \section{Timetable and Planning}
+
+    TODO: Write neat text.
+    \begin{itemize}
+        \itemsep0em
+        \item February-March: expressing games, expressing encryption schemes, expressing proof techniques
+        \item April-May: proving stronger results, start writing thesis (prior knowledge)
+        \item June: write thesis (my results), prove leftover postulates, express things like polynomial-time adversaries
+        \item July: integrate last results into thesis, correct last
+    \end{itemize}
+
+    \bibliography{proposal}
+    \bibliographystyle{alpha}
+
+\end{document}

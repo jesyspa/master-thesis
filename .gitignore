@@ -5,4 +5,8 @@ sources/
 *~
 .#*
 *agda#
-
+*.aux
+*.bbl
+*.blg
+*.log
+proposal/*.pdf
