@@ -1,0 +1,47 @@
+\chapter{Introduction}
+
+% Outline:
+% Example of an encryption scheme.
+% Problem: how do we quantify how secure this is?
+% Example attack: Eavesdropping.
+% Example attack: Chosen Plaintext Attack
+% Formalisation in Agda
+% Existing work
+
+
+
+For example, consider the One-Time Pad encryption scheme for bitstrings of length $n$: to generate a key we take a
+random bitstring $k$ of length $n$, and to encrypt or decrypt the message $m$ we take the XOR $k \oplus m$.  One
+`game' we can play goes as follows: we generate a key $k$ and let the adversary choose two messages $m_1$ and $m_2$.
+We then flip a coin and encrypt $m_1$ if it is heads and $m_2$ if it is tails, and give the encrypted message to the
+adversary, who must tell us whether the coin landed heads or tails.  If the adversary answers correctly, they win;
+otherwise, they lose.
+
+We say that the One-Time Pad encryption scheme is secure to Eavesdropping if any adversary has at most 1/2
+probability of winning in the above game.  It turns out that this does indeed hold for the One-Time Pad.  A stronger
+version of this condition we may want to look at is whether this is still the case if the adversary may first
+encrypt any number of strings; this is called security against a Chosen-Plaintext Attack, and it turns out that the
+One-Time Pad is \emph{not} secure against it.
+
+To prove such a property, one typically constructs a sequence of games, where the probability of an adversary
+winning only improves by at most some very small value in each transition.  The final game in the construction is
+typically one where the probability is clear: for example, if whether the adversary wins or loses does not depend on
+the choice made by the adversary.
+
+The aim of this research project is to create a system in which both encryption schemes and such proofs of security
+can be expressed and automatically verified.  This system will be built on top of the Agda programming language,
+allowing the prover to use other Agda libraries, and allowing this system to be used in larger Agda programs.
+
+\section{Formalised Proofs}
+
+\section{Existing Work}
+
+The game-playing approach to cryptographic proofs is an existing and popular technique~\cite{codebasedgames}.
+
+There are several systems for expressing cryptographic proofs in Coq or in special-purpose
+languages\footnote{EasyCrypt, FCF}.  However, these all put the imperative style that cryptographic algorithms are
+typically written in at the forefront, which shapes the remainder of the system.  We intend to put more focus on the
+search for an elegant type-theoretic formulation of these properties, which should make the resulting proofs more
+elegant.
+
+TODO: Stochastic lambda calculus papers, dist monad papers?

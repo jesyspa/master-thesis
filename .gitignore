@@ -9,4 +9,5 @@ sources/
 *.bbl
 *.blg
 *.log
+*.toc
 proposal/*.pdf
