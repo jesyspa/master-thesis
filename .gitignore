@@ -10,4 +10,6 @@ sources/
 *.blg
 *.log
 *.toc
+*.fls
+*.ptb
 proposal/*.pdf

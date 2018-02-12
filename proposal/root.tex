@@ -1,0 +1,28 @@
+\documentclass{report}
+%include lhs2TeX.fmt
+
+\title{Research Proposal: Formalisation of Cryptographic Proofs in Agda}
+\author{By Anton Golov,\\under the supervision of\\Jaap van Oosten, Wouter Swiestra, and Victor Miraldo}
+
+\begin{document}
+    \maketitle
+
+    \begin{abstract}
+        Given an encryption scheme, it is desirable to show that it is secure against particular forms of attack.  For
+        my thesis, I wish to develop a library for the Agda programming language which would aid in expressing proofs of
+        this nature.
+    \end{abstract}
+    \tableofcontents
+
+    %include 01-introduction.tex
+    %include 02-crypto-games.tex
+    %include 03-syntax.tex
+    %include 04-distributions.tex
+    % These are for the final thesis:
+    % \include{05-proof-techs}
+    % \include{06-examples}
+    %include 05-further-work.tex
+
+    \bibliography{proposal}
+    \bibliographystyle{alpha}
+\end{document}
