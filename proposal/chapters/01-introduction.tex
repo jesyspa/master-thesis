@@ -31,7 +31,42 @@ conditions of security and show that this scheme satisfies the weaker but not th
 
 \subsection{Eavesdropper Attack}
 
-Suppose that Alice and Bob wish to use this encryption scheme to send a single message over an insecure channel.  
+Suppose that we have three parties, Alice, Bob, and Eve.  Alice and Bob have agreed on a key in advance, which Eve does
+not know, and are sending each other messages encrypted with that key.  Suppose that Eve intercepts one such message:
+what can she deduce based on this?
+
+In order to consider the worst possible case, we will allow Eve to choose two plaintext messages and let the intercepted
+message be the ciphertext of one of them.  If Eve cannot tell which message was encrypted even in this scenario, then
+she also cannot tell the difference when the message could have been anything, and we can be certain that the scheme is
+secure against this kind of attack.
+
+We can describe the game as follows:
+\begin{enumerate}
+    \itemsep0em
+    \item Alice chooses a key $k$.
+    \item Eve chooses two messages, $m_0$ and $m_1$, and gives them to Alice.
+    \item Alice flips a coin and gets a result $b \in \{0, 1\}$.
+    \item Alice encrypts $m_b$ and gives the result, $m'$, to Eve.
+    \item Eve chooses $b' \in \{0, 1\}$ and gives it to Alice.
+    \item If $b = b'$ then Eve wins, otherwise Eve loses.
+\end{enumerate}
+
+Note that Bob does not figure in this interaction, since his actions don't influence the information Eve has.  As far as
+we are concerned, this is a two-player game between the encrypter, Alice, and the eavesdropper, Eve.  The encrypter is
+typically called the challenger, while the eavesdropper is called the attacker or the adversary.  We will from now on
+describe games from the point of view of the challenger, while treating the adversary as a black box.  The above game
+thus becomes:
+\begin{enumerate}
+    \itemsep0em
+    \item Generate a key $k$.
+    \item Receive messages $m_0$ and $m_1$ from the adversary.
+    \item Flip a coin to get $b \in \{0, 1\}$.
+    \item Encrypt $m_b$; call the result $m'$.
+    \item Give the adversary $m'$ and get $b'$ back.
+    \item Return $b = b'$.
+\end{enumerate}
+
+
 
 \subsection{Chosen-Plaintext Attack}
 
