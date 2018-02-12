@@ -13,3 +13,4 @@ sources/
 *.fls
 *.ptb
 proposal/*.pdf
+proposal/proposal.tex
