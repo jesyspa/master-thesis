@@ -1,5 +1,15 @@
 \chapter{Introduction}
 
+Given a (possibly non-deterministic) function $f : A \to B$, we say that it is an encryption function iff
+\begin{enumerate}
+    \itemsep0em
+    \item There is a function $g : B \to A$ such that $g \circ f$ is the identity.
+    \item Given a $b \in B$, it is hard to find an $a \in A$ such that $f(a) = b$ if $g$ is not known.
+\end{enumerate}
+
+The first of these properties is easy to formulate, verify and prove.  The second, on the other hand, is not formal
+claim at all.  The goal of this chapter is to show how it can be expressed in objective measures using games,
+progressively adding complexity to the system until we can express everything we want to.
 % Outline:
 % Example of an encryption scheme.
 % Problem: how do we quantify how secure this is?
@@ -10,23 +20,6 @@
 
 % TODO: Write some kind of introduction to the problem as a whole.
 
-% This section should be moved into a later section.
-\section{Example: One-Time Pad}
-
-We can define an encryption scheme in Haskell as follows:
-\begin{code}
-    generateKey :: Int -> IO BitVector
-    generateKey n = fromBits (replicateM n randomIO)
-
-    encrypt :: BitVector -> BitVector -> BitVector
-    encrypt key msg = least (size msg) (xor key msg)
-
-    decrypt :: BitVector -> BitVector -> BitVector
-    decrypt = encrypt
-\end{code}
-
-However, can we say anything about the security of this scheme?  In the rest of this section, we will define two
-conditions of security and show that this scheme satisfies the weaker but not the stronger of the two.
 
 % TODO: Something about the proofs being brittle?
 
@@ -70,13 +63,12 @@ thus becomes:
 This can, in turn, be regarded as a program in some imperative language, or a computation in some monad.  Computations
 performed by the challenger are known, so they can be directly encoded in the program.  Computations performed by the
 adversary are given as parameters to the program.  For the moment, we will use Haskell to represent these computations
-and assume that there is a monad \texttt{M} that provides some source of randomness and some way for the adversary to
-store state.
+and assume that there is a monad |M| that provides some source of randomness and some way for the adversary to
+store its state.
 \begin{code}
 data EncScheme key pt ct = EncScheme
                            { generateKey :: M key
                            , encode :: key -> pt -> M ct
-                           , decode :: key -> ct -> M pt
                            }
 
 data Adversary pt ct = Adversary
@@ -94,7 +86,28 @@ EAV_game enc adv = do
     return (b == b')
 \end{code}
 
+We now have a precise description of the game involved, and we can say that a scheme |enc| is secure against
+eavesdropping iff |EAV_game enc| is `very close' to |const flipCoin|.  The precise constraint is 
 
+\section{The Interpretation Monad}
+
+
+
+\section{Example: One-Time Pad}
+
+We can define an encryption scheme in Haskell as follows:
+\begin{code}
+    generateKey :: Int -> IO BitVector
+    generateKey n = fromBits (replicateM n randomIO)
+
+    encrypt :: BitVector -> BitVector -> BitVector
+    encrypt key msg = least (size msg) (xor key msg)
+\end{code}
+
+However, can we say anything about the security of this scheme?  In the rest of this section, we will define two
+conditions of security and show that this scheme satisfies the weaker but not the stronger of the two.
+
+\subsection{}
 
 \subsection{Chosen-Plaintext Attack}
 
