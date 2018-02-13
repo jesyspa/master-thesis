@@ -10,6 +10,7 @@
 
 % TODO: Write some kind of introduction to the problem as a whole.
 
+% This section should be moved into a later section.
 \section{Example: One-Time Pad}
 
 We can define an encryption scheme in Haskell as follows:
@@ -29,7 +30,7 @@ conditions of security and show that this scheme satisfies the weaker but not th
 
 % TODO: Something about the proofs being brittle?
 
-\subsection{Eavesdropper Attack}
+\section{Games as Security Levels}
 
 Suppose that we have three parties, Alice, Bob, and Eve.  Alice and Bob have agreed on a key in advance, which Eve does
 not know, and are sending each other messages encrypted with that key.  Suppose that Eve intercepts one such message:
@@ -65,6 +66,33 @@ thus becomes:
     \item Give the adversary $m'$ and get $b'$ back.
     \item Return $b = b'$.
 \end{enumerate}
+
+This can, in turn, be regarded as a program in some imperative language, or a computation in some monad.  Computations
+performed by the challenger are known, so they can be directly encoded in the program.  Computations performed by the
+adversary are given as parameters to the program.  For the moment, we will use Haskell to represent these computations
+and assume that there is a monad \texttt{M} that provides some source of randomness and some way for the adversary to
+store state.
+\begin{code}
+data EncScheme key pt ct = EncScheme
+                           { generateKey :: M key
+                           , encode :: key -> pt -> M ct
+                           , decode :: key -> ct -> M pt
+                           }
+
+data Adversary pt ct = Adversary
+                       { chooseMessages :: M (pt, pt)
+                       , chooseOutcome :: ct -> M Bool
+                       }
+
+EAV_game :: EncScheme key pt ct -> Adversary pt ct -> M Bool
+EAV_game enc adv = do
+    k <- generateKey enc
+    (m0, m1) <- chooseMessages adv
+    b <- flipCoin
+    m' <- encode enc k (if b then m1 else m0)
+    b' <- chooseOutcome adv m'
+    return (b == b')
+\end{code}
 
 
 
