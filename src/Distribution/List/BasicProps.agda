@@ -107,17 +107,22 @@ module _ {{PPQ : ProbabilityProps}} where
     sum (map (sample-over-LD f b) xs)
     ∎
 
+  sbup-helper : ∀{A B}{{_ : Eq B}}
+              → (f : A → ListDist B)(b : B)
+              → A × Q → Q
+  sbup-helper f b (a , q) = q * sample-LD (f a) b
+
   strong-bind-universal-prop : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
                                (xs : ListDist A)(f : A → ListDist B)(b : B)
-                             → sample-LD (xs >>= f) b ≡ sum (map (λ x → sample-LD xs x * sample-LD (f x) b) (support-LD xs))
+                             → sample-LD (xs >>= f) b ≡ sum (map (sbup-helper f b) xs)
   strong-bind-universal-prop xs f b =
-    sample-LD (xs >>= f) b                             
+    sum (filter-vals b (map (WriterT.bind-MW-helper f) xs))
       ≡⟨ {!!} ⟩
     {!!}
       ≡⟨ {!!} ⟩
     {!!}
       ≡⟨ {!!} ⟩
-    sum (map (λ x → sample-LD xs x * sample-LD (f x) b) (support-LD xs))
+    sum (map (sbup-helper f b) xs)
     ∎
 
   sample-over-ext : ∀{A B : Set}{{_ : Eq B}}
