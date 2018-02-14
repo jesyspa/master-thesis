@@ -10,6 +10,12 @@ Given a (possibly non-deterministic) function $f : A \to B$, we say that it is a
 The first of these properties is easy to formulate, verify and prove.  The second, on the other hand, is not formal
 claim at all.  The goal of this chapter is to show how it can be expressed in objective measures using games,
 progressively adding complexity to the system until we can express everything we want to.
+
+In this chapter, we present a simplified system in Haskell which captures all the essential computational features we
+care about, but in which we cannot express the proofs that we want to reason about.  The rest of this thesis is
+dedicated to formalising both the computations and the proofs involved in Agda, resulting in a library in which these
+properties can be proved for further algorithms.
+
 % Outline:
 % Example of an encryption scheme.
 % Problem: how do we quantify how secure this is?
@@ -27,12 +33,12 @@ progressively adding complexity to the system until we can express everything we
 
 Suppose that we have three parties, Alice, Bob, and Eve.  Alice and Bob have agreed on a key in advance, which Eve does
 not know, and are sending each other messages encrypted with that key.  Suppose that Eve intercepts one such message:
-what can she deduce based on this?
+what information can she gain based on this?
 
 In order to consider the worst possible case, we will allow Eve to choose two plaintext messages and let the intercepted
 message be the ciphertext of one of them.  If Eve cannot tell which message was encrypted even in this scenario, then
-she also cannot tell the difference when the message could have been anything, and we can be certain that the scheme is
-secure against this kind of attack.
+she also cannot tell the difference when the message was chosen from some larger set, and we can be certain that Eve
+cannot distinguish between the ciphertexts of messages chosen from some larger set.
 
 We can describe the game as follows:
 \begin{enumerate}
@@ -87,10 +93,12 @@ EAV_game enc adv = do
 \end{code}
 
 We now have a precise description of the game involved, and we can say that a scheme |enc| is secure against
-eavesdropping iff |EAV_game enc| is `very close' to |const flipCoin|.  The precise constraint is 
+eavesdropping iff |EAV_game enc adv| is `very close' to |flipCoin| for every choice of |adv|.  We will now give a more
+rigorous definition of the |M| monad in order to formalise this notion of distance.
 
 \section{The Interpretation Monad}
 
+The resulting game we play 
 
 
 \section{Example: One-Time Pad}
