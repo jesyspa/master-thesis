@@ -11,23 +11,14 @@ The first of these properties is easy to formulate, verify and prove.  The secon
 claim at all.  The goal of this chapter is to show how it can be expressed in objective measures using games,
 progressively adding complexity to the system until we can express everything we want to.
 
-In this chapter, we present a simplified system in Haskell which captures all the essential computational features we
-care about, but in which we cannot express the proofs that we want to reason about.  The rest of this thesis is
+In this chapter, we present a simplified system in Haskell which captures many of the computational features we care
+about, but in which we cannot express the proofs that we want to reason about.  The rest of this thesis will be
 dedicated to formalising both the computations and the proofs involved in Agda, resulting in a library in which these
 properties can be proved for further algorithms.
 
-% Outline:
-% Example of an encryption scheme.
-% Problem: how do we quantify how secure this is?
-% Example attack: Eavesdropping.
-% Example attack: Chosen Plaintext Attack
-% Formalisation in Agda
-% Existing work
-
-% TODO: Write some kind of introduction to the problem as a whole.
-
-
-% TODO: Something about the proofs being brittle?
+The reader may note that we completely omit discussion of oracles from this chapter.  Oracles are an essential topic,
+and their incorporation in the system we construct is one of the main goals for the coming months.  Chapter
+\ref{chp:research-plan} contains a brief overview of the progress so far and our plans for the coming months.
 
 \section{Games as Security Levels}
 
@@ -69,20 +60,20 @@ thus becomes:
 This can, in turn, be regarded as a program in some imperative language, or a computation in some monad.  Computations
 performed by the challenger are known, so they can be directly encoded in the program.  Computations performed by the
 adversary are given as parameters to the program.  For the moment, we will use Haskell to represent these computations
-and assume that there is a monad |M| that provides some source of randomness and some way for the adversary to
+and assume that there is a monad |Game| that provides some source of randomness and some way for the adversary to
 store its state.
 \begin{code}
 data EncScheme key pt ct = EncScheme
-                           { generateKey :: M key
-                           , encode :: key -> pt -> M ct
-                           }
+                         { generateKey :: Game key
+                         , encode :: key -> pt -> Game ct
+                         }
 
 data Adversary pt ct = Adversary
-                       { chooseMessages :: M (pt, pt)
-                       , chooseOutcome :: ct -> M Bool
-                       }
+                     { chooseMessages :: Game (pt, pt)
+                     , chooseOutcome :: ct -> Game Bool
+                     }
 
-EAV_game :: EncScheme key pt ct -> Adversary pt ct -> M Bool
+EAV_game :: EncScheme key pt ct -> Adversary pt ct -> Game Bool
 EAV_game enc adv = do
     k <- generateKey enc
     (m0, m1) <- chooseMessages adv
@@ -94,22 +85,88 @@ EAV_game enc adv = do
 
 We now have a precise description of the game involved, and we can say that a scheme |enc| is secure against
 eavesdropping iff |EAV_game enc adv| is `very close' to |flipCoin| for every choice of |adv|.  We will now give a more
-rigorous definition of the |M| monad in order to formalise this notion of distance.
+rigorous definition of the |Game| monad in order to formalise this notion of distance.
 
-\section{The Interpretation Monad}
+\section{The |Game| Monad}
 
-The resulting game we play 
+In the last section, we showed how games can be seen as terms in some |Game| monad.  This monad represented a
+computation that may use some random bits, and in which the adversary may manipulate their state.  This computation can
+be interpreted into a concrete value given an initial state and an (infinite) sequence of random bits.
+
+The adversary should be free to choose what type they wish to use for their state, while the challenger should be unable
+to in any way access or modify this state.  We can achieve this by parametrising |Adversary| by its state type, while
+requiring that our encryption work for any adversary state type.  The example above then becomes
+\begin{code}
+data EncScheme key pt ct = EncScheme
+                         { generateKey :: forall as. Game as key
+                         , encode :: forall as. key -> pt -> Game as ct
+                         }
+
+data Adversary as pt ct = Adversary
+                        { chooseMessages :: Game as (pt, pt)
+                        , chooseOutcome :: ct -> Game as Bool
+                        }
+
+EAV_game :: EncScheme key pt ct -> Adversary as pt ct -> Game as Bool
+EAV_game enc adv = do
+    ... -- unchanged
+\end{code}
+
+Since the challenger has no information about |as|, they cannot perform any operation on it; there is also no way for
+|generateKey| to somehow store the state to later use it in |encode|.
+
+\subsection{Operations}
+
+There are three classes of operations supported by the |Game| monad: operations involving randomness, which may
+be performed by both challenger and adversary, operations manipulating the adversary's state, which may only be
+performed by the adversary, and operations manipulating oracle state, which may only be performed by the challenger.
+Since we are not yet concerned with oracles, we will only cover the first two categories.
+
+The fundamental operation involving randomness is the flipping of a fair coin.  From this we can build up random
+bitstrings of any length.  We have so far not provided any way of generating uniform distributions over sets with a size
+other than a power of two, as this does not seem to be a common requirement in the domain of cryptography.  The
+resulting operations provided are thus:
+\begin{code}
+fairCoin :: Game as Bool
+uniform :: Int -> Game BitVector
+\end{code}
+
+In addition to the above, the FCF provides a |repeat| operation which repeats some non-deterministic computation until a
+predicate holds on the result.  More research is needed to see whether this is truly necessary for our purposes.
+
+The adversary is given access to a state, which acts much like the state of a state monad.  There are corresponding
+operations:
+\begin{code}
+getAdvState :: Game as as
+putAdvState :: as -> Game as ()
+\end{code}
+
+
+
+
+\subsection{Interpretation}
+
+
+
+% Introduction
+% What can we do?
+% What can the adversary do?
+% How can we interpret it?
+
+
+\section{Security Constraints}
+
 
 
 \section{Example: One-Time Pad}
 
 We can define an encryption scheme in Haskell as follows:
 \begin{code}
-    generateKey :: Int -> IO BitVector
-    generateKey n = fromBits (replicateM n randomIO)
+    generateKey :: Int -> Game BitVector
+    generateKey = uniform
 
-    encrypt :: BitVector -> BitVector -> BitVector
-    encrypt key msg = least (size msg) (xor key msg)
+    encrypt :: BitVector -> BitVector -> Game BitVector
+    encrypt key msg = return (least (size msg) (xor key msg))
 \end{code}
 
 However, can we say anything about the security of this scheme?  In the rest of this section, we will define two
