@@ -24,3 +24,6 @@ record SemiringProps : Set where
   +-unit-left = +MProps.unit-left (+CMProps.forget-comm +-is-comm-monoid)
   +-unit-right : (a : A) → a ≡ a + zro
   +-unit-right = +MProps.unit-right (+CMProps.forget-comm +-is-comm-monoid)
+  +-assoc : (a b c : A) → a + (b + c) ≡ (a + b) + c
+  +-assoc = +MProps.op-assoc (+CMProps.forget-comm +-is-comm-monoid)
+ 

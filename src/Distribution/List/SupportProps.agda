@@ -90,7 +90,7 @@ module _ {{PPQ : ProbabilityProps}} where
       sum (q * f a ∷ map (ssid-cmb f) xs)
         ≡⟨ sum-rewrite (q * f a) (map (ssid-cmb f) xs) ⟩ʳ
       q * f a + sum (map (ssid-cmb f) xs)
-        ≡⟨ {!lem!} ⟩
+        ≡⟨ lem ⟩
       sample-LD ((a , q) ∷ xs) s * f s + sum (map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
         ≡⟨ sum-rewrite (sample-LD ((a , q) ∷ xs) s * f s) (map (ssid-sample-cmb ((a , q) ∷ xs) f) S) ⟩
       sum (sample-LD ((a , q) ∷ xs) s * f s ∷ map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
@@ -100,7 +100,11 @@ module _ {{PPQ : ProbabilityProps}} where
         lem with s == a
         ... | yes refl =
           q * f s + sum (map (ssid-cmb f) xs)
-            ≡⟨ {!!} ⟩
+            ≡⟨ cong (_+_ (q * f a)) {!!} ⟩
+          q * f s + (sample-LD xs s * f s + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S))
+            ≡⟨ +-assoc (q * f s) (sample-LD xs s * f s) _ ⟩
+          (q * f s + sample-LD xs s * f s) + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S)
+            ≡⟨ cong (λ e → e + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S)) $ +*-right-dist q (sample-LD xs s) (f s) ⟩ʳ
           (q + sample-LD xs s) * f s + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S)
             ≡⟨ cong (λ e → e * f s + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S)) $ sum-rewrite q (filter-vals s xs) ⟩
           sum (q ∷ filter-vals s xs) * f s + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S)
