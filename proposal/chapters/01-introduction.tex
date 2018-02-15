@@ -115,7 +115,8 @@ EAV_game enc adv = do
 Since the challenger has no information about |as|, they cannot perform any operation on it; there is also no way for
 |generateKey| to somehow store the state to later use it in |encode|.  This correctness-by-parametricity approach has a
 downside in Haskell, namely that the challenger could use a nonterminating computation such as |fix id| as a new
-Adversary state.  This problem disappears when we translate into Agda, since it is a total language.
+Adversary state.  This is not a serious problem for our purposes, since Agda is a total language and thus does not have
+this issue.
 
 \subsection{Operations}
 
@@ -150,28 +151,68 @@ putAdvState :: as -> Game as ()
 
 Now that we have a set of operations, we need to specify their semantics.  We do this by specifying an interpretation of
 this monad in a state monad that maintains the adversary state and the random bits.  Since |uniform| can be defined in
-terms of |fairCoin|, we only need to implement the |fairCoin|, |getAdvState|, and |putAdvState| operations.
-
+terms of |fairCoin|, we only need to provide interpretations forthe |fairCoin|, |getAdvState|, and |putAdvState|
+operations.  In other words, we have the following type, together with three operations on it, and an interpertation
+function:
 \begin{code}
+    data Interp as a = Interp (as -> [Bool] -> (as, [Bool], a))
+    fairCoin' :: Interp as Bool
+    fairCoin' as (r:rs) = (as, rs, r)
+    getAdvState' :: Interp as as
+    getAdvState' as rs = (as, rs, as)
+    putAdvState' :: as -> Interp as ()
+    putAdvState' rs as' as = (as', rs, ())
 
+    interpret :: Game as a -> Interp as a
 \end{code}
 
+We require that |interpret| send |fairCoin|, |getAdvState|, and (for every |as'|) |putAdvState as'| to |fairCoin'|,
+|getAdvState'|, and |putAdvState' as'| respectively, in the sense that the resulting functions are equal on all inputs.
 
+In general, we do not want to require this kind of strict equality for interpretations.  For example, the following two
+games should be considered equivalent, even though their interpretations are not elementwise equal:
+\begin{code}
+game1 :: Game () (Bool, Bool)
+game1 = do
+    x <- flipCoin
+    y <- flipCoin
+    return (x, y)
 
+game2 :: Game () (Bool, Bool)
+game2 = do
+    y <- flipCoin
+    x <- flipCoin
+    return (x, y)
+\end{code}
 
-% Introduction
-% What can we do?
-% What can the adversary do?
-% How can we interpret it?
+The condition we impose is as follows: games $A$ and $B$ have the same interpretation if for any choice of initial
+adversary state, |interpret A as| and |interpret B bs| give rise to the same distributions when applied to the uniform
+distribution over infinite strings of bits.
+
+Note that |flipCoin >> flipCoin| is equivalent to |flipCoin| in this sense, even though one uses more random bits than
+the other: both give rise to distributions over triples |(rs, as, a)|, where |rs|, |as|, and |a| are independent.  The
+distributions on |as| and |a| clearly agree.  The distributions on |rs| also agree, since any tail of a uniformly random
+bitstring will itself be uniformly random.  In fact, we shall prove that |rs| is \emph{always} independent of |(as, a)|
+and always uniformly distributed, so it suffices to look at the distributions of |(as, a)|.
+
+We can use this to quantify the distance between two games: since they are probability distributions, we can consider
+any metric on the space of probability distributions as the distance between the two.  In practice, we are typically
+interested in an upper bound on the difference in the outcomes.  Since both the output type and the adversary's state
+type are typically finite, we can fix an adversary's initial state and then take the sum over the absolute differences
+in the probabilities of outcomes.
 
 
 \section{Security Constraints}
 
+We now have a notion of games and a notion of closeness of games, b
 
 
 \section{Example: One-Time Pad}
 
-We can define an encryption scheme in Haskell as follows:
+Let us now put the above together to express that the One-Time XOR Pad encryption scheme is secure against
+eavesdropping, but not secure if the adversary can make use of the encryption function.
+
+We can define the encryption scheme in Haskell as follows:
 \begin{code}
     generateKey :: Int -> Game BitVector
     generateKey = uniform
