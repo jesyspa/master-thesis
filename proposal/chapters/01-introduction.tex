@@ -113,7 +113,9 @@ EAV_game enc adv = do
 \end{code}
 
 Since the challenger has no information about |as|, they cannot perform any operation on it; there is also no way for
-|generateKey| to somehow store the state to later use it in |encode|.
+|generateKey| to somehow store the state to later use it in |encode|.  This correctness-by-parametricity approach has a
+downside in Haskell, namely that the challenger could use a nonterminating computation such as |fix id| as a new
+Adversary state.  This problem disappears when we translate into Agda, since it is a total language.
 
 \subsection{Operations}
 
@@ -123,16 +125,19 @@ performed by the adversary, and operations manipulating oracle state, which may 
 Since we are not yet concerned with oracles, we will only cover the first two categories.
 
 The fundamental operation involving randomness is the flipping of a fair coin.  From this we can build up random
-bitstrings of any length.  We have so far not provided any way of generating uniform distributions over sets with a size
-other than a power of two, as this does not seem to be a common requirement in the domain of cryptography.  The
-resulting operations provided are thus:
+bitstrings of any length.  The resulting operations provided are thus:
 \begin{code}
 fairCoin :: Game as Bool
 uniform :: Int -> Game BitVector
 \end{code}
 
+We have so far not provided any way of generating uniform distributions over sets with a size other than a power of two,
+as this does not seem to be a common requirement in the domain of cryptography.  Furthermore, not supporting this allows
+for an easier interpretation, since the number of random bits necessary per operation is fixed.
+
 In addition to the above, the FCF provides a |repeat| operation which repeats some non-deterministic computation until a
-predicate holds on the result.  More research is needed to see whether this is truly necessary for our purposes.
+predicate holds on the result.  More research is needed to see whether this is truly necessary for our purposes.  This
+would, in particular, allow us to recover uniform distributions over arbitrary finite sets.
 
 The adversary is given access to a state, which acts much like the state of a state monad.  There are corresponding
 operations:
@@ -141,10 +146,16 @@ getAdvState :: Game as as
 putAdvState :: as -> Game as ()
 \end{code}
 
-
-
-
 \subsection{Interpretation}
+
+Now that we have a set of operations, we need to specify their semantics.  We do this by specifying an interpretation of
+this monad in a state monad that maintains the adversary state and the random bits.  Since |uniform| can be defined in
+terms of |fairCoin|, we only need to implement the |fairCoin|, |getAdvState|, and |putAdvState| operations.
+
+\begin{code}
+
+\end{code}
+
 
 
 
