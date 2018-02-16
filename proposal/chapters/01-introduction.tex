@@ -195,36 +195,130 @@ distributions on |as| and |a| clearly agree.  The distributions on |rs| also agr
 bitstring will itself be uniformly random.  In fact, we shall prove that |rs| is \emph{always} independent of |(as, a)|
 and always uniformly distributed, so it suffices to look at the distributions of |(as, a)|.
 
+The choice to keep adversary state visible allows for more precise intermediate reasoning, but comes at the cost of a
+small complication when considering the program as a whole: an adversary that modifies state and then guesses at random
+can be distinguished from an adversary that simply guesses at random, while the two are equivalent from the point of
+view of whether they can break our encryption scheme.  We thus require that when considering the game as a whole, the
+adversary resets its state to the initial one as part of the last step.
+
 We can use this to quantify the distance between two games: since they are probability distributions, we can consider
 any metric on the space of probability distributions as the distance between the two.  In practice, we are typically
 interested in an upper bound on the difference in the outcomes.  Since both the output type and the adversary's state
 type are typically finite, we can fix an adversary's initial state and then take the sum over the absolute differences
 in the probabilities of outcomes.
 
+We refer to this distance as the adversary's \emph{advantage}.  If no adversary is specified, we mean the maximum
+advantage any adversary can have for the game in question.
 
 \section{Security Constraints}
 
-We now have a notion of games and a notion of closeness of games, b
+We now have a notion of games and a notion of closeness of games, but this does not yet give us a condition for what we
+consider `very close'.
 
+One approach is to simply choose an $\epsilon$ that we consider sufficiently small and demand that no adversary have an
+advantage greater than $\epsilon$.  This gives a concrete bound on the probability, which is often desirable.
+
+The above has the downside that in the case of many schemes, adversaries can be constructed that will win the game with
+arbitrarily high probability.  Nevertheless, these schemes are secure if we take an asymptotic perspective: by letting
+the scheme depend on some security parameter $n$ and requiring that every adversary's advantage be bounded by a
+vanishing function of $n$, we can be sure that even though the security scheme is not impossible to break, we can easily
+make it harder.
+
+We will typically take this approach, parametrising our encryption schemes over some parameter.  However, since Agda
+only allows functions to be treated as black boxes, we cannot inspect that the adversary is polynomial-time.  A major
+research point of this thesis will be how we can nevertheless use asymptotic analysis of adversaries.
 
 \section{Example: One-Time Pad}
 
 Let us now put the above together to express that the One-Time XOR Pad encryption scheme is secure against
-eavesdropping, but not secure if the adversary can make use of the encryption function.
+eavesdropping, but not secure if the adversary has access to the encryption function.
 
 We can define the encryption scheme in Haskell as follows:
 \begin{code}
-    generateKey :: Int -> Game BitVector
-    generateKey = uniform
+    generateKeyOTP :: Int -> Game as BitVector
+    generateKeyOTP = uniform
 
-    encrypt :: BitVector -> BitVector -> Game BitVector
-    encrypt key msg = return (least (size msg) (xor key msg))
+    encryptOTP :: BitVector -> BitVector -> Game as BitVector
+    encryptOTP key msg = return (xor key msg)
 \end{code}
 
-However, can we say anything about the security of this scheme?  In the rest of this section, we will define two
-conditions of security and show that this scheme satisfies the weaker but not the stronger of the two.
+Here, the |Int| taken by |generateKey| is the security parameter $n$.  We require that the two messages we receive from
+the adversary be exactly $n$ bits long: otherwise, the adversary could choose $0^{n+1}$ and $1^{n+1}$ as his messages,
+knowing that the last bit will not change.  Similarly, given messages of different lengths, the adversary could use the
+length to find what message was used.\footnote{In the formalised version in Agda, this is achieved by using a
+|BitVector| type that specifies the exact length of the strings.}
 
-\subsection{}
+\subsection{Eavesdropper Attack}
+
+We now regard the |EAV_game| from before specialised for the OTP encryption scheme, and parametrised by the security
+parameter |n|.  Our goal is to show that for any adversary |adv|, the following game is indistinguishable from a coin
+flip:
+\begin{code}
+OTP_game :: Int -> Adversary as pt ct -> Game as Bool
+OTP_game n adv = do
+    k <- generateKeyOTP n
+    (m0, m1) <- chooseMessages adv
+    b <- flipCoin
+    m' <- encodeOTP k (if b then m1 else m0)
+    b' <- chooseOutcome adv m'
+    return (b == b')
+\end{code}
+
+Note that we know that |genearteKeyOTP| and |encodeOTP| do not access the adversary's state, and so the choice of |k| is
+independent of the choices of |m0|, |m1|, and |b|.  We can thus rewrite the game as follows:
+\begin{code}
+OTP_game1 :: Int -> Adversary as pt ct -> Game as Bool
+OTP_game1 n adv = do
+    (m0, m1) <- chooseMessages adv
+    b <- flipCoin
+    m' <- (if b then generateKeyOTP n >>= \k -> encodeOTP k m0
+                else generateKeyOTP n >>= \k -> encodeOTP k m1)
+    b' <- chooseOutcome adv m'
+    return (b == b')
+\end{code}
+
+Inspecting the definitions of |generateKeyOTP| and |encodeOTP|, we see that the first generates a uniform distribution
+and the second performs a XOR.  We can thus rewrite this game to be:
+\begin{code}
+OTP_game2 :: Int -> Adversary as pt ct -> Game as Bool
+OTP_game2 n adv = do
+    (m0, m1) <- chooseMessages adv
+    b <- flipCoin
+    m' <- (if b then fmap (\k -> xor k m0) (uniform n)
+                else fmap (\k -> xor k m1) (uniform n))
+    b' <- chooseOutcome adv m'
+    return (b == b')
+\end{code}
+
+The uniform distribution over bitstrings of length |n| is invariant under XOR with another bitstring of length |n|,
+since the latter is a bijective mapping, so |fmap (\k -> xor k m0) (uniform n)| can be simplified to |uniform n|.  This
+gives us the following game:
+\begin{code}
+OTP_game3 :: Int -> Adversary as pt ct -> Game as Bool
+OTP_game3 n adv = do
+    (m0, m1) <- chooseMessages adv
+    b <- flipCoin
+    m' <- uniform n
+    b' <- chooseOutcome adv m'
+    return (b == b')
+\end{code}
+
+Since |m'| no longer depends on |b|, we can reorder the game to be:
+\begin{code}
+OTP_game4 :: Int -> Adversary as pt ct -> Game as Bool
+OTP_game4 n adv = do
+    (m0, m1) <- chooseMessages adv
+    m' <- uniform n
+    b' <- chooseOutcome adv m'
+    b <- flipCoin
+    return (b == b')
+\end{code}
+
+In this game, |b| is generated once |b'| is fixed; thus |b == b'| is either |b| or |not b|.  Since |fmap not flipCoin|
+is indistinguishable from |flipCoin|, in both cases this is indistinguishable from |flipCoin| from the point of view of
+the result.  By our assumption that the adversary reverts the state to the initial one, this computation is thus as a
+whole indistinguishable from |flipCoin|.
+
 
 \subsection{Chosen-Plaintext Attack}
 
