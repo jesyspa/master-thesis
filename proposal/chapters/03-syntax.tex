@@ -3,7 +3,78 @@
 Having seen what kind of games we may be interested in and how we go about proving things using them, let us now turn to
 how such games can formally be represented in Agda.
 
-\section{|CryptoExpr|}
+This chapter is split into two sections, the first describing the interface that is supported, and the second
+showing how this can be implemented in Agda.
+
+\section{Interface}
+
+We start by specifying a datatype that describes the computations we would like to work with; this is the |Game| type
+from the introduction.  In this context, we want to specialise |Game| to only refer to complete games, and instead use
+|CryptoExpr| for game fragments.
+
+As before, we would like to parametrise |CryptoExpr| by the type of the result, as well as the state of the adversary.
+However, rather than making the adversary choose a single state type to work with for the duration of the game, we allow
+for the state type to vary, and track an initial and final adversary state type.  |CryptoExpr| thus takes three
+parameters of type |Set|: an initial adversary state, a final adversary state, and a result type.
+
+A |Game| is a |CryptoExpr| where the initial and final adversary state types are both restricted to the unit type.  This
+conveniently trivialises both the choice of initial adversary state and makes the final distribution depend exclusively
+on the result, since the state has a unique inhabitant.
+
+We occasionally remark that |CryptoExpr| must satisfy certain equations.  In practice, it may be more convenient to
+require that only the interpretations of these terms satisfy these equations.  In the final thesis, we will be explicit
+about where we require which.
+
+\subsection{Randomness Operations}
+
+The fundamental operation that gives access to random bits is
+\begin{code}
+    uniform-expr : \forall{S} (n : Nat) \to CryptoExpr S S (BitVec n)
+\end{code}
+This gives a uniform distribution over bit vectors of the given length.  We use the |expr| suffix on these functions to
+indicate that they are purely syntactic constructs; in the next chapter, they will be interpreted as the corresponding
+values without the suffix.
+
+A derived operation of |uniform-expr| is |coin-expr : \forall{S} \to CryptoExpr S S Bool|, which represents a single
+fair coin flip.  While very useful in practice, it is not significantly different to |uniform-expr 1| and we will thus
+not treat it separately in most cases.
+
+\subsection{Adversary Operations}
+
+In addition to generating random bits, the adversary may set and get the state.  As before, this involves two operations
+\begin{code}
+    get-adv-state-expr : \forall{S} \to CryptoExpr S S S
+    put-adv-state-expr : \forall{S S'} \to S' \to CryptoExpr S S' ()
+\end{code}
+
+It is necessary to provide these operations to allow for the construction of stateful adversaries, but they are never
+used explicitly in a proof of security: an arbitrary adversary is taken, while the game and encryption scheme cannot use
+these operations.
+
+These operations should satisfy the usual laws of the state monad: getting a value and putting it back is a no-op,
+putting a value and immediately getting it yields the value, putting two values is the same as putting the latter, and
+getting a value twice gives the same value.
+
+\subsection{General Operations}
+
+In addition to these domain-specific operations, |CryptoExpr| is a monad in its third parameter, with the restriction
+that it should act as an arrow in the first and second parameters, in the sense that it must support the following
+operations:
+\begin{code}
+    return-expr : \forall{S A} \to A \to CryptoExpr S S A
+    bind-expr : \forall{S S' S'' A B} \to CryptoExpr S S' A
+              \to (A \to CryptoExpr S' S'' B)
+              \to CryptoExpr S S'' B
+\end{code}
+
+This is a special case of an indexed monad~\cite{indexedmonads}.  A formalisation of this notion and an interpretation
+of it in category theory would be a fun digression, if time permits.
+
+These operations should satisfy both the laws of a monad (when the arrow structure permits composition) and of an arrow.
+We will specify the precise laws that must be satisfied in the final thesis.  In the construction we have currently
+found, functional extensionality is required to satisfy these laws on the nose.
+
+\section{Implementation}
 
 
 % Outline:
