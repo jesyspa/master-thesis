@@ -65,7 +65,7 @@ store its state.
 \begin{code}
 data EncScheme key pt ct = EncScheme
                          { generateKey :: Game key
-                         , encode :: key -> pt -> Game ct
+                         , encrypt :: key -> pt -> Game ct
                          }
 
 data Adversary pt ct = Adversary
@@ -78,7 +78,7 @@ EAV_game enc adv = do
     k <- generateKey enc
     (m0, m1) <- chooseMessages adv
     b <- flipCoin
-    m' <- encode enc k (if b then m1 else m0)
+    m' <- encrypt enc k (if b then m1 else m0)
     b' <- chooseOutcome adv m'
     return (b == b')
 \end{code}
@@ -99,7 +99,7 @@ requiring that our encryption work for any adversary state type.  The example ab
 \begin{code}
 data EncScheme key pt ct = EncScheme
                          { generateKey :: forall as. Game as key
-                         , encode :: forall as. key -> pt -> Game as ct
+                         , encrypt :: forall as. key -> pt -> Game as ct
                          }
 
 data Adversary as pt ct = Adversary
@@ -113,7 +113,7 @@ EAV_game enc adv = do
 \end{code}
 
 Since the challenger has no information about |as|, they cannot perform any operation on it; there is also no way for
-|generateKey| to somehow store the state to later use it in |encode|.  This correctness-by-parametricity approach has a
+|generateKey| to somehow store the state to later use it in |encrypt|.  This correctness-by-parametricity approach has a
 downside in Haskell, namely that the challenger could use a nonterminating computation such as |fix id| as a new
 Adversary state.  This is not a serious problem for our purposes, since Agda is a total language and thus does not have
 this issue.
@@ -254,34 +254,34 @@ We now regard the |EAV_game| from before specialised for the OTP encryption sche
 parameter |n|.  Our goal is to show that for any adversary |adv|, the following game is indistinguishable from a coin
 flip:
 \begin{code}
-OTP_game :: Int -> Adversary as pt ct -> Game as Bool
-OTP_game n adv = do
+otp_game :: Int -> Adversary as pt ct -> Game as Bool
+otp_game n adv = do
     k <- generateKeyOTP n
     (m0, m1) <- chooseMessages adv
     b <- flipCoin
-    m' <- encodeOTP k (if b then m1 else m0)
+    m' <- encryptOTP k (if b then m1 else m0)
     b' <- chooseOutcome adv m'
     return (b == b')
 \end{code}
 
-Note that we know that |genearteKeyOTP| and |encodeOTP| do not access the adversary's state, and so the choice of |k| is
+Note that we know that |genearteKeyOTP| and |encryptOTP| do not access the adversary's state, and so the choice of |k| is
 independent of the choices of |m0|, |m1|, and |b|.  We can thus rewrite the game as follows:
 \begin{code}
-OTP_game1 :: Int -> Adversary as pt ct -> Game as Bool
-OTP_game1 n adv = do
+otp_game1 :: Int -> Adversary as pt ct -> Game as Bool
+otp_game1 n adv = do
     (m0, m1) <- chooseMessages adv
     b <- flipCoin
-    m' <- (if b then generateKeyOTP n >>= \k -> encodeOTP k m0
-                else generateKeyOTP n >>= \k -> encodeOTP k m1)
+    m' <- (if b then generateKeyOTP n >>= \k -> encryptOTP k m0
+                else generateKeyOTP n >>= \k -> encryptOTP k m1)
     b' <- chooseOutcome adv m'
     return (b == b')
 \end{code}
 
-Inspecting the definitions of |generateKeyOTP| and |encodeOTP|, we see that the first generates a uniform distribution
+Inspecting the definitions of |generateKeyOTP| and |encryptOTP|, we see that the first generates a uniform distribution
 and the second performs a XOR.  We can thus rewrite this game to be:
 \begin{code}
-OTP_game2 :: Int -> Adversary as pt ct -> Game as Bool
-OTP_game2 n adv = do
+otp_game2 :: Int -> Adversary as pt ct -> Game as Bool
+otp_game2 n adv = do
     (m0, m1) <- chooseMessages adv
     b <- flipCoin
     m' <- (if b then fmap (\k -> xor k m0) (uniform n)
@@ -294,8 +294,8 @@ The uniform distribution over bitstrings of length |n| is invariant under XOR wi
 since the latter is a bijective mapping, so |fmap (\k -> xor k m0) (uniform n)| can be simplified to |uniform n|.  This
 gives us the following game:
 \begin{code}
-OTP_game3 :: Int -> Adversary as pt ct -> Game as Bool
-OTP_game3 n adv = do
+otp_game3 :: Int -> Adversary as pt ct -> Game as Bool
+otp_game3 n adv = do
     (m0, m1) <- chooseMessages adv
     b <- flipCoin
     m' <- uniform n
@@ -305,8 +305,8 @@ OTP_game3 n adv = do
 
 Since |m'| no longer depends on |b|, we can reorder the game to be:
 \begin{code}
-OTP_game4 :: Int -> Adversary as pt ct -> Game as Bool
-OTP_game4 n adv = do
+otp_game4 :: Int -> Adversary as pt ct -> Game as Bool
+otp_game4 n adv = do
     (m0, m1) <- chooseMessages adv
     m' <- uniform n
     b' <- chooseOutcome adv m'
@@ -319,11 +319,51 @@ is indistinguishable from |flipCoin|, in both cases this is indistinguishable fr
 the result.  By our assumption that the adversary reverts the state to the initial one, this computation is thus as a
 whole indistinguishable from |flipCoin|.
 
-
 \subsection{Chosen-Plaintext Attack}
 
-Not secure.
+By modifying the game slightly, we can consider the scenario where the adversary has access to the encryption function
+used by the challenger.  This is known as the Chosen-Plaintext Attack.  In this case, the adversary receives not only an
+encrypted message as the input to |chooseOutcome|, but also the encryption function itself.
+\begin{code}
+data CPA_Adversary as pt ct = CPA_Adversary
+                            { chooseMessages :: Game as (pt, pt)
+                            , chooseOutcome :: ct
+                                            -> (pt -> Game s ct)
+                                            -> Game as Bool
+                            }
 
+otp_cpa_game :: Int -> CPA_Adversary as pt ct -> Game as Bool
+otp_cpa_game n adv = do
+    k <- generateKeyOTP n
+    (m0, m1) <- chooseMessages adv
+    b <- flipCoin
+    m' <- encryptOTP k (if b then m1 else m0)
+    b' <- chooseOutcome adv m' (encryptOTP k)
+    return (b == b')
+\end{code}
+
+Since the |encrypt| function of OTP is at once its |decrypt| function, it is clear that the adversary can simply apply
+it to |m'| and return the correct value.  We can express this in code as follows, with the |Int| parameter being the
+security parameter used for the game:
+\begin{code}
+    otp_cpa_adv_cm :: Int -> Game (BitVector, BitVector) (BitVector, BitVector)
+    otp_cpa_adv_cm n = do
+        m0 <- uniform n
+        m1 <- uniform n
+        putAdvState (m0, m1)
+        return (m0, m1)
+
+    otp_cpa_adv_co :: BitVector
+                   -> (BitVector -> Game (BitVector, BitVector) BitVector)
+                   -> Game (BitVector, BitVector) Bool
+    otp_cpa_adv_co m' enc = do
+        (m0, m1) <- getAdvState
+        putAdvState (empty, empty)
+        return (enc m1 == m')
+\end{code}
+
+The |putAdvState (empty, empty)| line is necessary to satisfy our guarantee that the initial adversary state is equal to
+the final adversary state.
 
 % For example, consider the One-Time Pad encryption scheme for bitstrings of length $n$: to generate a key we take a
 % random bitstring $k$ of length $n$, and to encrypt or decrypt the message $m$ we take the XOR $k \oplus m$.  One
