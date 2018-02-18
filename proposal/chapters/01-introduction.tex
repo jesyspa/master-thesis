@@ -374,17 +374,28 @@ depends on |b|, and an essential step of the proof was making the adversary comm
 
 \section{Formalised Proofs}
 
-Writing proofs on paper is error-prone.  Let's use a proof-assistant to make sure that what we write is actually
-correct.
+The proofs in the previous section rely heavily on arguments about the independence of certain random values, as well as
+on some conventions established for the adversary that cannot be expressed in the programming language the games
+themselves are written in.  This is an unsatisfactory state of affairs, since verifying the correctness of these
+arguments involves considerable work.  The situation only becomes worse when the challenger is also given the
+opportunity to store state and some margin of error is permitted between games.
+
+In order to remedify this, we will formalise both the games and the proofs about them in Agda.  This allows us to
+enforce the restrictions we lay upon the challenger and adversary on the type level, and build up proofs using
+known-good combinators.
+
+A significant downside to this approach is that the proofs are often very verbose.  One of the goals of this thesis is
+to look into how such work can be automated using proof search techinques and reflection.
 
 \section{Existing Work}
 
 The game-playing approach to cryptographic proofs is an existing and popular technique~\cite{codebasedgames}.
 
-There are several systems for expressing cryptographic proofs in Coq or in special-purpose
-languages\footnote{EasyCrypt, FCF}.  However, these all put the imperative style that cryptographic algorithms are
-typically written in at the forefront, which shapes the remainder of the system.  We intend to put more focus on the
-search for an elegant type-theoretic formulation of these properties, which should make the resulting proofs more
-elegant.
+There are several systems for expressing cryptographic proofs in Coq~\cite{fcf} or in special-purpose
+languages\footnote{EasyCrypt}.  However, these all put the imperative style that cryptographic algorithms are typically
+written in at the forefront, which shapes the remainder of the system.  We intend to put more focus on the search for an
+elegant type-theoretic formulation of these properties, which should make the resulting proofs more elegant.
 
-TODO: Stochastic lambda calculus papers, dist monad papers?
+A significant portion of the work shall be dedicated to the representation of probability distributions in a
+dependently-typed programming language.  The implementations are based on \cite{stochasticlambdacalculus}, amongst
+others.
