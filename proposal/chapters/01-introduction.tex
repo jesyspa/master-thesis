@@ -363,29 +363,14 @@ security parameter used for the game:
 \end{code}
 
 The |putAdvState (empty, empty)| line is necessary to satisfy our guarantee that the initial adversary state is equal to
-the final adversary state.
+the final adversary state.  For the rest, the algorithm is straightforward.  A more interesting question, however, is
+where the proof we provided for the Eavesdropper case breaks down.
 
-% For example, consider the One-Time Pad encryption scheme for bitstrings of length $n$: to generate a key we take a
-% random bitstring $k$ of length $n$, and to encrypt or decrypt the message $m$ we take the XOR $k \oplus m$.  One
-% `game' we can play goes as follows: we generate a key $k$ and let the adversary choose two messages $m_1$ and $m_2$.
-% We then flip a coin and encrypt $m_1$ if it is heads and $m_2$ if it is tails, and give the encrypted message to the
-% adversary, who must tell us whether the coin landed heads or tails.  If the adversary answers correctly, they win;
-% otherwise, they lose.
-% 
-% We say that the One-Time Pad encryption scheme is secure to Eavesdropping if any adversary has at most 1/2
-% probability of winning in the above game.  It turns out that this does indeed hold for the One-Time Pad.  A stronger
-% version of this condition we may want to look at is whether this is still the case if the adversary may first
-% encrypt any number of strings; this is called security against a Chosen-Plaintext Attack, and it turns out that the
-% One-Time Pad is \emph{not} secure against it.
-% 
-% To prove such a property, one typically constructs a sequence of games, where the probability of an adversary
-% winning only improves by at most some very small value in each transition.  The final game in the construction is
-% typically one where the probability is clear: for example, if whether the adversary wins or loses does not depend on
-% the choice made by the adversary.
-% 
-% The aim of this research project is to create a system in which both encryption schemes and such proofs of security
-% can be expressed and automatically verified.  This system will be built on top of the Agda programming language,
-% allowing the prover to use other Agda libraries, and allowing this system to be used in larger Agda programs.
+The problem with that proof is that |k| is now used not only for the generation of |m'|, but is also passed (indirectly)
+to |chooseOutcome|.  A certain relation holds between |m'| and |k|, and thus if we replace |encrypt k (if b then m0 else
+m1)| with |uniform n| then we must also replace all later appearances of |k| with |xor m' (if b then m0 else m1)| to
+maintain this relationship.  Doing this, however, brings the proof no further, since the |chooseOutcome| call still
+depends on |b|, and an essential step of the proof was making the adversary commit to a |b'| before |b| was chosen.
 
 \section{Formalised Proofs}
 
