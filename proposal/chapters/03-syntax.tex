@@ -76,8 +76,20 @@ found, functional extensionality is required to satisfy these laws on the nose.
 
 \section{Implementation}
 
+In order to express the above syntax, we use a free monad construction in a continuation-passing style.  There is a
+|Return : A \to CryptoExpr S S A| constructor.  An operation of the form |op : \Gamma \to CryptoExpr S S' A| is
+implemented as a constructor |Op : \Gamma \to (A \to CryptoExpr S' S'' B) \to CryptoExpr S S'' B|.  We then define
+\begin{code}
+    op \gamma = Op \gamma Return
+\end{code}
 
-% Outline:
-% Programs as syntactic constructions.
+Bind is defined operation.  Given an |Op \gamma cont| (as above) and a function |f : B \to CryptoExpr S'' S'''|, the
+bind is |Op \gamma (bind cont f)|; bind of |Return b| is |f b|.
+
+It is easy to verify that assuming functional extensionality, this satisfies the usual monad laws, restricted to
+matching adversary states.
+
+We expect this construction to be sufficient for all further work.  A possible design choice is to provide a |Bind|
+constructor, though it is unclear why this would be beneficial.
 
 
