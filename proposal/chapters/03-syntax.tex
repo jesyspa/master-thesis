@@ -29,13 +29,13 @@ about where we require which.
 
 The fundamental operation that gives access to random bits is
 \begin{code}
-    uniform-expr : \forall{S} (n : Nat) \to CryptoExpr S S (BitVec n)
+    uniform-expr : \forall{S} (n : Nat) -> CryptoExpr S S (BitVec n)
 \end{code}
 This gives a uniform distribution over bit vectors of the given length.  We use the |expr| suffix on these functions to
 indicate that they are purely syntactic constructs; in the next chapter, they will be interpreted as the corresponding
 values without the suffix.
 
-A derived operation of |uniform-expr| is |coin-expr : \forall{S} \to CryptoExpr S S Bool|, which represents a single
+A derived operation of |uniform-expr| is |coin-expr : \forall{S} -> CryptoExpr S S Bool|, which represents a single
 fair coin flip.  While very useful in practice, it is not significantly different to |uniform-expr 1| and we will thus
 not treat it separately in most cases.
 
@@ -43,8 +43,8 @@ not treat it separately in most cases.
 
 In addition to generating random bits, the adversary may set and get the state.  As before, this involves two operations
 \begin{code}
-    get-adv-state-expr : \forall{S} \to CryptoExpr S S S
-    put-adv-state-expr : \forall{S S'} \to S' \to CryptoExpr S S' ()
+    get-adv-state-expr : \forall{S} -> CryptoExpr S S S
+    put-adv-state-expr : \forall{S S'} -> S' -> CryptoExpr S S' ()
 \end{code}
 
 It is necessary to provide these operations to allow for the construction of stateful adversaries, but they are never
@@ -61,10 +61,10 @@ In addition to these domain-specific operations, |CryptoExpr| is a monad in its 
 that it should act as an arrow in the first and second parameters, in the sense that it must support the following
 operations:
 \begin{code}
-    return-expr : \forall{S A} \to A \to CryptoExpr S S A
-    bind-expr : \forall{S S' S'' A B} \to CryptoExpr S S' A
-              \to (A \to CryptoExpr S' S'' B)
-              \to CryptoExpr S S'' B
+    return-expr : \forall{S A} -> A -> CryptoExpr S S A
+    bind-expr : \forall{S S' S'' A B} -> CryptoExpr S S' A
+              -> (A -> CryptoExpr S' S'' B)
+              -> CryptoExpr S S'' B
 \end{code}
 
 This is a special case of an indexed monad~\cite{indexedmonads}.  A formalisation of this notion and an interpretation
@@ -77,13 +77,13 @@ found, functional extensionality is required to satisfy these laws on the nose.
 \section{Implementation}
 
 In order to express the above syntax, we use a free monad construction in a continuation-passing style.  There is a
-|Return : A \to CryptoExpr S S A| constructor.  An operation of the form |op : \Gamma \to CryptoExpr S S' A| is
-implemented as a constructor |Op : \Gamma \to (A \to CryptoExpr S' S'' B) \to CryptoExpr S S'' B|.  We then define
+|Return : A -> CryptoExpr S S A| constructor.  An operation of the form |op : \Gamma -> CryptoExpr S S' A| is
+implemented as a constructor |Op : \Gamma -> (A -> CryptoExpr S' S'' B) -> CryptoExpr S S'' B|.  We then define
 \begin{code}
     op \gamma = Op \gamma Return
 \end{code}
 
-Bind is defined operation.  Given an |Op \gamma cont| (as above) and a function |f : B \to CryptoExpr S'' S'''|, the
+Bind is defined operation.  Given an |Op \gamma cont| (as above) and a function |f : B -> CryptoExpr S'' S'''|, the
 bind is |Op \gamma (bind cont f)|; bind of |Return b| is |f b|.
 
 It is easy to verify that assuming functional extensionality, this satisfies the usual monad laws, restricted to
