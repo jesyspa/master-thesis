@@ -1,7 +1,34 @@
 \chapter{Probability in Agda}
 
 In the previous chapter, we specified a language for expressing games and postulated certain rewrite rules that may be
-used to show correctness.
+used to show correctness.  We will now show that this language has a meaningful computational interpretation.  We will
+start by postulating a certain numeric type that is sufficient to represent probabilities, and then specify what
+properties a probability distribution type should satisfy.
+
+At the moment, we have only successfully implemented the stateless interpretation of the syntax in the previous chapter.
+However, a state monad transformer applied to the construction in this chapter should suffice to add the |getAdvState|
+and |putAdvState| operations.
+
+\section{Probability}
+
+We will need a type for representing probability values.  There are two important questions to address:
+\begin{enumerate}
+    \item Should probabilities lie strictly in the $[0, 1]$ interval?
+    \item Should the real numbers (or the real unit interval) be permitted as a model?
+\end{enumerate}
+
+We have chosen to answer `no' to both of these questions.  It is very convenient for probabilities to be a group under
+addition, which the interval $[0, 1]$ is not.  While an implementation that distinguishes the types of probabilities,
+differences between probabilities, and sums of probabilities would be an interesting project in itself, it would add
+little to the logic we are studying.
+
+
+\section{Distributions: Abstract Specification}
+
+\section{List-Based Distributions}
+
+\section{Continuation-Based Distributions}
+
 
 % Outline:
 % Probability in mathematics.
