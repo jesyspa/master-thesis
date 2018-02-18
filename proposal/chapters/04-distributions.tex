@@ -11,17 +11,29 @@ and |putAdvState| operations.
 
 \section{Probability}
 
-We will need a type for representing probability values.  There are two important questions to address:
-\begin{enumerate}
-    \item Should probabilities lie strictly in the $[0, 1]$ interval?
-    \item Should the real numbers (or the real unit interval) be permitted as a model?
-\end{enumerate}
+In order to discuss how probability distributions can be sampled, we will need a type for representing probability
+values.  A key question we must ask ourselves is whether this type should \emph{only} be able to represent values in the
+$[0, 1]$ interval, or whether values that are not probabilities should also be representable.
 
-We have chosen to answer `no' to both of these questions.  It is very convenient for probabilities to be a group under
-addition, which the interval $[0, 1]$ is not.  While an implementation that distinguishes the types of probabilities,
-differences between probabilities, and sums of probabilities would be an interesting project in itself, it would add
-little to the logic we are studying.
+We have chosen to go for the later options.  It is very convenient for probabilities to be a group under addition, which
+the interval $[0, 1]$ is not.  While an implementation that distinguishes the types of probabilities, differences
+between probabilities, and sums of probabilities would be an interesting project in itself, it would add little to the
+logic we are studying.
 
+Instead, we require that the type of probabilities |Q| be an ordered ring with negative powers of two, in the sense that
+there is a function |negpow2 : Nat -> Q| such |negpow2 0 == 1| and |2 * negpow2 (n+1) = negpow2 n|.\footnote{Where by 0
+and 1 we mean the corresponding values in the ring structure, and |2 = 1 + 1|.}  This suffices to implement
+probabilities that occur when the only source of randomness are uniform distributions over sets with size a power of
+two.  If we wish to add a |Repeat| combinator, as discussed in the previous chapter, then requiring that |Q| be an
+ordered field will be necessary.
+
+We have so far not implemented this type, but given that the rationals satisfy all these assumptions in a constructive
+manner, we believe that it should have an implementation.
+
+Note that since an ordered ring necessarily has a \emph{total} order, the real numbers are \emph{not} a model of
+probability, since real equality is not constructively decidable.  We have yet to see whether we will ever make use of
+this decidability.  In any case, it is unclear that using the real numbers as |Q| would have any advantages, since all
+probabilities we arrive at are by construction rational.
 
 \section{Distributions: Abstract Specification}
 
