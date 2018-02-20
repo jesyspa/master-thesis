@@ -27,7 +27,7 @@ the adversary's advantage is always zero, or if it is bounded by a constant, or 
 asymptotically in some security parameter.  In the discussion of the above games, we omit discussion of this: each of
 the games can have any of these three conditions imposed upon it externally.  In the asymptotic case, we assume that the
 entire construction is parametrised by this parameter.  Simililarly, we can impose polynomiality constraints upon these
-definitions.
+definitions.  In all cases, we express that these bounds are satisfied by saying that the advantage is negligible.
 
 \subsection{Indistinguishability Games}
 
@@ -36,6 +36,8 @@ advantage of an adversary |A : T -> Bool| is
 \[
     |\mathbb{P}_{x \in X}[ A x ] - \mathbb{P}_{y \in Y}[ A y ]|.
 \]
+
+We say that the classes $X$ and $Y$ are indistinguishable if the advantage is negligible.
 
 A minor variation on this game is when |T| is a function type, and instead of giving it as a parameter we provide it to
 the adversary as an \emph{oracle}:
@@ -49,9 +51,26 @@ particular, we hope to be able to express an upper bound on the number of oracle
 Furthermore, an oracle computation may maintain state that the adversary cannot access.  Later in this chapter, we will
 give an example of a use of this.
 
-
+These games are not very interesting to study directly, but are useful tools for expressing assumptions.  For example,
+we say that $F$ is a pseudo-random class of functions if it is indistinguishable from the set of all functions.  This
+example also illustrates that the classes $X$ and $Y$ need not be disjoint.
 
 \subsection{Eavesdropper Attack}
+
+The Eavesdropper attack was already shown in Chapter~\ref{chp:introduction}.  Informally, we can state it as follows.
+The challenger possesses a key generation function and an encryption function.  The challenger generates a key $k$, and
+takes two messages $(m_0, m_1)$ from the adversary, flips a coin with result $b$, encrypts $m_b$ with $k$, and gives the
+result $c$ to the adversary.  The adversary returns a boolean $b'$.  The adversary's advantage is
+\[
+    |\mathbb{P}[ b = b' ] - \mathbb{P}[ b ]|.
+\]
+
+In other words, the advantage is how much better the adversary can do than random chance.
+
+We can regard the Eavesdropper attack as a variation on the indistinguishibilty game where the adversary may choose two
+`seed' messages $(m_0, m_1)$ that give rise to the classes $E(m_1)$ and $E(m_2)$, consisting of ciphertexts of $m_0$ and
+$m_1$.  The adversary advantage is the advantage the adversary has playing the indistinguishibility game between
+$X = E(m_0)$ and $Y = E(m_1)$.
 
 \subsection{Chosen-Plaintext Attack}
 
