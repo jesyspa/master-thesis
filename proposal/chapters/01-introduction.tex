@@ -63,17 +63,17 @@ adversary are given as parameters to the program.  For the moment, we will use H
 and assume that there is a monad |Game| that provides some source of randomness and some way for the adversary to
 store its state.
 \begin{code}
-data EncScheme key pt ct = EncScheme
-                         { generateKey :: Game key
-                         , encrypt :: key -> pt -> Game ct
-                         }
+data EncScheme key pt ct  = EncScheme
+                          { generateKey :: Game key
+                          , encrypt :: key -> pt -> Game ct
+                          }
 
-data Adversary pt ct = Adversary
-                     { chooseMessages :: Game (pt, pt)
-                     , chooseOutcome :: ct -> Game Bool
-                     }
+data EAV_Adversary pt ct  = EAV_Adversary
+                          { chooseMessages :: Game (pt, pt)
+                          , chooseOutcome :: ct -> Game Bool
+                          }
 
-EAV_game :: EncScheme key pt ct -> Adversary pt ct -> Game Bool
+EAV_game :: EncScheme key pt ct -> EAV_Adversary pt ct -> Game Bool
 EAV_game enc adv = do
     k <- generateKey enc
     (m0, m1) <- chooseMessages adv
@@ -84,30 +84,36 @@ EAV_game enc adv = do
 \end{code}
 
 We now have a precise description of the game involved, and we can say that a scheme |enc| is secure against
-eavesdropping iff |EAV_game enc adv| is `very close' to |flipCoin| for every choice of |adv|.  We will now give a more
-rigorous definition of the |Game| monad in order to formalise this notion of distance.
+eavesdropping iff |EAV_game enc adv| is `very close' to |flipCoin| for every choice of |adv|; in our original terms, if
+Eve's probability of winning the game is close to 50\%.  This may seem counterintuitive: if the scheme is secure,
+shouldn't Eve consistently lose the game?  However, clearly, a random algorithm will win the game 50\% of the time by
+pure luck, and so we cannot demand that an adversary do worse.  If Eve could reliably lose the game, this would actually
+be a sign that the scheme is \emph{insecure}, since an adversary that performs the same computations as Eve and then
+flips the result could reliably win it.
+
+We will now give a more rigorous definition of the |Game| monad in order to formalise this notion of distance.
 
 \section{The |Game| Monad}
 
 In the last section, we showed how games can be seen as terms in some |Game| monad.  This monad represented a
 computation that may use some random bits, and in which the adversary may manipulate their state.  This computation can
-be interpreted into a concrete value given an initial state and an (infinite) sequence of random bits.
+be interpreted into a concrete value given an initial state and an (infinite) stream of random bits.
 
 The adversary should be free to choose what type they wish to use for their state, while the challenger should be unable
 to in any way access or modify this state.  We can achieve this by parametrising |Adversary| by its state type, while
 requiring that our encryption work for any adversary state type.  The example above then becomes
 \begin{code}
-data EncScheme key pt ct = EncScheme
-                         { generateKey :: forall as. Game as key
-                         , encrypt :: forall as. key -> pt -> Game as ct
-                         }
+data EncScheme key pt ct  = EncScheme
+                          { generateKey :: forall as. Game as key
+                          , encrypt :: forall as. key -> pt -> Game as ct
+                          }
 
-data Adversary as pt ct = Adversary
-                        { chooseMessages :: Game as (pt, pt)
-                        , chooseOutcome :: ct -> Game as Bool
-                        }
+data EAV_Adversary as pt ct  = EAV_Adversary
+                             { chooseMessages :: Game as (pt, pt)
+                             , chooseOutcome :: ct -> Game as Bool
+                             }
 
-EAV_game :: EncScheme key pt ct -> Adversary as pt ct -> Game as Bool
+EAV_game :: EncScheme key pt ct -> EAV_Adversary as pt ct -> Game as Bool
 EAV_game enc adv = do
     ... -- unchanged
 \end{code}
@@ -129,7 +135,7 @@ The fundamental operation involving randomness is the flipping of a fair coin.  
 bitstrings of any length.  The resulting operations provided are thus:
 \begin{code}
 fairCoin :: Game as Bool
-uniform :: Int -> Game BitVector
+uniform :: Int -> Game as BitVector
 \end{code}
 
 We have so far not provided any way of generating uniform distributions over sets with a size other than a power of two,
@@ -155,9 +161,9 @@ terms of |fairCoin|, we only need to provide interpretations forthe |fairCoin|, 
 operations.  In other words, we have the following type, together with three operations on it, and an interpertation
 function:
 \begin{code}
-    data Interp as a = Interp (as -> [Bool] -> (as, [Bool], a))
+    data Interp as a = Interp (as -> Stream Bool -> (as, Stream Bool, a))
     fairCoin' :: Interp as Bool
-    fairCoin' as (r:rs) = (as, rs, r)
+    fairCoin' as (Cons r rs) = (as, rs, r)
     getAdvState' :: Interp as as
     getAdvState' as rs = (as, rs, as)
     putAdvState' :: as -> Interp as ()
@@ -186,8 +192,8 @@ game2 = do
 \end{code}
 
 The condition we impose is as follows: games $A$ and $B$ have the same interpretation if for any choice of initial
-adversary state, |interpret A as| and |interpret B bs| give rise to the same distributions when applied to the uniform
-distribution over infinite strings of bits.
+adversary state |as|, |interpret A as| and |interpret B as| give rise to the same distributions when applied to the
+uniform distribution over streams of bits.
 
 Note that |flipCoin >> flipCoin| is equivalent to |flipCoin| in this sense, even though one uses more random bits than
 the other: both give rise to distributions over triples |(rs, as, a)|, where |rs|, |as|, and |a| are independent.  The
@@ -215,18 +221,28 @@ advantage any adversary can have for the game in question.
 We now have a notion of games and a notion of closeness of games, but this does not yet give us a condition for what we
 consider `very close'.
 
-One approach is to simply choose an $\epsilon$ that we consider sufficiently small and demand that no adversary have an
-advantage greater than $\epsilon$.  This gives a concrete bound on the probability, which is often desirable.
+A very strong notion of closeness is indistinguishability, as desribed above; the requirement that for every initial
+adversary state, the distributions over the final adversary states and outputs are identical.  This is a lofty goal to
+aspire to, but is often unreachable in practice due to the the adversary being able to guess with odds that are
+slightly better than random chance.  If we can nevertheless bound these odds, we can still quantify the security of the
+scheme in question, despite this security not being perfect.
+
+We therefore also use a weaker notion of closeness, namely an upper bound on the distance between the resulting
+distributions.  We say that two distributions are $\epsilon$-indistinguishable if their distance is at most $\epsilon$.
+We say that two games are $\epsilon$-indistinguishable if the best advantage an adversary can have is at most
+$\epsilon$.  This is known as concrete security, since we give a concrete bound on the chance with which the adversary
+can break the scheme.
 
 The above has the downside that in the case of many schemes, adversaries can be constructed that will win the game with
-arbitrarily high probability.  Nevertheless, these schemes are secure if we take an asymptotic perspective: by letting
-the scheme depend on some security parameter $n$ and requiring that every adversary's advantage be bounded by a
-vanishing function of $n$, we can be sure that even though the security scheme is not impossible to break, we can easily
-make it harder.
+arbitrarily high probability.  Nevertheless, these schemes are still secure if we take an asymptotic perspective: by
+letting the scheme depend on some security parameter $n$ and requiring that every adversary's advantage be bounded by a
+vanishing function of $n$, we can be sure that even though any concrete instance of the scheme can be broken by some
+adversary, that adversary cannot break harder versions effectively.  This is typically known as asymptotic security.
 
-We will typically take this approach, parametrising our encryption schemes over some parameter.  However, since Agda
-only allows functions to be treated as black boxes, we cannot inspect that the adversary is polynomial-time.  A major
-research point of this thesis will be how we can nevertheless use asymptotic analysis of adversaries.
+Although asymptotic security is a very useful notion, it relies on the adversary being uniform in the choice of $n$,
+which is hard to guarantee in Agda.  Additionally, it may involve restricting the number of operations (of whatever
+kind) that the adversary can make to some polynomial in $n$.  Expressing these properties in Agda is non-trivial, and
+will be a major research point of this thesis.
 
 \section{Example: One-Time Pad}
 
@@ -325,12 +341,12 @@ By modifying the game slightly, we can consider the scenario where the adversary
 used by the challenger.  This is known as the Chosen-Plaintext Attack.  In this case, the adversary receives not only an
 encrypted message as the input to |chooseOutcome|, but also the encryption function itself.
 \begin{code}
-data CPA_Adversary as pt ct = CPA_Adversary
-                            { chooseMessages :: Game as (pt, pt)
-                            , chooseOutcome :: ct
-                                            -> (pt -> Game s ct)
-                                            -> Game as Bool
-                            }
+data CPA_Adversary as pt ct  = CPA_Adversary
+                             { chooseMessages  :: Game as (pt, pt)
+                             , chooseOutcome   :: ct
+                                               -> (pt -> Game s ct)
+                                               -> Game as Bool
+                             }
 
 otp_cpa_game :: Int -> CPA_Adversary as pt ct -> Game as Bool
 otp_cpa_game n adv = do
