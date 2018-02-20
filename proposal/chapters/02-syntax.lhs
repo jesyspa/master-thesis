@@ -29,7 +29,7 @@ about where we require which.
 
 The fundamental operation that gives access to random bits is
 \begin{code}
-    uniform-expr : \forall{S} (n : Nat) -> CryptoExpr S S (BitVec n)
+    uniform-expr : forall{S} (n : Nat) -> CryptoExpr S S (BitVec n)
 \end{code}
 This gives a uniform distribution over bit vectors of the given length.  We use the |expr| suffix on these functions to
 indicate that they are purely syntactic constructs; in the next chapter, they will be interpreted as the corresponding
@@ -43,8 +43,8 @@ not treat it separately in most cases.
 
 In addition to generating random bits, the adversary may set and get the state.  As before, this involves two operations
 \begin{code}
-    get-adv-state-expr : \forall{S} -> CryptoExpr S S S
-    put-adv-state-expr : \forall{S S'} -> S' -> CryptoExpr S S' ()
+    get-adv-state-expr : forall{S} -> CryptoExpr S S S
+    put-adv-state-expr : forall{S S'} -> S' -> CryptoExpr S S' ()
 \end{code}
 
 It is necessary to provide these operations to allow for the construction of stateful adversaries, but they are never
@@ -61,8 +61,8 @@ In addition to these domain-specific operations, |CryptoExpr| is a monad in its 
 that it should act as an arrow in the first and second parameters, in the sense that it must support the following
 operations:
 \begin{code}
-    return-expr : \forall{S A} -> A -> CryptoExpr S S A
-    bind-expr : \forall{S S' S'' A B} -> CryptoExpr S S' A
+    return-expr : forall{S A} -> A -> CryptoExpr S S A
+    bind-expr : forall{S S' S'' A B} -> CryptoExpr S S' A
               -> (A -> CryptoExpr S' S'' B)
               -> CryptoExpr S S'' B
 \end{code}

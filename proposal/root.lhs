@@ -1,5 +1,7 @@
 \documentclass{report}
 %include lhs2TeX.fmt
+%include agda.lhs
+
 
 \title{Research Proposal: Formalisation of Cryptographic Proofs in Agda}
 \author{By Anton Golov,\\under the supervision of\\Jaap van Oosten, Wouter Swiestra, and Victor Miraldo}
@@ -14,14 +16,11 @@
     \end{abstract}
     \tableofcontents
 
-    %include chapters/01-introduction.tex
-    %include chapters/02-crypto-games.tex
-    %include chapters/03-syntax.tex
-    %include chapters/04-distributions.tex
-    % These are for the final thesis:
-    % \include{05-proof-techs}
-    % \include{06-examples}
-    %include chapters/05-further-work.tex
+    %include chapters/01-introduction.lhs
+    %include chapters/02-syntax.lhs
+    %include chapters/03-distributions.lhs
+    %include chapters/04-crypto-games.lhs
+    %include chapters/05-further-work.lhs
 
     \bibliography{proposal}
     \bibliographystyle{alpha}
