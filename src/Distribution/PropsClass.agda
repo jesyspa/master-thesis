@@ -5,8 +5,8 @@ open DistMonad DF
 open import ThesisPrelude
 open import Probability.Class
 open import Algebra.MonadProps F
+open import Algebra.ApplicativeProps F
 open import Algebra.FunctorProps F
-open FunctorProps {{...}}
 open import Utility.Vector
 open import Algebra.Function
 open import Algebra.LiftingProps F
@@ -17,6 +17,9 @@ record DistMonadProps : Set₂ where
   field
     overlap {{is-monad}} : MonadProps
     overlap {{is-probability}} : ProbabilityProps
+  open MonadProps is-monad
+  open ApplicativeProps aprops
+  open FunctorProps fprops
   open Probability probability-super
   open ProbabilityProps is-probability
   field
@@ -34,16 +37,20 @@ record DistMonadProps : Set₂ where
                         → sample D a ≡ sample (fmap f D) (f a)
     irrelevance : ∀{A} {{_ : Eq A}} n (D : F A)
                 → D ≡D (uniform n >>= const D)
-    >>=-D-ext : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+    >>=-D-ext : ∀{A B}{{_ : Eq B}}
               → (x : F A)
               → (f g : A → F B)
               → (∀ a → f a ≡D g a)
               → (x >>= f) ≡D (x >>= g) 
     -- The equality tests are needed for this to be provable, since we want to reason about
     -- a's and b's.  Any way to avoid this?
-    independence : ∀{A B C}{{_ : Eq C}}(DA : F A)(DB : F B)
+    interchange : ∀{A B C}{{_ : Eq C}}(DA : F A)(DB : F B)
                    (f : A → B → F C)
-                 → (DA >>= λ a → DB >>= f a) ≡D (DB >>= λ b → DA >>= λ a → f a b)
+                → (DA >>= λ a → DB >>= f a) ≡D (DB >>= λ b → DA >>= λ a → f a b)
+
+  sample-invariant-at : ∀{A}{{_ : Eq A}}{D₁ D₂ : F A} → (a : A) → D₁ ≡D D₂ → sample D₁ a ≡ sample D₂ a
+  sample-invariant-at = flip sample-invariant
+
   coin-bijection-invariant : (f : Bool → Bool)
                            → Bijective f
                            → coin ≡D fmap-F f coin
@@ -59,6 +66,17 @@ record DistMonadProps : Set₂ where
                                  ʳ⟨≡⟩ fmap-ext  (f ∘ head) (head ∘ fmap f) (head-nattrans f) (uniform 1)
                                  ʳ⟨≡⟩ fmap-comp f head (uniform 1)) ⟩
     sample (fmap-F f (fmap-F head (uniform 1))) a
+    ∎
+
+  coin-is-fair : ∀ b → negpow2 1 ≡ sample coin b
+  coin-is-fair b =
+    negpow2 1
+      ≡⟨ uniform-is-uniform 1 (b ∷ []) ⟩
+    sample (uniform 1) (b ∷ [])
+      ≡⟨ injection-invariant head head1-Inj (uniform 1) ((b ∷ [])) ⟩
+    sample (fmap head (uniform 1)) b
+      ≡⟨ refl ⟩
+    sample coin b
     ∎
 
 -- The FPF paper/thesis suggests the following laws as well:
