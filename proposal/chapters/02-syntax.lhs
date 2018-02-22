@@ -74,6 +74,26 @@ These operations should satisfy both the laws of a monad (when the arrow structu
 We will specify the precise laws that must be satisfied in the final thesis.  In the construction we have currently
 found, functional extensionality is required to satisfy these laws on the nose.
 
+\subsection{Security Constraints}
+
+In addition to the syntax of the games, we must also define the syntax of the conditions we may pose upon the games.
+The only condition we can express at the moment is equality of games, denoted |==G|.  We assume that the adversary
+states are both initially and finally |top|.
+
+There is a design choice here: we can make |==G| a purely syntactic construct with type |Game A -> Game A -> GameEq A|
+which can then later be interpreted as a proposition once a valuation is chosen.  On the other hand, we can skip this
+intermediate step and parametrise |==G| by the chosen valuation.  It is yet unclear which option is preferrable, though
+the latter appears more useful at the moment.
+
+Since most intermediate steps involve showing that a particular part of the games is equivalent, we need a similar
+notion for arbitrary elements of |CryptoExpr S S' A|.  This is straightforward from a syntactic point of view, though it
+has considerable semantic consequences.
+
+Similarly, we can generalise this syntactic notion of equivalence to an equivalence-up-to-$\epsilon$ simply by
+introducing an extra parameter $\epsilon$.  More complicated forms, such as parametrised or asymptotic security, are
+simply a matter of making $\epsilon$ a function of some security parameter, which does not require any extra machinery
+on our part.
+
 \section{Implementation}
 
 In order to express the above syntax, we use a free monad construction in a continuation-passing style.  There is a
@@ -87,9 +107,13 @@ Bind is defined operation.  Given an |Op \gamma cont| (as above) and a function 
 bind is |Op \gamma (bind cont f)|; bind of |Return b| is |f b|.
 
 It is easy to verify that assuming functional extensionality, this satisfies the usual monad laws, restricted to
-matching adversary states.
+matching adversary states.  We expect this construction to be sufficient for implementing all syntactic operations of
+|CryptoExpr|.  A possible design choice is to provide a |Bind| constructor, though it is unclear why this would be
+beneficial.
 
-We expect this construction to be sufficient for all further work.  A possible design choice is to provide a |Bind|
-constructor, though it is unclear why this would be beneficial.
+The interpretation of equivalence on |CryptoExpr| terms depends on the approach taken: if we let these equality be
+constructs be purely syntactic, then the equality (and inequality) operators simply pair their arguments for later
+interpretation.  If the interpretation is direct, then more work is required, and we defer the discussion of that to the
+following chapter.
 
 

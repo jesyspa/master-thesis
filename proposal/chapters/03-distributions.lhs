@@ -90,4 +90,3 @@ distribution, represented this way, is a function that takes a measure on |A| an
 probability distribution function over this measure.  This has the advantage of being able to theoretically represent
 arbitrary distributions, at the cost of making the representation less amenable to work with.
 
-

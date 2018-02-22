@@ -159,12 +159,16 @@ call the decryption oracle prior to receiving the ciphertext (IND-CCA1).
 A number of features of the above games are worth emphasising, since their formalisation will be a key part of the
 thesis.
 
+A 
+
 \subsection{Bad Events}
 
 Often, two games that we wish to show almost equivalent differ only in some unlikely case.  This is known as a
 transition based on a failure event: we isolate a specific case in which the games differ, and show that this case only
 happens neglegibly often.  That probability gives us a bound on the distance between the games involved, and since it is
 neglegible, the games are still `very close'.
+
+We 
 
 \subsection{Relative Security}
 
