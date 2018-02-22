@@ -1,13 +1,8 @@
 \chapter{Probability in Agda}
 
-In the previous chapter, we specified a language for expressing games and postulated certain rewrite rules that may be
-used to show correctness.  We will now show that this language has a meaningful computational interpretation.  We will
-start by postulating a certain numeric type that is sufficient to represent probabilities, and then specify what
-properties a probability distribution type should satisfy.
-
-At the moment, we have only successfully implemented the stateless interpretation of the syntax in the previous chapter.
-However, a state monad transformer applied to the construction in this chapter should suffice to add the |getAdvState|
-and |putAdvState| operations.
+Before we can look at representing complex constructions such as games, let us lay the groundwork for working with
+non-deterministic computations.  We will postulate a certain basic type for working with probabilities, and then define
+what it means for a type transformer to be a probability distribution monad.
 
 \section{Probability}
 

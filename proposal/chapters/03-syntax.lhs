@@ -1,10 +1,11 @@
-\chapter{Game Syntax}
+\chapter{Games in Agda}
 
-Having seen what kind of games we may be interested in and how we go about proving things using them, let us now turn to
-how such games can formally be represented in Agda.
+In this chapter, we will look at how games can be represented as formal objects in Agda, and then interpret these
+objects with the help of the distribution monad from the previous chapter.
 
-This chapter is split into two sections, the first describing the interface that is supported, and the second
-showing how this can be implemented in Agda.
+This chapter is split into three sections, the first describing the interface that is supported, the second
+showing how this can be implemented in Agda, and the third showing that there exists a valuation function on this
+syntax.
 
 \section{Interface}
 
@@ -116,4 +117,26 @@ constructs be purely syntactic, then the equality (and inequality) operators sim
 interpretation.  If the interpretation is direct, then more work is required, and we defer the discussion of that to the
 following chapter.
 
+\section{Valuation}
+
+(WIP)
+
+We will now show that games really do denote non-deterministic computations with a stateful adversary by implementing a
+function that sends a |CryptoExpr S S' X| to an indexed state monad transformer over a probability distribution monad.
+
+The individual randomness operations are straightforward to implement (lifts of probability operations), as are the
+adversary's state modification operations (operations of the state monad).  The strict equivalence notion is also no
+problem, since (assuming that the result type |A| has decidable equality) we can require that sampling every element of
+|A| gives equivalent results under both distributions.
+
+The equivalent-up-to-$\epsilon$ notion gives more freedom in interpretation.  The choice that seems best at the moment
+is to say that the valuations of expressions |E1| and |E2| are equivalent up to $\epsilon$ iff for every initial
+adversary state, the maximum absolute difference in sampling probability between the two valuations is at most
+$\epsilon$.  The alternative is to require that the sum of the absolute differences of every sample is bounded by
+$\epsilon$.  However, this requires a finiteness assumption (or a measure) on the final state of the adversary and on
+the result type, which may not be desirable.
+
+The motivation for one choice over the other shall come from what results can be proven about congruences involving this
+notion of inequality; if we replace a portion of a game with a portion that differs by at most $\epsilon$, what can we
+say about the game as a whole?  This is another important research question we aim to address.
 

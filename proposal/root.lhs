@@ -17,8 +17,8 @@
     \tableofcontents
 
     %include chapters/01-introduction.lhs
-    %include chapters/02-syntax.lhs
-    %include chapters/03-distributions.lhs
+    %include chapters/02-distributions.lhs
+    %include chapters/03-syntax.lhs
     %include chapters/04-crypto-games.lhs
     %include chapters/05-further-work.lhs
 
