@@ -1,12 +1,25 @@
+open import ThesisPrelude using (Monad)
+open import Algebra.Parametrised.Monad 
+module Utility.State.Transformer {l}(M : Set l → Set l → Set l → Set l){{_ : ParMonad (Set l) M}} where
+
 open import ThesisPrelude
-module Utility.State.Transformer {l}(M : Set l → Set l){{_ : Monad M}} where
 
-StateT : Set l → Set l → Set l → Set l
-StateT S S′ X = S → M (X × S′)
+ParStateT : Set l → Set l → Set l → Set l
+ParStateT S S′ X = S → M S S′ (X × S′)
 
-fmap-ST : ∀{S S′ X Y} → (X → Y) → StateT S S′ X → StateT S S′ Y
+fmap-ST : ∀{S S′ X Y} → (X → Y) → ParStateT S S′ X → ParStateT S S′ Y
 fmap-ST f st = λ s → fmap (first f) (st s)
 
 instance
-  FunctorStateT : ∀{S S′} → Functor (StateT S S′)
+  FunctorStateT : ∀{S S′} → Functor (ParStateT S S′)
   FunctorStateT = record { fmap = fmap-ST }
+
+preturn-ST : ∀{S X} → X → ParStateT S S X
+preturn-ST x = λ s → returnᵖ (x , s)
+
+pbind-ST : ∀{S S′ S′′ X Y} → ParStateT S S′ X → (X → ParStateT S′ S′′ Y) → ParStateT S S′′ Y
+pbind-ST st f = λ s → st s >>=ᵖ uncurry f
+
+instance
+  ParMonadStateT : ParMonad (Set l) ParStateT
+  ParMonadStateT = record { returnᵖ = preturn-ST ; _>>=ᵖ_ = pbind-ST }
