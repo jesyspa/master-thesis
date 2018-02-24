@@ -1,17 +1,17 @@
-module Utility.Identity where
+module Utility.Identity {l} where
 
 open import ThesisPrelude
 
-Identity : ∀{l} → Set l → Set l
+Identity : Set l → Set l
 Identity = id
 
 instance
-  FunctorIdentity : ∀{l} → Functor (Identity {l})
+  FunctorIdentity : Functor Identity
   FunctorIdentity = record { fmap = id }
 
-  ApplicativeIdentity : ∀{l} → Applicative (Identity {l})
+  ApplicativeIdentity : Applicative Identity
   ApplicativeIdentity = record { pure = id ; _<*>_ = id }
 
-  MonadIdentity : ∀{l} → Monad (Identity {l})
+  MonadIdentity : Monad Identity
   MonadIdentity = record { _>>=_ = flip _$′_ }
 

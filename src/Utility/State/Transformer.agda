@@ -23,3 +23,4 @@ pbind-ST st f = λ s → st s >>=ᵖ uncurry f
 instance
   ParMonadStateT : ParMonad (Set l) ParStateT
   ParMonadStateT = record { returnᵖ = preturn-ST ; _>>=ᵖ_ = pbind-ST }
+
