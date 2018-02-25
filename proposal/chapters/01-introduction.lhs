@@ -1,37 +1,59 @@
 \chapter{Introduction}
+\label{chp:introduction}
 
-Given a (possibly non-deterministic) function $f : A \to B$, we say that it is an encryption function iff
+The goal of the reseach proposed in this document is to create a library for reasoning about cryptographic algorithms,
+in particular to show their security properties.  Such proofs are not new\footnote{TODO: cite something}, and there is a
+commonly used game-based approach~\cite{gameexamples} to formulating them.  In addition, there exist frameworks
+of these proofs in special-purpose languages\footnote{E.g. EasyCrypt, \url{www.easycrypt.info}} and Coq\cite{fcf}.  Our
+contribution is to create a comparable framework for the Agda programming language.
+
+In the remainder of this chapter, we will give an informal introduction to the kind of cryptographic proofs that we are
+interested in, using encryption schemes as a running example.  The next two chapters are dedicated to showing the
+portion of the system which we have so far been able to formalise in Agda.  In the fourth chapter, we will present more
+advanced cryptographic proofs and properties, which our system does not yet support, as motivation for further
+development. In the final chapter we will give a summary of our plans to tackle these problems.
+
+\section{Encryption and Games}
+
+A secure encryption scheme is a finite set $K$ of keys together with (non-determinstic) functions $e : K \times A \to B$
+and $d : K \times B \to A$, where $A$ is the set of possible plaintext messages and $B$ the type of possible ciphertext
+messages, satisfying the following properties:
 \begin{enumerate}
     \itemsep0em
-    \item There is a function $g : B \to A$ such that $g \circ f$ is the identity.
-    \item Given a $b \in B$, it is hard to find an $a \in A$ such that $f(a) = b$ if $g$ is not known.
+    \item For any $k \in K$ and $a \in A$, $d(k, e(k, a)) = a$,
+    \item and for any (non-determinstic) function $f : B \to A$, the probability that $f(e(k, a)) = a$ is
+    $\frac{1}{|A|}$, with $k$ sampled uniformly from $K$ and $a$ sampled uniformly from $A$.
 \end{enumerate}
 
-The first of these properties is easy to formulate, verify and prove.  The second, on the other hand, is not formal
-claim at all.  The goal of this chapter is to show how it can be expressed in objective measures using games,
-progressively adding complexity to the system until we can express everything we want to.
+In the second condition, we require that the probability be $|A|^{-1}$ rather than 0, since no matter the encryption
+function, $f$ may ignore its inputs and sample from $A$ uniformly.  By luck, this will coincide with $a$ with
+probability $|A|^{-1}$.  The condition thus states that any function that does not depend on the key does no better at
+decrypting the messages than simply picking a plaintext at random.
 
-In this chapter, we present a simplified system in Haskell which captures many of the computational features we care
-about, but in which we cannot express the proofs that we want to reason about.  The rest of this thesis will be
-dedicated to formalising both the computations and the proofs involved in Agda, resulting in a library in which these
-properties can be proved for further algorithms.
+The first of these properties can be proven in a straightforward manner, since the structure of $d$ and $e$ is known.
+The second, however, requires reasoning about an arbitrary function $f$, which is difficult and error-prone.  However,
+note that if $(K, e, d)$ is an encryption scheme and $a_0, a_1 \in A$, then for every $f : B \to A$, the probability
+that $f(e(k, a)) = a$ with $k$ chosen uniformly from $K$ and $a$ chosen uniformly from $\{a_0, a_1\}$ is $\frac 1 2$.
+If this were not so, then $f$ could return a unifromly random $a \in A$ for inputs other than $e(k, a_0)$ and $e(k,
+a_1)$ and choose better than random for inputs of that form.  On the other hand, if the adversary cannot distinguish
+between the ciphertexts of any two particular messages, then it certainly cannot decode any ciphertext.
 
-The reader may note that we completely omit discussion of oracles from this chapter.  Oracles are an essential topic,
-and their incorporation in the system we construct is one of the main goals for the coming months.  Chapter
-\ref{chp:research-plan} contains a brief overview of the progress so far and our plans for the coming months.
+We thus reformulate the condition as follows: for any probability distribution $D$ on $A \times A$ and any function $f :
+A \times A \times B \to \{0, 1\}$, the probability that $f(a_0, a_1, e(k, a_i)) = i$ with $a_0, a_1$ sampled from $D$,
+$k$ sampled uniformly from $K$, and $i$ sampled uniformly from $\{0, 1\}$ is exactly $\frac 1 2$.
 
-\section{Games as Security Levels}
+It seems that we have not much advanced towards our goal, since we must still argue about an arbitrary function $f$.
+However, we can now use game-playing techniques \cite{gameplayingproofs} to reformulate this condition as a game, which
+is then amenable to rewriting.  In order to make this transition more natural, we regard the problem as an interaction
+between several agents.
 
-Suppose that we have three parties, Alice, Bob, and Eve.  Alice and Bob have agreed on a key in advance, which Eve does
-not know, and are sending each other messages encrypted with that key.  Suppose that Eve intercepts one such message:
-what information can she gain based on this?
+Suppose that we have three parties, Alice, Bob, and Eve.  Alice and Bob have agreed on a key $k$ in advance, which Eve
+does not know, and are sending each other messages encrypted with that key.  Suppose that Eve intercepts one such
+message: what information can she gain based on this?
 
-In order to consider the worst possible case, we will allow Eve to choose two plaintext messages and let the intercepted
-message be the ciphertext of one of them.  If Eve cannot tell which message was encrypted even in this scenario, then
-she also cannot tell the difference when the message was chosen from some larger set, and we can be certain that Eve
-cannot distinguish between the ciphertexts of messages chosen from some larger set.
+By the argument above, we may assume that the plaintext of the message was chosen from some set $\{m_0, m_1\}$ of
+messages that Eve had chosen.  The full situation can then be seen as a game as follows:
 
-We can describe the game as follows:
 \begin{enumerate}
     \itemsep0em
     \item Alice chooses a key $k$.
@@ -42,11 +64,18 @@ We can describe the game as follows:
     \item If $b = b'$ then Eve wins, otherwise Eve loses.
 \end{enumerate}
 
-Note that Bob does not figure in this interaction, since his actions don't influence the information Eve has.  As far as
+Note that Bob does not figure in this interaction, since his actions do not influence the information Eve has.  As far as
 we are concerned, this is a two-player game between the encrypter, Alice, and the eavesdropper, Eve.  The encrypter is
-typically called the challenger, while the eavesdropper is called the attacker or the adversary.  We will from now on
-describe games from the point of view of the challenger, while treating the adversary as a black box.  The above game
-thus becomes:
+typically called the challenger, while the eavesdropper is called the attacker or the adversary.
+
+From a mathematical perspective, the adversary is the collection of all parameters over which we would like to
+universally quantify the security of our scheme.  Concretely, by letting Eve (non-detriministically) choose two
+messages, we allow her to specify a probability distribution over $A \times A$ and sample from it.  Similarly, by
+choosing $b'$ based on $e(k, m_b)$, Eve implicitly specifies the function $f$.  We assume that Eve can remember her
+previous actions, making it unnecessary to explicitly pass $m_0$ and $m_1$ in step 4.
+
+We will from now on describe games from the point of view of the challenger, while treating the adversary as a black
+box.  The above game thus becomes:
 \begin{enumerate}
     \itemsep0em
     \item Generate a key $k$.
@@ -61,19 +90,19 @@ This can, in turn, be regarded as a program in some imperative language, or a co
 performed by the challenger are known, so they can be directly encoded in the program.  Computations performed by the
 adversary are given as parameters to the program.  For the moment, we will use Haskell to represent these computations
 and assume that there is a monad |Game| that provides some source of randomness and some way for the adversary to
-store its state.
+store its state of type |as|.
 \begin{code}
 data EncScheme key pt ct  = EncScheme
-                          { generateKey :: Game key
-                          , encrypt :: key -> pt -> Game ct
+                          { forall dot generateKey :: Game as key
+                          , forall dot encrypt :: key -> pt -> Game as ct
                           }
 
-data EAV_Adversary pt ct  = EAV_Adversary
-                          { chooseMessages :: Game (pt, pt)
-                          , chooseOutcome :: ct -> Game Bool
-                          }
+data EAV_Adversary as pt ct  = EAV_Adversary
+                             { chooseMessages :: Game as (pt, pt)
+                             , chooseOutcome :: ct -> Game as Bool
+                             }
 
-EAV_game :: EncScheme key pt ct -> EAV_Adversary pt ct -> Game Bool
+EAV_game :: EncScheme key pt ct -> EAV_Adversary as pt ct -> Game as Bool
 EAV_game enc adv = do
     k <- generateKey enc
     (m0, m1) <- chooseMessages adv
@@ -405,13 +434,7 @@ to look into how such work can be automated using proof search techinques and re
 
 \section{Existing Work}
 
-The game-playing approach to cryptographic proofs is an existing and popular technique~\cite{codebasedgames}.
-
-There are several systems for expressing cryptographic proofs in Coq~\cite{fcf} or in special-purpose
-languages\footnote{EasyCrypt}.  However, these all put the imperative style that cryptographic algorithms are typically
-written in at the forefront, which shapes the remainder of the system.  We intend to put more focus on the search for an
-elegant type-theoretic formulation of these properties, which should make the resulting proofs more elegant.
-
+TODO: Move this to the chapter where it is relevant.
 A significant portion of the work shall be dedicated to the representation of probability distributions in a
 dependently-typed programming language.  The implementations are based on \cite{stochasticlambdacalculus}, amongst
 others.
