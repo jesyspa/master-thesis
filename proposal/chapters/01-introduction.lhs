@@ -7,45 +7,74 @@ commonly used game-based approach~\cite{gameexamples} to formulating them.  In a
 of these proofs in special-purpose languages\footnote{E.g. EasyCrypt, \url{www.easycrypt.info}} and Coq\cite{fcf}.  Our
 contribution is to create a comparable framework for the Agda programming language.
 
+The problems we are looking at typically have the following structure: the situation is described as a series of
+interactions between a \emph{challenger} and an \emph{adversary}.  Both parties have access to a source of randomness.
+The computations performed by the challenger are known, while the adversary may perform any computations.  At the end of
+this series of computations, the adversary must give some `answer' which determines whether it wins or loses.  The goal
+of a proof is to bound the probability with which the adversary can win.
+
 In the remainder of this chapter, we will give an informal introduction to the kind of cryptographic proofs that we are
 interested in, using encryption schemes as a running example.  The next two chapters are dedicated to showing the
 portion of the system which we have so far been able to formalise in Agda.  In the fourth chapter, we will present more
 advanced cryptographic proofs and properties, which our system does not yet support, as motivation for further
 development. In the final chapter we will give a summary of our plans to tackle these problems.
 
-\section{Encryption and Games}
+\section{Encryption Schemes}
 
-A secure encryption scheme is a finite set $K$ of keys together with (non-determinstic) functions $e : K \times A \to B$
-and $d : K \times B \to A$, where $A$ is the set of possible plaintext messages and $B$ the type of possible ciphertext
-messages, satisfying the following properties:
-\begin{enumerate}
-    \itemsep0em
-    \item For any $k \in K$ and $a \in A$, $d(k, e(k, a)) = a$,
-    \item and for any (non-determinstic) function $f : B \to A$, the probability that $f(e(k, a)) = a$ is
-    $\frac{1}{|A|}$, with $k$ sampled uniformly from $K$ and $a$ sampled uniformly from $A$.
-\end{enumerate}
+An \emph{encryption scheme} is a tuple $\sigma = (K, M_p, M_c, e, d)$ where $K$ and $M_p$ are finite sets\footnote{The
+assumption that $M_p$ is finite is not essential, but makes the development easier.}, $e : K \times M_p \to M_c$, $d : K
+\times M_c \to M_p$ and for any $k \in K$ and $m \in M_p$, $d(k, e(k, m)) = m$.  We can regard $K$ as the set of keys,
+$M_p$ and $M_c$ as the sets of plaintext and ciphertext messages, and $e$ and $d$ as the encryption and decryption
+functions.  We allow $e$ and $d$ to be non-deterministic functions.
 
-In the second condition, we require that the probability be $|A|^{-1}$ rather than 0, since no matter the encryption
-function, $f$ may ignore its inputs and sample from $A$ uniformly.  By luck, this will coincide with $a$ with
-probability $|A|^{-1}$.  The condition thus states that any function that does not depend on the key does no better at
-decrypting the messages than simply picking a plaintext at random.
+We say that an encryption scheme $\sigma$ is \emph{secure} iff for any (non-deterministic) function $f : M_c \to M_p$,
+the probability that $f(e(k, m)) = m$ with $k$ sampled uniformly from $K$ and $m$ sampled uniformly from $M_p$ is
+$\abs{A}^{-1}$.  In other words, any function $f$ that does not depend on the choice of key does no better a job of
+decrypting ciphertext than simply selecting a plaintext at random would, which gives the correct plaintext with
+probability $\abs{A}^{-1}$.
 
-The first of these properties can be proven in a straightforward manner, since the structure of $d$ and $e$ is known.
-The second, however, requires reasoning about an arbitrary function $f$, which is difficult and error-prone.  However,
-note that if $(K, e, d)$ is an encryption scheme and $a_0, a_1 \in A$, then for every $f : B \to A$, the probability
-that $f(e(k, a)) = a$ with $k$ chosen uniformly from $K$ and $a$ chosen uniformly from $\{a_0, a_1\}$ is $\frac 1 2$.
-If this were not so, then $f$ could return a unifromly random $a \in A$ for inputs other than $e(k, a_0)$ and $e(k,
-a_1)$ and choose better than random for inputs of that form.  On the other hand, if the adversary cannot distinguish
-between the ciphertexts of any two particular messages, then it certainly cannot decode any ciphertext.
+Showing that an encryption scheme is secure involves reasoning about an arbitrary function $f$, which can be difficult
+and error-prone.  However, note that if $m_0, m_1 \in M_p$ with $m_0 \neq m_1$, then for every $f : M_c \to M_p$, the
+probability that $f(e(k, m)) = m$ with $k$ chosen uniformly from $K$ and $m$ chosen uniformly from $\{m_0, m_1\}$ is
+$\frac 1 2$.  If this were not so, then $f$ could return a uniformly random $m \in M_p$ for inputs other than
+$e(k, m_0)$ and $e(k, m_1)$ and choose better than random for inputs of that form.  On the other hand, if the adversary
+cannot distinguish between the ciphertexts of any two particular messages, then it certainly cannot decode any
+ciphertext.
 
-We thus reformulate the condition as follows: for any probability distribution $D$ on $A \times A$ and any function $f :
-A \times A \times B \to \{0, 1\}$, the probability that $f(a_0, a_1, e(k, a_i)) = i$ with $a_0, a_1$ sampled from $D$,
-$k$ sampled uniformly from $K$, and $i$ sampled uniformly from $\{0, 1\}$ is exactly $\frac 1 2$.
+We thus reformulate the condition as follows: an encryption scheme $\sigma$ is \emph{secure} iff for any probability
+distribution $D$ on $M_p \times M_p$ and any function $f : M_p \times M_p \times M_c \to \{0, 1\}$, the probability that
+$f(m_0, m_1, e(k, m_b)) = b$ with $(m_0, m_1)$ sampled from $D$, $k$ sampled uniformly from $K$, and $b$ sampled
+uniformly from $\{0, 1\}$ is exactly $\frac 1 2$.
 
 It seems that we have not much advanced towards our goal, since we must still argue about an arbitrary function $f$.
-However, we can now use game-playing techniques \cite{gameplayingproofs} to reformulate this condition as a game, which
-is then amenable to rewriting.  In order to make this transition more natural, we regard the problem as an interaction
-between several agents.
+However, by reformulating this problem as an interaction between a \emph{challenger} and an \emph{adversary} we can use
+game-playing techniques~\cite{gameplayingproofs} to more easily reason about the problem.
+
+\section{Games as Security Conditions}
+
+We will now define our first game, typically called indistinguishability under eavesdropping, abbreviated IND-EAV, as an
+interaction protocol between two parties, the \emph{challenger} and the \emph{adversary}.  The challenger performs a
+fixed set of computations which define the game.  The adversary must conform the protocol, but can otherwise perform any
+computations.
+
+The game, parametrised by the encryption scheme $\sigma = (K, M_p, M_c, e, d)$, is defined as follows:
+\begin{enumerate}
+    \item The challenger chooses a key $k \in K$ uniformly at random.
+    \item The adversary chooses two messages $m_0, m_1 \in M_p$ and gives them to the challenger.
+    \item The challenger chooses $b \in \{0, 1\}$ uniformly at random.
+    \item The challenger encrypts $m_b$ with key $k$ and gives the result, $c = e(k, m_b)$ to the adversary.
+    \item The adversary returns $b'$.
+    \item If $b = b'$ then the adversary wins, otherwise the adversary loses.
+\end{enumerate}
+
+An adversary that returns a random $b'$ independent of $c$ will win 50\% of his games.  This is the `worst' an adversary
+can do: if an adversary could win, say, 40\% of their games, then by negating their choice of $b'$ they could win 60\%
+of their games, and are thus evidence of the existence of a better-than-random algorithm.
+
+We say that the \emph{advantage} of an adversary that beats the game against encryption scheme $\sigma$ with probability
+$p$ is $\abs{p - 0.5}$.
+
+CLEAN UP FROM THIS POINT
 
 Suppose that we have three parties, Alice, Bob, and Eve.  Alice and Bob have agreed on a key $k$ in advance, which Eve
 does not know, and are sending each other messages encrypted with that key.  Suppose that Eve intercepts one such
@@ -111,6 +140,13 @@ EAV_game enc adv = do
     b' <- chooseOutcome adv m'
     return (b == b')
 \end{code}
+
+The adversary state |as| is not used directly in this code, but we assume the adversary can put and get it as a monadic
+action.  We can thus imagine that the adversary may store the two messages prior to returning them from
+|chooseMessages|, and then later get them in |chooseOutcome| in order to compute the outcome.  Of course, since the
+adversary may choose any type |as|, it may store any info it wishes to.
+
+We can now regard our second constraint as a condition on Haskell programs:
 
 We now have a precise description of the game involved, and we can say that a scheme |enc| is secure against
 eavesdropping iff |EAV_game enc adv| is `very close' to |flipCoin| for every choice of |adv|; in our original terms, if

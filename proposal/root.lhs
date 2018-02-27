@@ -1,5 +1,5 @@
 \documentclass{report}
-%include lhs2TeX.fmt
+%include polycode.fmt
 %include agda.lhs
 
 \usepackage{amsmath}
@@ -7,6 +7,9 @@
 \usepackage{amsfonts}
 \usepackage{amsthm}
 \usepackage{hyperref}
+\usepackage{todonotes}
+
+\newcommand{\abs}[1]{\operatorname{abs}(#1)}
 
 \title{Research Proposal: Formalisation of Cryptographic Proofs in Agda}
 \author{By Anton Golov,\\under the supervision of\\Jaap van Oosten, Wouter Swiestra, and Victor Miraldo}
