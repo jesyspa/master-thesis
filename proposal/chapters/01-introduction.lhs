@@ -71,55 +71,24 @@ An adversary that returns a random $b'$ independent of $c$ will win 50\% of his 
 can do: if an adversary could win, say, 40\% of their games, then by negating their choice of $b'$ they could win 60\%
 of their games, and are thus evidence of the existence of a better-than-random algorithm.
 
-We say that the \emph{advantage} of an adversary that beats the game against encryption scheme $\sigma$ with probability
-$p$ is $\abs{p - 0.5}$.
+If an adversary beats the game against encryption scheme $\sigma$ with probability $p$, we say that it has an
+\emph{EAV-IND$_\sigma$ advantage} of $\abs{p - 0.5}$.  When the game is clear from context, we will simply call this the
+\emph{advantage}.
 
-CLEAN UP FROM THIS POINT
+Reformulating the security condition once again, we say that an encryption scheme $\sigma$ is \emph{strictly secure
+against eavesdropping} if for any adversary |adv| the EAV-IND$_\sigma$ advantage of |adv| is zero.
 
-Suppose that we have three parties, Alice, Bob, and Eve.  Alice and Bob have agreed on a key $k$ in advance, which Eve
-does not know, and are sending each other messages encrypted with that key.  Suppose that Eve intercepts one such
-message: what information can she gain based on this?
+\section{Games as Programs}
 
-By the argument above, we may assume that the plaintext of the message was chosen from some set $\{m_0, m_1\}$ of
-messages that Eve had chosen.  The full situation can then be seen as a game as follows:
+So far, we have relied on the reader's intuitive understanding of the notion of a non-deterministic function to define
+the possible actions of the challenger and the adversary.  Our goal, however, is to reason about these security notions
+in a proof assistant, which requires a more rigorous definition of each game.  We will now show how these games can be
+defined in Haskell.  This differs somewhat from the representation we will use in Agda, but conveys the correct idea.
 
-\begin{enumerate}
-    \itemsep0em
-    \item Alice chooses a key $k$.
-    \item Eve chooses two messages, $m_0$ and $m_1$, and gives them to Alice.
-    \item Alice flips a coin and gets a result $b \in \{0, 1\}$.
-    \item Alice encrypts $m_b$ and gives the result, $m'$, to Eve.
-    \item Eve chooses $b' \in \{0, 1\}$ and gives it to Alice.
-    \item If $b = b'$ then Eve wins, otherwise Eve loses.
-\end{enumerate}
-
-Note that Bob does not figure in this interaction, since his actions do not influence the information Eve has.  As far as
-we are concerned, this is a two-player game between the encrypter, Alice, and the eavesdropper, Eve.  The encrypter is
-typically called the challenger, while the eavesdropper is called the attacker or the adversary.
-
-From a mathematical perspective, the adversary is the collection of all parameters over which we would like to
-universally quantify the security of our scheme.  Concretely, by letting Eve (non-detriministically) choose two
-messages, we allow her to specify a probability distribution over $A \times A$ and sample from it.  Similarly, by
-choosing $b'$ based on $e(k, m_b)$, Eve implicitly specifies the function $f$.  We assume that Eve can remember her
-previous actions, making it unnecessary to explicitly pass $m_0$ and $m_1$ in step 4.
-
-We will from now on describe games from the point of view of the challenger, while treating the adversary as a black
-box.  The above game thus becomes:
-\begin{enumerate}
-    \itemsep0em
-    \item Generate a key $k$.
-    \item Receive messages $m_0$ and $m_1$ from the adversary.
-    \item Flip a coin to get $b \in \{0, 1\}$.
-    \item Encrypt $m_b$; call the result $m'$.
-    \item Give the adversary $m'$ and get $b'$ back.
-    \item Return $b = b'$.
-\end{enumerate}
-
-This can, in turn, be regarded as a program in some imperative language, or a computation in some monad.  Computations
-performed by the challenger are known, so they can be directly encoded in the program.  Computations performed by the
-adversary are given as parameters to the program.  For the moment, we will use Haskell to represent these computations
-and assume that there is a monad |Game| that provides some source of randomness and some way for the adversary to
-store its state of type |as|.
+We regard the game as a computation in some |Game| monad, parametrised by the state used by the adversary and the result
+of the game.  Computations performed by the challenger are known, so they can be directly encoded in the program.
+Computations performed by the encryption scheme and adversary are given as parameters to the program.  We then have the
+following code:
 \begin{code}
 data EncScheme key pt ct  = EncScheme
                           { forall dot generateKey :: Game as key
@@ -127,38 +96,35 @@ data EncScheme key pt ct  = EncScheme
                           }
 
 data EAV_Adversary as pt ct  = EAV_Adversary
-                             { chooseMessages :: Game as (pt, pt)
+                             { chooseMessages :: Game as (pt , pt)
                              , chooseOutcome :: ct -> Game as Bool
                              }
 
 EAV_game :: EncScheme key pt ct -> EAV_Adversary as pt ct -> Game as Bool
 EAV_game enc adv = do
     k <- generateKey enc
-    (m0, m1) <- chooseMessages adv
+    (m0 , m1) <- chooseMessages adv
     b <- flipCoin
     m' <- encrypt enc k (if b then m1 else m0)
     b' <- chooseOutcome adv m'
     return (b == b')
 \end{code}
 
-The adversary state |as| is not used directly in this code, but we assume the adversary can put and get it as a monadic
-action.  We can thus imagine that the adversary may store the two messages prior to returning them from
-|chooseMessages|, and then later get them in |chooseOutcome| in order to compute the outcome.  Of course, since the
-adversary may choose any type |as|, it may store any info it wishes to.
+The adversary state |as| is not used directly in this code, but we assume the adversary can put and get values of type
+|as| as a monadic action, similarly to the |State as| monad.  We can thus imagine that the adversary may store the two
+messages prior to returning them from |chooseMessages|, and then later get them in |chooseOutcome| in order to compute
+the outcome.  Of course, since the adversary may choose any type |as|, it may store any info it wishes to.  On the other
+hand, since all actions of the challenger must be valid for any choice of |as|, we know by parametricity that the
+challenger cannot inspect this state.
 
-We can now regard our second constraint as a condition on Haskell programs:
+Both the challenger and the adversary have access to the |flipCoin : Game as Bool| operation, which allows them to
+perform non-deterministic computations.  For convenience, we also assume that there is a |uniform : Int -> Game as
+BitVec| that provides a given number of bits of randomness at once.
 
-We now have a precise description of the game involved, and we can say that a scheme |enc| is secure against
-eavesdropping iff |EAV_game enc adv| is `very close' to |flipCoin| for every choice of |adv|; in our original terms, if
-Eve's probability of winning the game is close to 50\%.  This may seem counterintuitive: if the scheme is secure,
-shouldn't Eve consistently lose the game?  However, clearly, a random algorithm will win the game 50\% of the time by
-pure luck, and so we cannot demand that an adversary do worse.  If Eve could reliably lose the game, this would actually
-be a sign that the scheme is \emph{insecure}, since an adversary that performs the same computations as Eve and then
-flips the result could reliably win it.
+This gives us a formal description of the game, but does not yet let us quantify the adversary's advantage.  For this,
+we introduce semantics for the monad and require that the 
 
-We will now give a more rigorous definition of the |Game| monad in order to formalise this notion of distance.
-
-\section{The |Game| Monad}
+CLEAN UP FROM THIS POINT
 
 In the last section, we showed how games can be seen as terms in some |Game| monad.  This monad represented a
 computation that may use some random bits, and in which the adversary may manipulate their state.  This computation can
