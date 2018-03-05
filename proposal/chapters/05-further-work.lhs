@@ -7,9 +7,11 @@ counterexample to the security of the One-Time Pad encryption scheme with respec
 Additionally, the presentation we currently have has no support for adversary state.
 
 Nevertheless, we can define an encryption scheme, an adversary, and a game as follows,
+%format encscheme = "\F{enc-scheme}"
+%format nxor a b  = "{" a "}\mathbin{\F{$\otimes$}}{" b "}"
 \begin{code}
-record EncScheme : Set₁ where
-  constructor enc-scheme
+record EncScheme : Set1 where
+  constructor encscheme
   field
     Key PT CT : Set
     
@@ -25,12 +27,12 @@ record SimpleEavAdv (E : EncScheme) : Set₁ where
 
 simple-IND-EAV : (E : EncScheme)(A : SimpleEavAdv E) → CryptoExpr Bool 
 simple-IND-EAV E A 
-  = keygen                             >>= λ k 
-  → A₁                                 >>= λ m
-  → coin-expr                          >>= λ b
-  → enc k (if b then fst m else snd m) >>= λ ct
-  → A₂ ct                              >>= λ b′ 
-  → return (nxor b b′) 
+  =  keygen                              >>= \ k 
+  -> A₁                                  >>= \ m
+  -> coin-expr                           >>= \ b
+  -> enc k (if b then fst m else snd m)  >>= \ ct
+  -> A₂ ct                               >>= \ b′ 
+  -> return (nxor b b′) 
   where
     open EncScheme E
     open SimpleEavAdv A

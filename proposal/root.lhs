@@ -1,6 +1,4 @@
 \documentclass{report}
-%include polycode.fmt
-%include agda.lhs
 
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -9,7 +7,10 @@
 \usepackage{hyperref}
 \usepackage{todonotes}
 
-\newcommand{\abs}[1]{\operatorname{abs}(#1)}
+%include polycode.fmt
+%include agda.lhs
+
+\newcommand{\abs}[1]{\mid\! #1 \!\mid}
 
 \title{Research Proposal: Formalisation of Cryptographic Proofs in Agda}
 \author{By Anton Golov,\\under the supervision of\\Jaap van Oosten, Wouter Swiestra, and Victor Miraldo}
