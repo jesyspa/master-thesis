@@ -6,6 +6,7 @@ in particular to show their security properties.  Such proofs are not new\footno
 commonly used game-based approach~\cite{gameexamples} to formulating them.  In addition, there exist frameworks
 of these proofs in special-purpose languages\footnote{E.g. EasyCrypt, \url{www.easycrypt.info}} and Coq\cite{fcf}.  Our
 contribution is to create a comparable framework for the Agda programming language.
+\todo{Why is this a worthwhile goal?}
 
 The problems we are looking at typically have the following structure: the situation is described as a series of
 interactions between a \emph{challenger} and an \emph{adversary}.  Both parties have access to a source of randomness.
@@ -34,12 +35,13 @@ decrypting a ciphertext produced with this scheme than simply selecting a plaint
 correct plaintext with probability $\abs{M_p}^{-1}$.
 
 Showing that an encryption scheme is secure involves reasoning about an arbitrary function $f$, which can be difficult
-and error-prone.  However, note that if $m_0, m_1 \in M_p$ with $m_0 \neq m_1$, then for every $f : M_c \to M_p$, the
-probability that $f(e(k, m)) = m$ with $k$ chosen uniformly from $K$ and $m$ chosen uniformly from $\{m_0, m_1\}$ is
-$\frac 1 2$.  If this were not so, then $f$ could return a uniformly random $m \in M_p$ for inputs other than
-$e(k, m_0)$ and $e(k, m_1)$ and choose better than random for inputs of that form.  On the other hand, if the adversary
-cannot distinguish between the ciphertexts of any two particular messages, then it certainly cannot decode any
-ciphertext.
+and error-prone.  \todo{Explain why this is difficult.} However, note that if $m_0, m_1 \in M_p$ with $m_0 \neq m_1$,
+then for every $f : M_c \to M_p$, the probability that $f(e(k, m)) = m$ with $k$ chosen uniformly from $K$ and $m$
+chosen uniformly from $\{m_0, m_1\}$ is $\frac 1 2$.  If this were not so, then $f$ could return a uniformly random $m
+\in M_p$ for inputs other than $e(k, m_0)$ and $e(k, m_1)$ and choose better than random for inputs of that form.  On
+the other hand, if the adversary cannot distinguish between the ciphertexts of any two particular messages, then it
+certainly cannot decode any ciphertext.
+\todo{Comment on why we want this reformulation.}
 
 We thus reformulate the condition as follows: an encryption scheme $\sigma$ is \emph{secure} iff for any probability
 distribution $D$ on $M_p \times M_p$ and any function $f : M_p \times M_p \times M_c \to \{0, 1\}$, the probability that
@@ -82,7 +84,7 @@ against eavesdropping} if for any adversary |adv| the EAV-IND$_\sigma$ advantage
 So far, we have relied on the reader's intuitive understanding of the notion of a non-deterministic function to define
 the possible actions of the challenger and the adversary.  Our goal, however, is to reason about these security notions
 in a proof assistant, which requires a more rigorous definition of each game.  We will now show how these games can be
-defined in Haskell.  This differs somewhat from the representation we will use in Agda, but conveys the correct idea.
+defined in Haskell.  This differs somewhat from the representation we will use in Agda, but conveys the general idea.
 
 We regard the game as a computation in some |Game| monad, parametrised by the state used by the adversary and the result
 of the game.  Computations performed by the challenger are known, so they can be directly encoded in the program.
@@ -91,7 +93,8 @@ following code:
 %{
 %format :: = "::"
 %format EAV_Adversary = "EAV\hspace{-0.2em}\_Adversary"
-%format comma = "\hspace{-0.2em},"
+%format EAV_game = "EAV\hspace{-0.2em}\_game"
+%format comma = "\hspace{-0.3em},"
 \begin{code}
 data EncScheme key pt ct = EncScheme
   { forall as dot generateKey  ::               Game as key
@@ -105,11 +108,11 @@ data EAV_Adversary as pt ct = EAV_Adversary
 
 EAV_game :: EncScheme key pt ct -> EAV_Adversary as pt ct -> Game as Bool
 EAV_game enc adv = do
-    k <- generateKey enc
-    (m0 comma m1) <- chooseMessages adv
-    b <- flipCoin
-    m' <- encrypt enc k (if b then m1 else m0)
-    b' <- chooseOutcome adv m'
+    k              <- generateKey enc
+    (m0 comma m1)  <- chooseMessages adv
+    b              <- flipCoin
+    m'             <- encrypt enc k (if b then m1 else m0)
+    b'             <- chooseOutcome adv m'
     return (b == b')
 \end{code}
 %}
@@ -125,87 +128,20 @@ Both the challenger and the adversary have access to the |flipCoin : Game as Boo
 perform non-deterministic computations.  For convenience, we also assume that there is a |uniform : Int -> Game as
 BitVec| that provides a given number of bits of randomness at once.
 
-This gives us a formal description of the game, but does not yet let us quantify the adversary's advantage.  For this,
-we introduce semantics for the monad and require that the 
+\section{Distances Between Games}
+
+So far, we have only defined a syntax for the expression of games.  There is a natural valuation for this syntax in the
+|StateT as Rnd| monad transformer, where |Rnd| is some monad with randomness support (e.g. |Rand StdGen| from
+\texttt{MonadRandom}).  \todo{This feels like too little explanation, but more feels like too much.}  We will use this
+interpretation in order to define a notion of distance between two games.
 
 CLEAN UP FROM THIS POINT
 
-In the last section, we showed how games can be seen as terms in some |Game| monad.  This monad represented a
-computation that may use some random bits, and in which the adversary may manipulate their state.  This computation can
-be interpreted into a concrete value given an initial state and an (infinite) stream of random bits.
 
-The adversary should be free to choose what type they wish to use for their state, while the challenger should be unable
-to in any way access or modify this state.  We can achieve this by parametrising |Adversary| by its state type, while
-requiring that our encryption work for any adversary state type.  The example above then becomes
-\begin{code}
-data EncScheme key pt ct  = EncScheme
-                          { generateKey :: forall as. Game as key
-                          , encrypt :: forall as. key -> pt -> Game as ct
-                          }
 
-data EAV_Adversary as pt ct  = EAV_Adversary
-                             { chooseMessages :: Game as (pt, pt)
-                             , chooseOutcome :: ct -> Game as Bool
-                             }
 
-EAV_game :: EncScheme key pt ct -> EAV_Adversary as pt ct -> Game as Bool
-EAV_game enc adv = do
-    ... -- unchanged
-\end{code}
 
-Since the challenger has no information about |as|, they cannot perform any operation on it; there is also no way for
-|generateKey| to somehow store the state to later use it in |encrypt|.  This correctness-by-parametricity approach has a
-downside in Haskell, namely that the challenger could use a nonterminating computation such as |fix id| as a new
-Adversary state.  This is not a serious problem for our purposes, since Agda is a total language and thus does not have
-this issue.
 
-\subsection{Operations}
-
-There are three classes of operations supported by the |Game| monad: operations involving randomness, which may
-be performed by both challenger and adversary, operations manipulating the adversary's state, which may only be
-performed by the adversary, and operations manipulating oracle state, which may only be performed by the challenger.
-Since we are not yet concerned with oracles, we will only cover the first two categories.
-
-The fundamental operation involving randomness is the flipping of a fair coin.  From this we can build up random
-bitstrings of any length.  The resulting operations provided are thus:
-\begin{code}
-fairCoin :: Game as Bool
-uniform :: Int -> Game as BitVector
-\end{code}
-
-We have so far not provided any way of generating uniform distributions over sets with a size other than a power of two,
-as this does not seem to be a common requirement in the domain of cryptography.  Furthermore, not supporting this allows
-for an easier interpretation, since the number of random bits necessary per operation is fixed.
-
-In addition to the above, the FCF provides a |repeat| operation which repeats some non-deterministic computation until a
-predicate holds on the result.  More research is needed to see whether this is truly necessary for our purposes.  This
-would, in particular, allow us to recover uniform distributions over arbitrary finite sets.
-
-The adversary is given access to a state, which acts much like the state of a state monad.  There are corresponding
-operations:
-\begin{code}
-getAdvState :: Game as as
-putAdvState :: as -> Game as ()
-\end{code}
-
-\subsection{Interpretation}
-
-Now that we have a set of operations, we need to specify their semantics.  We do this by specifying an interpretation of
-this monad in a state monad that maintains the adversary state and the random bits.  Since |uniform| can be defined in
-terms of |fairCoin|, we only need to provide interpretations forthe |fairCoin|, |getAdvState|, and |putAdvState|
-operations.  In other words, we have the following type, together with three operations on it, and an interpertation
-function:
-\begin{code}
-    data Interp as a = Interp (as -> Stream Bool -> (as, Stream Bool, a))
-    fairCoin' :: Interp as Bool
-    fairCoin' as (Cons r rs) = (as, rs, r)
-    getAdvState' :: Interp as as
-    getAdvState' as rs = (as, rs, as)
-    putAdvState' :: as -> Interp as ()
-    putAdvState' rs as' as = (as', rs, ())
-
-    interpret :: Game as a -> Interp as a
-\end{code}
 
 We require that |interpret| send |fairCoin|, |getAdvState|, and (for every |as'|) |putAdvState as'| to |fairCoin'|,
 |getAdvState'|, and |putAdvState' as'| respectively, in the sense that the resulting functions are equal on all inputs.
