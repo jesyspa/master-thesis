@@ -92,16 +92,18 @@ We regard the game as a computation in some |Game| monad, parametrised by the st
 of the game.  Computations performed by the challenger are known, so they can be directly encoded in the program.
 Computations performed by the encryption scheme and adversary are given as parameters to the program.  We then have the
 following code:
+%{
+%format :: = "::"
 \begin{code}
-data EncScheme key pt ct  = EncScheme
-                          { forall dot generateKey :: Game as key
-                          , forall dot encrypt :: key -> pt -> Game as ct
-                          }
+data EncScheme key pt ct = EncScheme
+  { forall as dot generateKey  ::               Game as key
+  , forall as dot encrypt      :: key -> pt ->  Game as ct
+  }
 
-data EAV_Adversary as pt ct  = EAV_Adversary
-                             { chooseMessages :: Game as (pt , pt)
-                             , chooseOutcome :: ct -> Game as Bool
-                             }
+data EAV_Adversary as pt ct = EAV_Adversary
+  { chooseMessages  ::        Game as (pt , pt)
+  , chooseOutcome   :: ct ->  Game as Bool
+  }
 
 EAV_game :: EncScheme key pt ct -> EAV_Adversary as pt ct -> Game as Bool
 EAV_game enc adv = do
@@ -112,6 +114,7 @@ EAV_game enc adv = do
     b' <- chooseOutcome adv m'
     return (b == b')
 \end{code}
+%}
 
 The adversary state |as| is not used directly in this code, but we assume the adversary can put and get values of type
 |as| as a monadic action, similarly to the |State as| monad.  We can thus imagine that the adversary may store the two
