@@ -74,10 +74,6 @@ order to obtain the two messages and get $b'$, then return $\neg b'$.  Since |ad
 probability $p'$ is $1-p > 0.5$, as desired.  The existence of a worse-than-random adversary is thus as much evidence of
 the scheme being insecure as the existence of a better-than-random adversary.
 
-An adversary that returns a random $b'$ independent of $c$ will win 50\% of his games.  This is the `worst' an adversary
-can do: if an adversary could win, say, 40\% of their games, then by negating their choice of $b'$ they could win 60\%
-of their games, and are thus evidence of the existence of a better-than-random algorithm.
-
 Reformulating the security condition once again, we say that an encryption scheme $\sigma$ is \emph{strictly secure
 against eavesdropping} if for any adversary |adv| the EAV-IND$_\sigma$ advantage of |adv| is zero.
 
@@ -94,6 +90,8 @@ Computations performed by the encryption scheme and adversary are given as param
 following code:
 %{
 %format :: = "::"
+%format EAV_Adversary = "EAV\hspace{-0.2em}\_Adversary"
+%format comma = "\hspace{-0.2em},"
 \begin{code}
 data EncScheme key pt ct = EncScheme
   { forall as dot generateKey  ::               Game as key
@@ -101,14 +99,14 @@ data EncScheme key pt ct = EncScheme
   }
 
 data EAV_Adversary as pt ct = EAV_Adversary
-  { chooseMessages  ::        Game as (pt , pt)
+  { chooseMessages  ::        Game as (pt comma pt)
   , chooseOutcome   :: ct ->  Game as Bool
   }
 
 EAV_game :: EncScheme key pt ct -> EAV_Adversary as pt ct -> Game as Bool
 EAV_game enc adv = do
     k <- generateKey enc
-    (m0 , m1) <- chooseMessages adv
+    (m0 comma m1) <- chooseMessages adv
     b <- flipCoin
     m' <- encrypt enc k (if b then m1 else m0)
     b' <- chooseOutcome adv m'
