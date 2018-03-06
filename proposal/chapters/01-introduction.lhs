@@ -29,9 +29,9 @@ functions.  We allow $e$ and $d$ to be non-deterministic functions.
 
 We say that an encryption scheme $\sigma$ is \emph{secure} iff for any (non-deterministic) function $f : M_c \to M_p$,
 the probability that $f(e(k, m)) = m$ with $k$ sampled uniformly from $K$ and $m$ sampled uniformly from $M_p$ is
-$\abs{A}^{-1}$.  In other words, any function $f$ that does not depend on the choice of key does no better a job of
-decrypting ciphertext than simply selecting a plaintext at random would, which gives the correct plaintext with
-probability $\abs{A}^{-1}$.
+$\abs{M_p}^{-1}$.  In other words, any function $f$ that does not depend on the choice of key does no better a job of
+decrypting a ciphertext produced with this scheme than simply selecting a plaintext at random would, which gives the
+correct plaintext with probability $\abs{M_p}^{-1}$.
 
 Showing that an encryption scheme is secure involves reasoning about an arbitrary function $f$, which can be difficult
 and error-prone.  However, note that if $m_0, m_1 \in M_p$ with $m_0 \neq m_1$, then for every $f : M_c \to M_p$, the
@@ -64,16 +64,19 @@ The game, parametrised by the encryption scheme $\sigma = (K, M_p, M_c, e, d)$, 
     \item The challenger chooses $b \in \{0, 1\}$ uniformly at random.
     \item The challenger encrypts $m_b$ with key $k$ and gives the result, $c = e(k, m_b)$ to the adversary.
     \item The adversary returns $b'$.
-    \item If $b = b'$ then the adversary wins, otherwise the adversary loses.
 \end{enumerate}
+We say that the adversary \emph{wins} the game iff $b = b'$.  We say that the \emph{EAV-IND$_\sigma$ advantage} of an adversary that wins
+with probability $p$ is $\abs{p-0.5}$.  We may omit the game or encryption scheme when it is clear from the context.
+
+It may seem more natural to define the advantage as $p$ or as $p-0.5$.  However, given an adversary |adv| that wins with
+probability $p < 0.5$ we can construct an adversary |adv'| that wins with probability $p' > 0.5$: simply simulate $A$ in
+order to obtain the two messages and get $b'$, then return $\neg b'$.  Since |adv'| wins whenever |adv| loses, the
+probability $p'$ is $1-p > 0.5$, as desired.  The existence of a worse-than-random adversary is thus as much evidence of
+the scheme being insecure as the existence of a better-than-random adversary.
 
 An adversary that returns a random $b'$ independent of $c$ will win 50\% of his games.  This is the `worst' an adversary
 can do: if an adversary could win, say, 40\% of their games, then by negating their choice of $b'$ they could win 60\%
 of their games, and are thus evidence of the existence of a better-than-random algorithm.
-
-If an adversary beats the game against encryption scheme $\sigma$ with probability $p$, we say that it has an
-\emph{EAV-IND$_\sigma$ advantage} of $\abs{p - 0.5}$.  When the game is clear from context, we will simply call this the
-\emph{advantage}.
 
 Reformulating the security condition once again, we say that an encryption scheme $\sigma$ is \emph{strictly secure
 against eavesdropping} if for any adversary |adv| the EAV-IND$_\sigma$ advantage of |adv| is zero.
