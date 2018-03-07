@@ -123,7 +123,8 @@ The adversary state |as| is not used directly in this code, but we assume the ad
 messages prior to returning them from |chooseMessages|, and then later get them in |chooseOutcome| in order to compute
 the outcome.  Of course, since the adversary may choose any type |as|, it may store any info it wishes to.  On the other
 hand, since all actions of the challenger must be valid for any choice of |as|, we know by parametricity that the
-challenger cannot inspect this state.
+challenger cannot inspect this state.\footnote{Strictly speaking, this is not true for Haskell, since the challenger
+could set the state to |undefined|.  However, this problem does not arise in Agda.}
 
 Both the challenger and the adversary have access to the |flipCoin : Game as Bool| operation, which allows them to
 perform non-deterministic computations.  For convenience, we also assume that there is a |uniform : Int -> Game as
@@ -151,85 +152,22 @@ adversary's state.  The property of strict indistinguishability is nevertheless 
 indistinguishable terms produces strictly indistinguishable games, while substitution of merely result-indistinguishable
 terms does not necessarily produce result-indistinguishable games.
 
-CLEAN UP FROM THIS POINT
+\todo{I have the feeling this introduction is dragging on and on.}
+We now have two results that are key to the kind of proofs we will be showing.  We assume |AS|, |A|, |B|, and |C| are fixed
+types.
 
+\begin{theorem}
+    Given |g0 :: forall as dot Game as A|, |g1 :: forall as dot Game as B|, and |h : A -> B -> Game AS C|, the following
+    games are indistinguishable:
+    \begin{code}
+    gameA = g0 >>= \ a -> g1 >>= \ b -> h a b
+    gameB = g1 >>= \ b -> g0 >>= \ a -> h a b
+    \end{code}
+\end{theorem}
 
-
-
-
-
-
-We require that |interpret| send |fairCoin|, |getAdvState|, and (for every |as'|) |putAdvState as'| to |fairCoin'|,
-|getAdvState'|, and |putAdvState' as'| respectively, in the sense that the resulting functions are equal on all inputs.
-
-In general, we do not want to require this kind of strict equality for interpretations.  For example, the following two
-games should be considered equivalent, even though their interpretations are not elementwise equal:
-\begin{code}
-game1 :: Game () (Bool, Bool)
-game1 = do
-    x <- flipCoin
-    y <- flipCoin
-    return (x, y)
-
-game2 :: Game () (Bool, Bool)
-game2 = do
-    y <- flipCoin
-    x <- flipCoin
-    return (x, y)
-\end{code}
-
-The condition we impose is as follows: games $A$ and $B$ have the same interpretation if for any choice of initial
-adversary state |as|, |interpret A as| and |interpret B as| give rise to the same distributions when applied to the
-uniform distribution over streams of bits.
-
-Note that |flipCoin >> flipCoin| is equivalent to |flipCoin| in this sense, even though one uses more random bits than
-the other: both give rise to distributions over triples |(rs, as, a)|, where |rs|, |as|, and |a| are independent.  The
-distributions on |as| and |a| clearly agree.  The distributions on |rs| also agree, since any tail of a uniformly random
-bitstring will itself be uniformly random.  In fact, we shall prove that |rs| is \emph{always} independent of |(as, a)|
-and always uniformly distributed, so it suffices to look at the distributions of |(as, a)|.
-
-The choice to keep adversary state visible allows for more precise intermediate reasoning, but comes at the cost of a
-small complication when considering the program as a whole: an adversary that modifies state and then guesses at random
-can be distinguished from an adversary that simply guesses at random, while the two are equivalent from the point of
-view of whether they can break our encryption scheme.  We thus require that when considering the game as a whole, the
-adversary resets its state to the initial one as part of the last step.
-
-We can use this to quantify the distance between two games: since they are probability distributions, we can consider
-any metric on the space of probability distributions as the distance between the two.  In practice, we are typically
-interested in an upper bound on the difference in the outcomes.  Since both the output type and the adversary's state
-type are typically finite, we can fix an adversary's initial state and then take the sum over the absolute differences
-in the probabilities of outcomes.
-
-We refer to this distance as the adversary's \emph{advantage}.  If no adversary is specified, we mean the maximum
-advantage any adversary can have for the game in question.
-
-\section{Security Constraints}
-
-We now have a notion of games and a notion of closeness of games, but this does not yet give us a condition for what we
-consider `very close'.
-
-A very strong notion of closeness is indistinguishability, as desribed above; the requirement that for every initial
-adversary state, the distributions over the final adversary states and outputs are identical.  This is a lofty goal to
-aspire to, but is often unreachable in practice due to the the adversary being able to guess with odds that are
-slightly better than random chance.  If we can nevertheless bound these odds, we can still quantify the security of the
-scheme in question, despite this security not being perfect.
-
-We therefore also use a weaker notion of closeness, namely an upper bound on the distance between the resulting
-distributions.  We say that two distributions are $\epsilon$-indistinguishable if their distance is at most $\epsilon$.
-We say that two games are $\epsilon$-indistinguishable if the best advantage an adversary can have is at most
-$\epsilon$.  This is known as concrete security, since we give a concrete bound on the chance with which the adversary
-can break the scheme.
-
-The above has the downside that in the case of many schemes, adversaries can be constructed that will win the game with
-arbitrarily high probability.  Nevertheless, these schemes are still secure if we take an asymptotic perspective: by
-letting the scheme depend on some security parameter $n$ and requiring that every adversary's advantage be bounded by a
-vanishing function of $n$, we can be sure that even though any concrete instance of the scheme can be broken by some
-adversary, that adversary cannot break harder versions effectively.  This is typically known as asymptotic security.
-
-Although asymptotic security is a very useful notion, it relies on the adversary being uniform in the choice of $n$,
-which is hard to guarantee in Agda.  Additionally, it may involve restricting the number of operations (of whatever
-kind) that the adversary can make to some polynomial in $n$.  Expressing these properties in Agda is non-trivial, and
-will be a major research point of this thesis.
+\begin{theorem}
+    Given |g :: Game AS A| and |h :: forall as dot Game as B|, |g >> h| is result-indistinguishable from |h|.
+\end{theorem}
 
 \section{Example: One-Time Pad}
 
