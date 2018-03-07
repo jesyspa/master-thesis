@@ -67,8 +67,9 @@ The game, parametrised by the encryption scheme $\sigma = (K, M_p, M_c, e, d)$, 
     \item The challenger encrypts $m_b$ with key $k$ and gives the result, $c = e(k, m_b)$ to the adversary.
     \item The adversary returns $b'$.
 \end{enumerate}
-We say that the adversary \emph{wins} the game iff $b = b'$.  We say that the \emph{EAV-IND$_\sigma$ advantage} of an adversary that wins
-with probability $p$ is $\abs{p-0.5}$.  We may omit the game or encryption scheme when it is clear from the context.
+We say that the adversary \emph{wins} the game iff $b = b'$.  We say that the \emph{EAV-IND$_\sigma$ advantage} of an
+adversary that wins with probability $p$ is $\abs{p-0.5}$.  We may omit the game or encryption scheme when it is clear
+from the context.
 
 It may seem more natural to define the advantage as $p$ or as $p-0.5$.  However, given an adversary |adv| that wins with
 probability $p < 0.5$ we can construct an adversary |adv'| that wins with probability $p' > 0.5$: simply simulate $A$ in
@@ -128,12 +129,27 @@ Both the challenger and the adversary have access to the |flipCoin : Game as Boo
 perform non-deterministic computations.  For convenience, we also assume that there is a |uniform : Int -> Game as
 BitVec| that provides a given number of bits of randomness at once.
 
-\section{Distances Between Games}
+\section{Indistinguishable Games}
 
+\todo{Need a good convention for |as| vs |AS|, etc.}
 So far, we have only defined a syntax for the expression of games.  There is a natural valuation for this syntax in the
 |StateT as Rnd| monad transformer, where |Rnd| is some monad with randomness support (e.g. |Rand StdGen| from
-\texttt{MonadRandom}).  \todo{This feels like too little explanation, but more feels like too much.}  We will use this
-interpretation in order to define a notion of distance between two games.
+\texttt{MonadRandom}).  \todo{This feels like too little explanation, but more feels like too much.}  Given a game of
+type |Game as A| it is thus possible to execute it and obtain some |a| of type |A| as the result. We will use this
+interpretation in order to define two notions of indistinguishability between games.
+
+We say that two games |g0| and |g1| of type |Game AS A| (for some |AS| and |A|) are \emph{result-indistinguishable}
+iff for every initial adversary state and every |a| of type |A|, the probability of |g0| resulting in |a|
+is equal to the probability of |g1| resulting in |a|.  We say that two games are \emph{(strictly) indistinguishable} iff
+for every initial adversary state, every |a| of type |A|, and every |as| of type |AS|, the probability of the adversary
+ending in state |as| with the game resulting in |a| is equal for |g0| and |g1|.
+
+Returning to the previous example, an encryption scheme $\sigma$ is secure against eavesdropping iff |EAV_game sigma
+adv| is result-indistinguishable from |flipCoin| for every adversary |adv|.  However, it would be unreasonable to expect
+|EAV_game sigma adv| to be strictly indistinguishable from |flipCoin|, since |flipCoin| necessarily does not change the
+adversary's state.  The property of strict indistinguishability is nevertheless useful, since substitution of strictly
+indistinguishable terms produces strictly indistinguishable games, while substitution of merely result-indistinguishable
+terms does not necessarily produce result-indistinguishable games.
 
 CLEAN UP FROM THIS POINT
 

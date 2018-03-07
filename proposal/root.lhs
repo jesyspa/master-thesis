@@ -12,6 +12,12 @@
 
 \newcommand{\abs}[1]{\mid\! #1 \!\mid}
 
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+
 \title{Research Proposal: Formalisation of Cryptographic Proofs in Agda}
 \author{By Anton Golov,\\under the supervision of\\Jaap van Oosten, Wouter Swiestra, and Victor Miraldo}
 
