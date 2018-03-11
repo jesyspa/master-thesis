@@ -9,6 +9,7 @@
 
 %include polycode.fmt
 %include agda.lhs
+%include localdefs.lhs
 
 \newcommand{\abs}[1]{\mid\! #1 \!\mid}
 

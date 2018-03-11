@@ -22,34 +22,6 @@ advantage of an encryption scheme is zero, then Eve gains no new information by 
 sent to Bob.  We will then use a sequence of games to demonstrate that such a bound does indeed exist.  This thesis is
 concerned primarily with the second part of the argument, since the first is generally not readily formalisable.
 
-\subsection{Security Levels}
-
-We have mentioned that depending on the requirements of the situation, we may want consider a scheme secure if
-the adversary's advantage is always zero, or if it is bounded by a constant, or if it is bounded by a function vanishing
-asymptotically in some security parameter.  In the discussion of the above games, we omit discussion of this: each of
-the games can have any of these three conditions imposed upon it externally.  In the asymptotic case, we assume that the
-entire construction is parametrised by this parameter.  Simililarly, we can impose polynomiality constraints upon these
-definitions.  In all cases, we express that these bounds are satisfied by saying that the advantage is negligible.
-
-\subsection{Oracles}
-
-We have avoided the discussion of oracles up to this point, since their implementation in Agda is still an open
-question.  However, since oracles play an essential role in the proofs that we will be formalising, we will show several
-uses of them in this chapter.
-
-Simply speaking, an oracle is a stateful function that the adversary gains access to.  The adversary may query the
-oracle, but may not inspect its state.  Furthermore, many proofs rely on counting the number of times an oracle is
-accessed, expressing the advantage in terms of this number to show that if the number of queries is fixed (or
-polynomial) in the security parameter, then by increasing the security parameter we can make the adversary's advantage
-neglegible.
-
-When the oracle is stateless, there should be no difference between giving the adversary access to the oracle and
-passing the oracle function directly to the adversary as a parameter; the latter is simply more convenient from the
-perspective of writing proofs.  If we had chosen to use a deep embedding for computations, we could likely construct
-functions for rewriting adversaries between the oracle-style and the function-passing-style directly.  However, this
-would make games, adversaries, and proofs even more cumbersome to express, and would moreover require proving that the
-adversary cannot take our example and inspect the implementation of the functions it is passed!
-
 \section{Important Games}
 
 There are a number of games which will be running examples in the rest of the presentation.  We will describe them

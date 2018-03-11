@@ -16,6 +16,6 @@ proposal.pdf: proposal.bib proposal.tex
 # 	rm -f *.aux
 # 	rm -f *.pdf
 
-proposal.tex: root.lhs agda.lhs ${CHAPTERS_SRC}
+proposal.tex: root.lhs agda.lhs localdefs.lhs ${CHAPTERS_SRC}
 	lhs2TeX --agda root.lhs -o proposal.tex
 
