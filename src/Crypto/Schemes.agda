@@ -11,5 +11,3 @@ record EncScheme : Set₁ where
     keygen : CryptoExpr Key
     enc    : Key → PT → CryptoExpr CT
     dec    : Key → CT → PT
-
-    correct : ∀{k pt} → return pt ≡ fmap (dec k) (enc k pt)

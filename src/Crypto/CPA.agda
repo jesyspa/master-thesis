@@ -4,14 +4,23 @@ open import ThesisPrelude
 open import Crypto.Syntax
 open import Crypto.Schemes
 open import Crypto.Oracle
+open import Utility.Bool
 
-record CPAAdv (E : EncScheme) : Set₁ where
-  constructor eav-adv
+record SimpleCPAAdv (E : EncScheme) : Set₁ where
+  constructor simple-cpa-adv
   open EncScheme E
   field 
-    STₐ  : Set
-    A₁ : ∀{σ} → Oracle PT CT σ → CE σ (STₐ × PT × PT)
-    A₂ : ∀{σ} → Oracle PT CT σ → STₐ → CT → CE σ Bool
-    -- How about asking the adversary to prove that his
-    -- message is not the encrypted one? 
-    -- ie. defend from bad-events on the type-level!
+    A₁ : CryptoExpr (PT × PT)
+    A₂ : (PT → CryptoExpr CT) → CT → CryptoExpr Bool
+
+IND-CPA : (E : EncScheme)(A : SimpleCPAAdv E) → CryptoExpr Bool 
+IND-CPA E A 
+  = keygen                             >>= λ k 
+  → A₁                                 >>= λ m
+  → coin-expr                          >>= λ b
+  → enc k (if b then fst m else snd m) >>= λ ct
+  → A₂ (enc k) ct                      >>= λ b′ 
+  → return (nxor b b′) 
+  where
+    open EncScheme E
+    open SimpleCPAAdv A

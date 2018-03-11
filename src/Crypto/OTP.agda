@@ -17,7 +17,7 @@ open import Algebra.MonadProps ListDist
 open import Crypto.Valuation ListDist {{DistMonadListDist}}
 open import Crypto.ValuationProps ListDist {{DistMonadListDist}}
 open import Crypto.Schemes
-open import Crypto.SimpleEAV
+open import Crypto.CPA
 open import Probability.Class
 open DistMonad DistMonadListDist
 open DistMonadProps DistMonadPropsListDist
@@ -30,36 +30,11 @@ OTP n = enc-scheme (BitVec n)
                    (uniform-expr n)
                    (λ k pt → return (bitvec-xor k pt) )
                    (λ k ct → bitvec-xor k ct)
-                   (λ {k} {pt} → cong return (bitvec-xor-self-inverse k pt))
 
 
-OTP-is-IND-EAV : ∀{n}(A : SimpleEavAdv (OTP n))
-               → ⟦ simple-IND-EAV (OTP n) A ⟧ ≡D coin
-OTP-is-IND-EAV A = {!!}
+counterexample-proves-not-forall : ∀{l}{A : Set l}(P : A → Set)
+                                 → Σ A (λ a → ¬ P a) → ¬ (∀ a → P a)
+counterexample-proves-not-forall P (a , np) u = np (u a)
 
-OTP-game-2 : ∀{n}(A : SimpleEavAdv (OTP n))
-          → CryptoExpr Bool
-OTP-game-2 {n} A
-  = uniform-expr n  >>= λ xs
-  → coin-expr       >>= λ b
-  → A₂ xs           >>= λ b′
-  → return (nxor b b′)
-  where
-    open SimpleEavAdv A
-
-OTP-game-3 : ∀{n}(A : SimpleEavAdv (OTP n))
-           → CryptoExpr Bool
-OTP-game-3 {n} A
-  = uniform-expr n  >>= λ xs
-  → A₂ xs           >>= λ b′
-  → coin-expr       >>= λ b
-  → return (nxor b b′)
-  where
-    open SimpleEavAdv A
-           
-
-{-
-OTP-game-2-unwinnable : ∀{n}(A : SimpleEavAdv (OTP n))
-                     → negpow2 1 ≡ sample ⟦ OTP-game′ A ⟧ true
-OTP-game-2-unwinnable A = {!!}
--}
+OTP-not-IND-CPA : ∀ n → Σ (SimpleCPAAdv (OTP n)) (λ A → ¬ (coin ≡D ⟦ IND-CPA (OTP n) A ⟧))
+OTP-not-IND-CPA n = (simple-cpa-adv {!!} {!!}) , {!!}
