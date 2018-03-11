@@ -1,5 +1,8 @@
 \chapter{Research Plan}
 
+We have now outlined the results we have obtained from our research so far.  We will conclude the proposal with a
+demonstration of the implementation of the 
+
 In this proposal, we have outlined the research already done and the understanding we have achieved so far.  No less
 significant are the technical results we have so far attained: at the moment of writing, the entirety of the
 introduction has been formalised in Agda, with the exception of a lemma regarding invariance under bind, and the
@@ -16,22 +19,22 @@ record EncScheme : Set1 where
     Key PT CT : Set
     
     keygen : CryptoExpr Key
-    enc : Key → PT → CryptoExpr CT
+    enc : Key -> PT -> CryptoExpr CT
 
-record SimpleEavAdv (E : EncScheme) : Set₁ where
+record SimpleEavAdv (E : EncScheme) : Set1 where
   constructor simple-eav-adv
   open EncScheme E
   field 
-    A₁ : CryptoExpr (PT × PT)
-    A₂ : CT → CryptoExpr Bool
+    A1 : CryptoExpr (PT * PT)
+    A2 : CT -> CryptoExpr Bool
 
 simple-IND-EAV : (E : EncScheme)(A : SimpleEavAdv E) → CryptoExpr Bool 
-simple-IND-EAV E A 
+simple-IND-EAV E A
   =  keygen                              >>= \ k 
-  -> A₁                                  >>= \ m
+  -> A1                                  >>= \ m
   -> coin-expr                           >>= \ b
   -> enc k (if b then fst m else snd m)  >>= \ ct
-  -> A₂ ct                               >>= \ b′ 
+  -> A2 ct                               >>= \ b′ 
   -> return (nxor b b′) 
   where
     open EncScheme E
@@ -40,30 +43,31 @@ simple-IND-EAV E A
 
 We can now define the OTP encryption scheme |OTP : Nat -> Scheme| and construct a term
 \begin{code}
-OTP-is-IND-EAV : ∀{n}(A : SimpleEavAdv (OTP n))
-               → coin ≡D ⟦ simple-IND-EAV (OTP n) A ⟧
+OTP-is-IND-EAV : forall {n}(A : SimpleEavAdv (OTP n))
+               → coin ==D VAL (simple-IND-EAV (OTP n) A)
 \end{code}
 where |≡D| signifies indistinguishability: in other words, we can show that for any value of the security parameter,
 the one time pad has perfect security.  The proof is, unfortunately, rather long: it spans roughly 150 lines and
 contains many steps such as
+ % TODO: Fix formatting here
 \begin{code}
-  ⟦( uniform-expr n  >>= λ k 
-   → A₂ k            >>= λ b′
-   → coin-expr       >>= λ b
-   → return (nxor b b′) )⟧
-    ≡D⟨ cong->>=  (uniform-expr n)
-                  (  λ k   → A₂ k >>=
-                     λ b′  → coin-expr >>=
-                     λ b   → return (nxor b b′))
-                  (  λ k   → coin-expr >>=
-                     λ b   → A₂ k >>=
-                     λ b′  → return (nxor b b′))
-                  (  λ k   → interchange-interpretation (A₂ k) coin-expr
-                               (λ b′ b → return (nxor b b′))) ⟩
-  ⟦( uniform-expr n    >>= λ k
-   → coin-expr         >>= λ b
-   → A₂ k              >>= λ b′
-   → return (nxor b b′) )⟧
+  (   uniform-expr n  >>= \ k 
+   ->  A2 k            >>= \ b′
+   ->  coin-expr       >>= \ b
+   ->  return (nxor b b′) )
+    ==D cong->>=  (uniform-expr n)
+                  (  \ k   -> A2 k >>=
+                     \ b′  -> coin-expr >>=
+                     \ b   -> return (nxor b b′))
+                  (  \ k   -> coin-expr >>=
+                     \ b   -> A₂ k >>=
+                     \ b′  -> return (nxor b b′))
+                  (  \ k   -> interchange-interpretation (A2 k) coin-expr
+                               (\ b′ b -> return (nxor b b′))) ⟩
+  (  uniform-expr n      >>= \ k
+   ->    coin-expr           >>= \ b
+   ->    A2 k                >>= \ b′
+   ->    return (nxor b b′) )
 \end{code}
 
 This step argues that the game at the top is equivalent to the game at the bottom, since it is merely an interchange of

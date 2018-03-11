@@ -174,6 +174,7 @@
 %format Fin    = "\F{Fin}"
 %format Dec    = "\F{Dec}"
 %format ==     = "\F{$\equiv$}"
+%format ==D    = "\F{$\equiv^D$}"
 %format =?=    = "\F{$\deceq$}"
 %format =~=    = "\F{$\cong$}"
 %format Unit   = "\F{Unit}"
@@ -237,6 +238,7 @@
 %format dot             = ".\,"
 
 %format (SPLIT (a) (b)) = "\langle {" a "} , {" b "} \rangle"
+%format (VAL (a)) = "\llbracket {" a "} \rrbracket"
 
 %% Useful symbols
 %format cdots     = "\cdots"
