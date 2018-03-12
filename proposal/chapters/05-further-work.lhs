@@ -110,6 +110,62 @@ using the monad laws to reassociate the game into
 \end{code}
 where we can use irrelevance to eliminate all of the previous steps at once.
 
+\subsection{CPA Example}
+
+In the introduction, we showed that OTP is EAV-secure but not CPA-secure.  It would be nice to replicate the second
+result formally as well.  We can come a considerable way in formulating it.  The definition of an encryption scheme
+remains unchanged.  The adversary and game can be defined as follows:
+\begin{code}
+record SimpleCPAAdv (E : EncScheme) : Set1 where
+  constructor simplecpaadv
+  open EncScheme E
+  field 
+    A1  : CryptoExpr (PT * PT)
+    A2  : (PT * PT)
+        -> (PT -> CryptoExpr CT)
+        -> CT
+        -> CryptoExpr Bool
+
+simpleINDCPA : (E : EncScheme)(A : SimpleCPAAdv E) -> CryptoExpr Bool 
+simpleINDCPA E A 
+  = keygen                               >>= \ k 
+  -> A1                                  >>= \ m
+  -> coin-expr                           >>= \ b
+  -> enc k (if b then fst m else snd m)  >>= \ ct
+  -> A2 m (enc k) ct                     >>= \ b' 
+  -> return (nxor b b') 
+  where
+    open EncScheme E
+    open SimpleCPAAdv A
+\end{code}
+Here we still do not use adversary state, but pass the messages chosen by the advesrary when we ask it to identify the
+plaintext that corresponds to the ciphertext.  
+
+We can also express the adversary that has non-zero advantage in this game:
+%{
+%format gen = "\F{adv-gen}"
+%format decide = "\F{adv-decide}"
+%format adversary = "\F{adversary}"
+%format replicatebv = "\F{replicate-bv}"
+\begin{code}
+gen : forall n -> CryptoExpr (BitVec n * BitVec n)
+gen n = return (replicatebv n false , replicatebv n true) 
+decide  : forall n
+        -> (BitVec n * BitVec n)
+        -> (BitVec n -> CryptoExpr (BitVec n))
+        -> BitVec n
+        -> CryptoExpr Bool
+decide n (m0 , m1) o ct = fmap (\ ct' -> (eq ct ct')) (o m1)
+adversary : forall n -> SimpleCPAAdv (OTP n)
+adversary n = simplecpaadv (gen n) (decide n)
+\end{code}
+%}
+
+We would like to show that for all $n > 0$\footnote{If $n = 0$ then the type of plaintext messages is a singleton; it is
+thus indeed impossible to distinguish between any two messages, simply because they are necessarily the same message.}
+that there is some |b : Bool| such that |sample faircoin b| (i.e. $\frac 1 2$) is unequal to |sample (VAL (simpleINDCPA
+(OTP n) (adversary n))) b|.
+
 \section{Further Work}
 
 Although the system developed so far can already be used to express non-trivial results like the OTP proof above,
@@ -123,9 +179,11 @@ In practice, many cryptographical algorithms lack perfect security but are never
 useful.  We can express weaker notions of security by relaxing the requirement of indistinguishability or by requiring
 that the result only hold for a particular class of adversaries.
 
-The notion of indistinguishability we use now states that two games |G1|, |G2| with outcomes of type |A| are
-indistinguishable iff for every |a : A| the probability of sampling |a| from |G1| is equal to the probability of
-sampling |a| from |G2|.
+The notion of indistinguishability we use now states (ignoring adversary state) that two games |G1|, |G2| with outcomes
+of type |A| are indistinguishable iff for every |a : A| the probability of sampling |a| from |G1| (|sample G1 a|) is
+equal to |sample G2 a|.  We can introduce a weaker notion requiring that for every |a : A|, we have $\abs{|sample G1 a|
+- |sample G2 a|} < \epsilon$; the problem is that it is not immediate that this notion offers the kind of rewriting
+  properties that indistinguishability gives us. 
 
 We have mentioned that depending on the requirements of the situation, we may want consider a scheme secure if
 the adversary's advantage is always zero, or if it is bounded by a constant, or if it is bounded by a function vanishing
