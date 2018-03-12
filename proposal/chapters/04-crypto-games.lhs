@@ -33,7 +33,7 @@ the necessity of (stateful) oracles and
 The simplest form of game is one where given two classes $X$ and $Y$ of objects of the same type |T|, the
 advantage of an adversary |A : T -> Bool| is
 \[
-    |\mathbb{P}_{x \in X}[ A x ] - \mathbb{P}_{y \in Y}[ A y ]|.
+    \abs{\mathbb{P}_{x \in X}[ A x ] - \mathbb{P}_{y \in Y}[ A y ]}.
 \]
 
 We say that the classes $X$ and $Y$ are indistinguishable if the advantage is negligible.
@@ -41,7 +41,7 @@ We say that the classes $X$ and $Y$ are indistinguishable if the advantage is ne
 A minor variation on this game is when |T| is a function type, and instead of giving it as a parameter we provide it to
 the adversary as an oracle:
 \[
-    |\mathbb{P}_{f \in X}[ A^f ] - \mathbb{P}_{g \in Y}[ A^g ]|.
+    \abs{\mathbb{P}_{f \in X}[ A^f ] - \mathbb{P}_{g \in Y}[ A^g ]}.
 \]
 
 The adversary then is a parameterless probabilistic computation, which may call the oracle.  As we have said above, this
@@ -58,14 +58,14 @@ The challenger possesses a key generation function and an encryption function.  
 takes two messages $(m_0, m_1)$ from the adversary, flips a coin with result $b$, encrypts $m_b$ with $k$, and gives the
 result $c$ to the adversary.  The adversary returns a boolean $b'$.  The adversary's advantage is
 \[
-    |\mathbb{P}[ b = b' ] - \mathbb{P}[ b ]|.
+    \abs{\mathbb{P}[ b = b' ] - \mathbb{P}[ b ]}.
 \]
 
 In other words, the advantage is how much better the adversary can do than random chance.
 
-We can regard the eavesdropper attack as a variation on the indistinguishibilty game where the adversary may choose two
+We can regard the eavesdropper attack as a variation on the indistinguishability game where the adversary may choose two
 `seed' messages $(m_0, m_1)$ that give rise to the classes $E(m_1)$ and $E(m_2)$, consisting of ciphertexts of $m_0$ and
-$m_1$.  The adversary advantage is the advantage the adversary has playing the indistinguishibility game between
+$m_1$.  The adversary advantage is the advantage the adversary has playing the indistinguishability game between
 $X = E(m_0)$ and $Y = E(m_1)$.
 
 \subsection{Chosen-Plaintext Attack}

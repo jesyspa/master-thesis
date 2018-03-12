@@ -15,8 +15,6 @@ Due to limitations of the implementation, the proof we present here does not all
 will later discuss the consequences of this.
 
 We can define the notions of an encryption scheme and adversary as follows, together with the game that will be played:
-%format simpleeavadv = "\F{simple-eav-adv}"
-%format simpleINDEAV = "\F{simple-IND-EAV}"
 \begin{code}
 record EncScheme : Set1 where
   constructor encscheme
@@ -39,8 +37,8 @@ simpleINDEAV E A
   -> A1                                  >>= \ m
   -> coinexpr                            >>= \ b
   -> enc k (if b then fst m else snd m)  >>= \ ct
-  -> A2 ct                               >>= \ b′ 
-  -> return (nxor b b′) 
+  -> A2 ct                               >>= \ b' 
+  -> return (eq b b') 
   where
     open EncScheme E
     open SimpleEavAdv A
@@ -57,25 +55,24 @@ OTPisINDEAV  : forall {n}(A : SimpleEavAdv (OTP n))
 where |==D| signifies indistinguishability\todo{This should come in an earlier chapter}: in other words, we can show
 that for any value of the security parameter, the one time pad has perfect security.  The proof is, unfortunately,
 rather long: it spans roughly 150 lines and contains many steps such as
- % TODO: Fix formatting here
 \begin{code}
    lbracket  uniformexpr n  >>= \ k 
    ->        A2 k           >>= \ b'
    ->        coinexpr       >>= \ b
-   ->        return (nxor b b') rbracket
+   ->        return (eq b b') rbracket
     ==D congbind  (uniformexpr n)
                   (  \ k   -> A2 k      >>=
                      \ b'  -> coinexpr  >>=
-                     \ b   -> return (nxor b b'))
+                     \ b   -> return (eq b b'))
                   (  \ k   -> coinexpr  >>=
                      \ b   -> A₂ k      >>=
-                     \ b'  -> return (nxor b b'))
-                  (  \ k   -> interchange-interpretation (A2 k) coinexpr
-                               (\ b' b -> return (nxor b b'))) ⟩
+                     \ b'  -> return (eq b b'))
+                  (  \ k   -> interchangeinterpretation (A2 k) coinexpr
+                               (\ b' b -> return (eq b b'))) ⟩
   (    uniformexpr n      >>= \ k
    ->  coinexpr           >>= \ b
    ->  A2 k               >>= \ b'
-   ->  return (nxor b b') )
+   ->  return (eq b b') )
 \end{code}
 
 This step argues that the game at the top is equivalent to the game at the bottom, since it is merely an interchange of
@@ -115,9 +112,20 @@ where we can use irrelevance to eliminate all of the previous steps at once.
 
 \section{Further Work}
 
-
+Although the system developed so far can already be used to express non-trivial results like the OTP proof above,
+considerable work must still be done in order to be able to prove more complex properties.  There are three points on
+which we will need to focus in particular, namely sub-perfect security, adversaries with oracle access, and proof
+automation.
 
 \subsection{Security Levels}
+
+In practice, many cryptographical algorithms lack perfect security but are nevertheless interesting and practically
+useful.  We can express weaker notions of security by relaxing the requirement of indistinguishability or by requiring
+that the result only hold for a particular class of adversaries.
+
+The notion of indistinguishability we use now states that two games |G1|, |G2| with outcomes of type |A| are
+indistinguishable iff for every |a : A| the probability of sampling |a| from |G1| is equal to the probability of
+sampling |a| from |G2|.
 
 We have mentioned that depending on the requirements of the situation, we may want consider a scheme secure if
 the adversary's advantage is always zero, or if it is bounded by a constant, or if it is bounded by a function vanishing

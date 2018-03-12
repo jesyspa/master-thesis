@@ -93,9 +93,24 @@ Computations performed by the encryption scheme and adversary are given as param
 following code:
 %{
 %format :: = "::"
-%format EAV_Adversary = "EAV\hspace{-0.2em}\_Adversary"
-%format EAV_game = "EAV\hspace{-0.2em}\_game"
 %format comma = "\hspace{-0.3em},"
+
+%format BitVector = "\D{BitVector}"
+%format EAV_Adversary = "\D{EAV\hspace{-0.2em}\_Adversary}"
+%format Game = "\D{Game}"
+%format generateKey = "\RF{generateKey}"
+%format encrypt = "\RF{encrypt}"
+%format chooseMessages = "\RF{chooseMessages}"
+%format chooseOutcome = "\RF{chooseOutcome}"
+
+%format eav_game = "\F{eav\hspace{-0.2em}\_game}"
+%format generateKeyOTP = "\F{generateKeyOTP}"
+%format encryptOTP = "\F{encryptOTP}"
+%format otp_game = "\F{otp\_game}"
+
+%format flipCoin = "\F{flipCoin}"
+%format uniform = "\F{uniform}"
+
 \begin{code}
 data EncScheme key pt ct = EncScheme
   { forall as dot generateKey  ::               Game as key
@@ -107,16 +122,15 @@ data EAV_Adversary as pt ct = EAV_Adversary
   , chooseOutcome   :: ct ->  Game as Bool
   }
 
-EAV_game :: EncScheme key pt ct -> EAV_Adversary as pt ct -> Game as Bool
-EAV_game enc adv = do
+eav_game :: EncScheme key pt ct -> EAV_Adversary as pt ct -> Game as Bool
+eav_game enc adv = do
     k              <- generateKey enc
     (m0 comma m1)  <- chooseMessages adv
     b              <- flipCoin
     m'             <- encrypt enc k (if b then m1 else m0)
     b'             <- chooseOutcome adv m'
-    return (b == b')
+    return (eq b b')
 \end{code}
-%}
 
 The adversary state |as| is not used directly in this code, but we assume the adversary can put and get values of type
 |as| as a monadic action, similarly to the |State as| monad.  We can thus imagine that the adversary may store the two
@@ -198,11 +212,11 @@ flip:
 otp_game :: Int -> Adversary as pt ct -> Game as Bool
 otp_game n adv = do
     k <- generateKeyOTP n
-    (m0, m1) <- chooseMessages adv
+    (m0 comma m1) <- chooseMessages adv
     b <- flipCoin
     m' <- encryptOTP k (if b then m1 else m0)
     b' <- chooseOutcome adv m'
-    return (b == b')
+    return (eq b b')
 \end{code}
 
 Note that we know that |genearteKeyOTP| and |encryptOTP| do not access the adversary's state, and so the choice of |k| is
@@ -210,12 +224,12 @@ independent of the choices of |m0|, |m1|, and |b|.  We can thus rewrite the game
 \begin{code}
 otp_game1 :: Int -> Adversary as pt ct -> Game as Bool
 otp_game1 n adv = do
-    (m0, m1) <- chooseMessages adv
+    (m0 comma m1) <- chooseMessages adv
     b <- flipCoin
     m' <- (if b then generateKeyOTP n >>= \k -> encryptOTP k m0
                 else generateKeyOTP n >>= \k -> encryptOTP k m1)
     b' <- chooseOutcome adv m'
-    return (b == b')
+    return (eq b b')
 \end{code}
 
 Inspecting the definitions of |generateKeyOTP| and |encryptOTP|, we see that the first generates a uniform distribution
@@ -223,12 +237,12 @@ and the second performs a XOR.  We can thus rewrite this game to be:
 \begin{code}
 otp_game2 :: Int -> Adversary as pt ct -> Game as Bool
 otp_game2 n adv = do
-    (m0, m1) <- chooseMessages adv
+    (m0 comma m1) <- chooseMessages adv
     b <- flipCoin
     m' <- (if b then fmap (\k -> xor k m0) (uniform n)
                 else fmap (\k -> xor k m1) (uniform n))
     b' <- chooseOutcome adv m'
-    return (b == b')
+    return (eq b b')
 \end{code}
 
 The uniform distribution over bitstrings of length |n| is invariant under XOR with another bitstring of length |n|,
@@ -237,22 +251,22 @@ gives us the following game:
 \begin{code}
 otp_game3 :: Int -> Adversary as pt ct -> Game as Bool
 otp_game3 n adv = do
-    (m0, m1) <- chooseMessages adv
+    (m0 comma m1) <- chooseMessages adv
     b <- flipCoin
     m' <- uniform n
     b' <- chooseOutcome adv m'
-    return (b == b')
+    return (eq b b')
 \end{code}
 
 Since |m'| no longer depends on |b|, we can reorder the game to be:
 \begin{code}
 otp_game4 :: Int -> Adversary as pt ct -> Game as Bool
 otp_game4 n adv = do
-    (m0, m1) <- chooseMessages adv
+    (m0 comma m1) <- chooseMessages adv
     m' <- uniform n
     b' <- chooseOutcome adv m'
     b <- flipCoin
-    return (b == b')
+    return (eq b b')
 \end{code}
 
 In this game, |b| is generated once |b'| is fixed; thus |b == b'| is either |b| or |not b|.  Since |fmap not flipCoin|
@@ -267,7 +281,7 @@ used by the challenger.  This is known as the Chosen-Plaintext Attack.  In this 
 encrypted message as the input to |chooseOutcome|, but also the encryption function itself.
 \begin{code}
 data CPA_Adversary as pt ct  = CPA_Adversary
-                             { chooseMessages  :: Game as (pt, pt)
+                             { chooseMessages  :: Game as (pt comma pt)
                              , chooseOutcome   :: ct
                                                -> (pt -> Game s ct)
                                                -> Game as Bool
@@ -276,34 +290,35 @@ data CPA_Adversary as pt ct  = CPA_Adversary
 otp_cpa_game :: Int -> CPA_Adversary as pt ct -> Game as Bool
 otp_cpa_game n adv = do
     k <- generateKeyOTP n
-    (m0, m1) <- chooseMessages adv
+    (m0 comma m1) <- chooseMessages adv
     b <- flipCoin
     m' <- encryptOTP k (if b then m1 else m0)
     b' <- chooseOutcome adv m' (encryptOTP k)
-    return (b == b')
+    return (eq b b')
 \end{code}
 
 Since the |encrypt| function of OTP is at once its |decrypt| function, it is clear that the adversary can simply apply
 it to |m'| and return the correct value.  We can express this in code as follows, with the |Int| parameter being the
 security parameter used for the game:
 \begin{code}
-    otp_cpa_adv_cm :: Int -> Game (BitVector, BitVector) (BitVector, BitVector)
+    otp_cpa_adv_cm :: Int -> Game (BitVector comma BitVector) (BitVector comma BitVector)
     otp_cpa_adv_cm n = do
         m0 <- uniform n
         m1 <- uniform n
-        putAdvState (m0, m1)
-        return (m0, m1)
+        putAdvState (m0 comma m1)
+        return (m0 comma m1)
 
     otp_cpa_adv_co :: BitVector
-                   -> (BitVector -> Game (BitVector, BitVector) BitVector)
-                   -> Game (BitVector, BitVector) Bool
+                   -> (BitVector -> Game (BitVector comma BitVector) BitVector)
+                   -> Game (BitVector comma BitVector) Bool
     otp_cpa_adv_co m' enc = do
-        (m0, m1) <- getAdvState
-        putAdvState (empty, empty)
-        return (enc m1 == m')
+        (m0 comma m1) <- getAdvState
+        putAdvState (empty comma empty)
+        return (eq (enc m1) m')
 \end{code}
+%}
 
-The |putAdvState (empty, empty)| line is necessary to satisfy our guarantee that the initial adversary state is equal to
+The |putAdvState (empty comma empty)| line is necessary to satisfy our guarantee that the initial adversary state is equal to
 the final adversary state.  For the rest, the algorithm is straightforward.  A more interesting question, however, is
 where the proof we provided for the Eavesdropper case breaks down.
 
