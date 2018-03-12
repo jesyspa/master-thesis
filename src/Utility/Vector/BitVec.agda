@@ -31,6 +31,10 @@ bitvec-xor-Bij : ∀{n} → (xs : BitVec n)
                → Bijective (bitvec-xor xs)
 bitvec-xor-Bij xs = bitvec-xor xs , bitvec-xor-self-inverse xs , bitvec-xor-self-inverse xs
 
+replicate-bv : ∀ n → Bool → BitVec n
+replicate-bv zero b = []
+replicate-bv (suc n) b = b ∷ replicate-bv n b
+
 all-bitvecs : ∀ n → List (BitVec n)
 all-bitvecs zero = [ [] ]
 all-bitvecs (suc n) = map (_∷_ false) (all-bitvecs n) ++ map (_∷_ true) (all-bitvecs n)

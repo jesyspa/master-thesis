@@ -11,15 +11,15 @@ record SimpleCPAAdv (E : EncScheme) : Set₁ where
   open EncScheme E
   field 
     A₁ : CryptoExpr (PT × PT)
-    A₂ : (PT → CryptoExpr CT) → CT → CryptoExpr Bool
+    A₂ : (PT × PT) → (PT → CryptoExpr CT) → CT → CryptoExpr Bool
 
 IND-CPA : (E : EncScheme)(A : SimpleCPAAdv E) → CryptoExpr Bool 
 IND-CPA E A 
-  = keygen                             >>= λ k 
-  → A₁                                 >>= λ m
-  → coin-expr                          >>= λ b
-  → enc k (if b then fst m else snd m) >>= λ ct
-  → A₂ (enc k) ct                      >>= λ b′ 
+  = keygen                              >>= λ k 
+  → A₁                                  >>= λ m
+  → coin-expr                           >>= λ b
+  → enc k (if b then fst m else snd m)  >>= λ ct
+  → A₂ m (enc k) ct                     >>= λ b′ 
   → return (nxor b b′) 
   where
     open EncScheme E
