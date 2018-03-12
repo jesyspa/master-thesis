@@ -112,9 +112,10 @@ where we can use irrelevance to eliminate all of the previous steps at once.
 
 \subsection{CPA Example}
 
-In the introduction, we showed that OTP is EAV-secure but not CPA-secure.  It would be nice to replicate the second
-result formally as well.  We can come a considerable way in formulating it.  The definition of an encryption scheme
-remains unchanged.  The adversary and game can be defined as follows:
+In the introduction, we showed that OTP is EAV-secure but not CPA-secure.  We have not been able to reproduce it in Agda
+in its entirety, but the proof techniques we have at the moment are sufficient to demonstrate it.  We will now outline
+how this can be done.  The definition of an encryption scheme remains unchanged.  The adversary and game can be defined
+as follows:
 \begin{code}
 record SimpleCPAAdv (E : EncScheme) : Set1 where
   constructor simplecpaadv
@@ -130,10 +131,10 @@ simpleINDCPA : (E : EncScheme)(A : SimpleCPAAdv E) -> CryptoExpr Bool
 simpleINDCPA E A 
   = keygen                               >>= \ k 
   -> A1                                  >>= \ m
-  -> coin-expr                           >>= \ b
+  -> coinexpr                            >>= \ b
   -> enc k (if b then fst m else snd m)  >>= \ ct
   -> A2 m (enc k) ct                     >>= \ b' 
-  -> return (nxor b b') 
+  -> return (eq b b') 
   where
     open EncScheme E
     open SimpleCPAAdv A
@@ -149,13 +150,13 @@ We can also express the adversary that has non-zero advantage in this game:
 %format replicatebv = "\F{replicate-bv}"
 \begin{code}
 gen : forall n -> CryptoExpr (BitVec n * BitVec n)
-gen n = return (replicatebv n false , replicatebv n true) 
+gen n = return (replicatebv n true , replicatebv n false) 
 decide  : forall n
         -> (BitVec n * BitVec n)
         -> (BitVec n -> CryptoExpr (BitVec n))
         -> BitVec n
         -> CryptoExpr Bool
-decide n (m0 , m1) o ct = fmap (\ ct' -> (eq ct ct')) (o m1)
+decide n (m0 , m1) o ct = fmap (\ ct' -> (eq ct ct')) (o m0)
 adversary : forall n -> SimpleCPAAdv (OTP n)
 adversary n = simplecpaadv (gen n) (decide n)
 \end{code}
@@ -163,8 +164,26 @@ adversary n = simplecpaadv (gen n) (decide n)
 
 We would like to show that for all $n > 0$\footnote{If $n = 0$ then the type of plaintext messages is a singleton; it is
 thus indeed impossible to distinguish between any two messages, simply because they are necessarily the same message.}
-that there is some |b : Bool| such that |sample faircoin b| (i.e. $\frac 1 2$) is unequal to |sample (VAL (simpleINDCPA
+that there is some |b : Bool| such that |sample coin b| (i.e. $\frac 1 2$) is unequal to |sample (VAL (simpleINDCPA
 (OTP n) (adversary n))) b|.
+
+We can rewrite |VAL (simpleINDCPA (OTP n) (adversary n))| usign already considered techniques, resulting in the
+following game:
+\begin{code}
+    coinexpr >>= \ b -> return (eq b (eq tv (if b then tv else fv)))
+\end{code}
+where |tv| is the bit vector with all elements |true| and |fv| the bit vector with all elements |false|.
+
+At this point, we need an additional lemma: that if |fv| and |tv| are distinct, then |eq fv (if b then fv else tv)| is
+|b|.  This is provable by pattern matching on |b|, and gives us the game
+\begin{code}
+    coinexpr >>= \ b -> return (eq b b)
+\end{code}
+
+Since we can show that |forall b -> ((eq b b)) == true|, we can use irrelevant to reduce this to |return true|.  The
+problem thus becomes showing that |coin| and |return true| are not indistinguishable.\todo{We need to mention this
+is a required property of distributions earlier.}  It is a fundamental property of distributions that |coin| is
+distinguishable from |return b| for any |b : Bool|, giving the desired result.
 
 \section{Further Work}
 
@@ -182,7 +201,7 @@ that the result only hold for a particular class of adversaries.
 The notion of indistinguishability we use now states (ignoring adversary state) that two games |G1|, |G2| with outcomes
 of type |A| are indistinguishable iff for every |a : A| the probability of sampling |a| from |G1| (|sample G1 a|) is
 equal to |sample G2 a|.  We can introduce a weaker notion requiring that for every |a : A|, we have $\abs{|sample G1 a|
-- |sample G2 a|} < \epsilon$; the problem is that it is not immediate that this notion offers the kind of rewriting
+- |sample G2 a|} \mathbin{<} \epsilon$; the problem is that it is not immediate that this notion offers the kind of rewriting
   properties that indistinguishability gives us. 
 
 We have mentioned that depending on the requirements of the situation, we may want consider a scheme secure if

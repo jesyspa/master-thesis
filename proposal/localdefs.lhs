@@ -22,9 +22,13 @@
 
 %% Games
 %format G1           = "G\textsubscript{1}"
-%format G2           = "G\textsubscript{1}"
+%format G2           = "G\textsubscript{2}"
 %format simpleINDEAV = "\F{simple-IND-EAV}"
 %format simpleINDCPA = "\F{IND-CPA}"
+
+%% Dist features
+%format coin = "\F{coin}"
+%format uniform = "\F{uniform}"
 
 %% Helper functions
 %format sample                    = "\F{sample}"
