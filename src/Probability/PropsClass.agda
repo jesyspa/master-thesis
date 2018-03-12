@@ -15,6 +15,7 @@ record ProbabilityProps : Set where
     overlap {{poprops}} : PreorderProps A
   open SemiringProps srprops
   field
+    non-trivial         : ¬(zro ≡ one as A)
     *-comm              : (a b : A) → a * b ≡ b * a
     embed-zero          : zro ≡ embed 0
     embed-succ          : ∀ n → one + embed n ≡ embed (suc n)

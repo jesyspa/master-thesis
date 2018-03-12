@@ -50,6 +50,7 @@ record DistMonadProps : Set₂ where
     interchange : ∀{A B C}{{_ : Eq C}}(DA : F A)(DB : F B)
                    (f : A → B → F C)
                 → (DA >>= λ a → DB >>= f a) ≡D (DB >>= λ b → DA >>= λ a → f a b)
+    uniform-not-return : ∀ n v → ¬(n ≡ 0) → ¬(uniform n ≡D return v)
 
   sample-invariant-at : ∀{A}{{_ : Eq A}}{D₁ D₂ : F A} → (a : A) → D₁ ≡D D₂ → sample D₁ a ≡ sample D₂ a
   sample-invariant-at = flip sample-invariant

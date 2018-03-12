@@ -116,6 +116,9 @@ module _ {{PPQ : ProbabilityProps}} where
       ≡⟨ sample-invariant-LD (>>=-D-inv-normal-LD ys f) b ⟩ʳ
     sample-LD (ys >>= f) b
     ∎
+
+  uniform-not-return-LD : ∀ n (v : BitVec n) → ¬(n ≡ 0) → ¬(uniform-LD n ≡LD return v)
+  uniform-not-return-LD n v ne p = {!!}
                
   open import Distribution.PropsClass ListDist
   
@@ -133,4 +136,6 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; interchange = interchange-LD
                                ; >>=-D-ext = >>=-D-ext-LD
                                ; >>=-D-inv = >>=-D-inv-LD
+                               ; uniform-not-return = {!!}
                                }
+

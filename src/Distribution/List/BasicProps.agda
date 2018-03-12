@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import Probability.Class using (Probability)
 module Distribution.List.BasicProps (Q : Set) {{PQ : Probability Q}} where
 
