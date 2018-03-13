@@ -212,24 +212,37 @@ However, with further research, we may be able to bound the number of oracle que
 
 \subsection{Oracles}
 
-We have avoided the discussion of oracles up to this point, since their implementation in Agda is still an open
-question.  However, since oracles play an essential role in the proofs that we will be formalising, we will show several
-uses of them in this chapter.
+As seen in chapter~\ref{chp:games}\todo{Do this}, oracles allow for the introduction of additional actors into our game
+between challenger and adversary.  The challenger sets up a number of oracles, which the adversary can then query for
+advice.  A simple example is an encryption oracle, which is given the key by the challenger and applies the encryption
+function to strings that the adversary passes to it.
 
-Simply speaking, an oracle is a stateful function that the adversary gains access to.  The adversary may query the
-oracle, but may not inspect its state.  Furthermore, many proofs rely on counting the number of times an oracle is
-accessed, expressing the advantage in terms of this number to show that if the number of queries is fixed (or
-polynomial) in the security parameter, then by increasing the security parameter we can make the adversary's advantage
-neglegible.
+The above description opens up a very wide design space, where we hope to strike a balance between power and simplicity.
+In the simplest case, an oracle can be regarded as a stateful function that the adversary can invoke, but whose state he
+cannot access.  However, we may eventually want to provide multiple ways to query the same state, or to change the type
+of the state in response to a query.  With sufficient generality, we could regard the adversary as a special case of an
+oracle and thereby allow for multiple adversaries.  Such features, unfortunately, come with a cost both in
+implementation time and often in the complexity of the resulting game descriptions.
 
-When the oracle is stateless, there should be no difference between giving the adversary access to the oracle and
-passing the oracle function directly to the adversary as a parameter; the latter is simply more convenient from the
-perspective of writing proofs.  If we had chosen to use a deep embedding for computations, we could likely construct
-functions for rewriting adversaries between the oracle-style and the function-passing-style directly.  However, this
-would make games, adversaries, and proofs even more cumbersome to express, and would moreover require proving that the
-adversary cannot take our example and inspect the implementation of the functions it is passed!
+Additionally, regardless of the specifics, oracles present some practical challenges.  Oracles may have state that the
+adversary may not access.  We hope to be able to achieve this effect with parametricity, but this is typically not
+provable within Agda and must thus be assumed.
 
-% OLD:
+Furthermore, many proofs rely on the adversary performing some fixed number of non-repeating queries to an oracle, often
+before any other computation is performed.  Due to the monadic structure of our code, it is not even obvious that the
+number of queries an adversary performs must be bounded, and there is no easy way to restructure the code of the
+adversary.  These problems might be possible to address by modifying the adversary (for example, tracking adversary
+queries and giving the previous response if the request has already been made previously), but it may also be necessary
+to in some cases prove some claims externally (e.g. that adversaries can be rewritten in a given form) and then
+postulate their formulations in Agda.
+
+\subsection{Proof Automation}
+
+Proofs are awful.  Let's automate them.  Problem: Agda reflection is not very stable.  Well, really, this is two
+problems: a solver for game descriptions, and a way of getting them efficiently.  We'd love to do the latter, but we're
+afraid reflection may change and then we'll be back to square one.  Part one can definitely be done nicely, though.
+
+%%%%%
 
 In the remainder of the time available, we intend to in any case achieve the following:
 \begin{itemize}
