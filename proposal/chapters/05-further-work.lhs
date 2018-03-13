@@ -198,18 +198,17 @@ In practice, many cryptographical algorithms lack perfect security but are never
 useful.  We can express weaker notions of security by relaxing the requirement of indistinguishability or by requiring
 that the result only hold for a particular class of adversaries.
 
-The notion of indistinguishability we use now states (ignoring adversary state) that two games |G1|, |G2| with outcomes
-of type |A| are indistinguishable iff for every |a : A| the probability of sampling |a| from |G1| (|sample G1 a|) is
-equal to |sample G2 a|.  We can introduce a weaker notion requiring that for every |a : A|, we have $\abs{|sample G1 a|
-- |sample G2 a|} \mathbin{<} \epsilon$; the problem is that it is not immediate that this notion offers the kind of rewriting
-  properties that indistinguishability gives us. 
+In the examples so far, we said that a game was unwinnable if the advantage of every adversary was exactly zero.  We can
+weaken this statement by only requiring that the advantage by bounded by some $\epsilon$ (possibly dependent on the
+security parameter).  Unfortunately, while this change is simple at the level of games, proving results in this new
+setting requires a weaker notion than strict indistinguishability.  Further research is needed to find what the
+appropriate notion is.
 
-We have mentioned that depending on the requirements of the situation, we may want consider a scheme secure if
-the adversary's advantage is always zero, or if it is bounded by a constant, or if it is bounded by a function vanishing
-asymptotically in some security parameter.  In the discussion of the above games, we omit discussion of this: each of
-the games can have any of these three conditions imposed upon it externally.  In the asymptotic case, we assume that the
-entire construction is parametrised by this parameter.  Simililarly, we can impose polynomiality constraints upon these
-definitions.  In all cases, we express that these bounds are satisfied by saying that the advantage is negligible.
+The other way in which security can be relaxed is by only considering adversaries that satisfy particular properties;
+typically, that the amount of computation of number of queries that the adversary does is bounded by a polynomial in the
+security parameter.  Since we have chosen to avoid a deep embedding\todo{Discuss this earlier}, it is unlikely that we
+will be able to bound the amount of computation, since we cannot inspect how much computation an Agda function performs.
+However, with further research, we may be able to bound the number of oracle queries that the adversary performs.
 
 \subsection{Oracles}
 
