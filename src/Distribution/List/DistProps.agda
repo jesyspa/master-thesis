@@ -117,8 +117,38 @@ module _ {{PPQ : ProbabilityProps}} where
     sample-LD (ys >>= f) b
     ∎
 
+  return-certain-LD : ∀{A}{{_ : Eq A}}(a : A) → sample-LD (return a) a ≡ one
+  return-certain-LD a rewrite yes-refl a = sym (singleton-sum-id one)
+
   uniform-not-return-LD : ∀ n (v : BitVec n) → ¬(n ≡ 0) → ¬(uniform-LD n ≡LD return v)
-  uniform-not-return-LD n v ne p = {!!}
+  uniform-not-return-LD n v ne p with embed-Inj (embed-one ʳ⟨≡⟩ lem2)
+    where
+      lem : negpow2 n ≡ one
+      lem =
+        negpow2 n
+          ≡⟨ uniform-LD-is-uniform n v ⟩
+        sample-LD (uniform-LD n) v
+          ≡⟨ sample-invariant-LD p v ⟩
+        sample-LD (return v) v
+          ≡⟨ return-certain-LD v ⟩
+        one
+        ∎
+      lem2 : one ≡ embed (pow2 n)
+      lem2 =
+        one
+          ≡⟨ pow2-negpow2-cancel n ⟩
+        embed (pow2 n) * negpow2 n
+          ≡⟨ cong (_*_ (embed (pow2 n))) lem ⟩
+        embed (pow2 n) * one
+          ≡⟨ *-unit-right (embed (pow2 n)) ⟩ʳ
+        embed (pow2 n)
+        ∎
+  ... | z = ne lem3
+    where
+      lem3 : n ≡ 0
+      lem3 with n
+      ... | zero = ?
+      ... | suc k = ?
                
   open import Distribution.PropsClass ListDist
   
@@ -131,11 +161,12 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; uniform-bijection-invariant = uniform-LD-bijection-invariant
                                ; sample-equality = sample-equiv
                                ; sample-invariant = sample-invariant-LD
+                               ; return-certain = return-certain-LD
                                ; injection-invariant = injections-preserve-distributions-LD
                                ; irrelevance = irrelevance-LD
                                ; interchange = interchange-LD
                                ; >>=-D-ext = >>=-D-ext-LD
                                ; >>=-D-inv = >>=-D-inv-LD
-                               ; uniform-not-return = {!!}
+                               ; uniform-not-return = uniform-not-return-LD
                                }
 
