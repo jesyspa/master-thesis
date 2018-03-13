@@ -238,40 +238,41 @@ postulate their formulations in Agda.
 
 \subsection{Proof Automation}
 
-Proofs are awful.  Let's automate them.  Problem: Agda reflection is not very stable.  Well, really, this is two
-problems: a solver for game descriptions, and a way of getting them efficiently.  We'd love to do the latter, but we're
-afraid reflection may change and then we'll be back to square one.  Part one can definitely be done nicely, though.
+As can be seen from the OTP example, expressing even simple proofs in the framework we have is too verbose to be of
+practical use.  For a large part, this is due to every step having to express not only what changes, but also the full
+context of the change.  In particular, significant duplication is caused by the |congbind| rule that allows us to
+conclude |x >>= f| is indistinguishable from |x >>= g| if |f a| and |g a| are indistinguishable for all |a|: if |f| and
+|g| are lambda terms then Agda cannot autodeduce them.  The entire right-hand side of each |>>=| to the left of the
+changed term must be written out, giving a quadratic explosion in proof sizes.
 
-%%%%%
+One approach to reducing this problem is to not employ lambda terms when describing games.  This would allow us to
+leverage the implicit argument feature of Agda for some of this work, but would require step-by-step descriptions of the
+games to be written out separately.  The definition of each game would also be broken up, making it harder to regard
+them in their entirety.
 
-In the remainder of the time available, we intend to in any case achieve the following:
-\begin{itemize}
-    \item Express the ability for the adversary to maintain state.
-    \item Express games where the adversary has access to a (stateful) oracle.
-    \item Express a relationship between games that is weaker than strict equivalence (equivalence up to some
-    $\epsilon$).
-    \item Express concrete bounds on the complexity of adversaries (e.g. number of oracle queries).
-    \item Prove the correctness of common proof steps, to enable reuse.
-    \item Finalize the implementation of all of the above.
-\end{itemize}
+A more hopeful approach is to use reflection so that given an equality and a game, we can quote the game, inspect the
+structure, and find where in the body we can perform a substitution using that equality.  We can then generate a proof
+term based on this quoted representation, that can be unquoted to give an equality between games.
 
-In addition, we would like to achieve the following if time permits:
-\begin{itemize}
-    \item Show that portions of proofs can be automated using proof search.
-    \item Use reflection to automatically invoke the proof search.
-    \item Express asymptotic bouds on the complexity of adversaries.
-    \item Evaluate the significance of the |Repeat| combinator.
-    \item (?) Present the results in some kind of nice abstract way.
-\end{itemize}
+This approach can be split into two sections: obtaining a quoted representation of the game, and finding where in that
+representation we can apply a given equality.  The first problem relies heavily on the implementation of reflection in
+Agda, while the second is independent, requiring only a representation of quoted terms.  Both are viable additions to
+the project, though we regard the latter as of more theoretical interest.
+
+\subsection{Practical Examples}
+
+In addition to the general developments described above, we also consider it important to prove the usefulness of this
+system by formalising a number of existing proofs where it is possible, and identify the problems where it is not.
 
 \section{Timetable and Planning}
 
-TODO: Write neat text.
-\begin{itemize}
-    \itemsep0em
-    \item February-March: expressing games, expressing encryption schemes, expressing proof techniques
-    \item April-May: proving stronger results, start writing thesis (prior knowledge)
-    \item June: write thesis (my results), prove leftover postulates, express things like polynomial-time adversaries
-    \item July: integrate last results into thesis, correct final errors.
-\end{itemize}
+This project started December 2017 and must be complete by August 2018.  I have spent December and January developing
+the version of the framework presented here, and February and most of March writing this proposal.
 
+Going forward, I would like to spend the remainder of March and April working on finding a suitable notion of
+indistinguishability for the non-strict case, since the rewriting rules we obtain from that will be crucial in
+determining what presentations of games are and aren't viable.
+
+\ldots Still a little to do here, something about oracles and about how July and August are for writing the thesis
+\ldots
+\todo{Something about what would be nice but unfeasible?}
