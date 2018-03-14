@@ -354,24 +354,9 @@ maintain this relationship.  Doing this, however, brings the proof no further, s
 depends on |b|, and an essential step of the proof was making the adversary commit to a |b'| before |b| was chosen.
 
 %}
+
 \section{Formalised Proofs}
 
-The proofs in the previous section rely heavily on arguments about the independence of certain random values, as well as
-on some conventions established for the adversary that cannot be expressed in the programming language the games
-themselves are written in.  This is an unsatisfactory state of affairs, since verifying the correctness of these
-arguments involves considerable work.  The situation only becomes worse when the challenger is also given the
-opportunity to store state and some margin of error is permitted between games.
-
-In order to remedify this, we will formalise both the games and the proofs about them in Agda.  This allows us to
-enforce the restrictions we lay upon the challenger and adversary on the type level, and build up proofs using
-known-good combinators.
-
-A significant downside to this approach is that the proofs are often very verbose.  One of the goals of this thesis is
-to look into how such work can be automated using proof search techinques and reflection.
-
-\section{Existing Work}
-
-TODO: Move this to the chapter where it is relevant.
-A significant portion of the work shall be dedicated to the representation of probability distributions in a
-dependently-typed programming language.  The implementations are based on \cite{stochasticlambdacalculus}, amongst
-others.
+(I don't like how this section was, but feel like something needs to be said.  We want to somehow motivate that
+formalised proofs are a good choice here, but there's (IMHO) nothing particular about the situation that makes them
+more worthwhile than elsewhere.)
