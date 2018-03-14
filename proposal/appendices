@@ -1,0 +1,15 @@
+This is stuff that I will eventually want to discuss, but probably doesn't belong in the proposal.
+
+1. Usage of typeclasses, and encoding of properties.
+
+I have chosen to generally split the typeclasses that specify the range of operations a type supports from the typeclass
+that specifies the laws these operations must satisfy.  This matches better with the usage of library typeclasses (which
+do not typically contain laws), allows for more fine-grained specification of what other functions use and makes the
+typeclasses themeslves smaller.
+
+The operations typeclass O takes the type T in question as a parameter, and contains any operations typeclasses AO, BO,
+... it assumes to be implemented as overlap instance members.  The properties typeclass P is defined in a module parametrised
+over T and O, and contains the corresponding properties typeclasses AP, BP, ... of the operations typeclasses AO, BO,
+...
+
+We do not generally open typeclasses publically, instead prefering to open with a specific instance if possible.

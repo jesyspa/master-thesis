@@ -13,9 +13,48 @@ implementation.
 
 \section{Probability}
 
-In order to discuss how probability distributions can be sampled, we will need a type for representing probability
-values.  A key question we must ask ourselves is whether this type should \emph{only} be able to represent values in the
-$[0, 1]$ interval, or whether values that are not probabilities should also be representable.
+We require a type of probabilities |Q| in order to express statements such as ``the probability of a fair coin landing
+heads is $\frac 1 2$''.   A valid implementation is $\mathbb{Q}$, the type of rational numbers, but we allow for slightly
+more generality: |Q| need not be a field.
+
+In one sentence, we require |Q| to be a totally ordered commutative ring of characetrestic zero which has negative
+powers of two.  The corresponding code, using |Semiring| and |Ord| from the \texttt{agda-prelude} library, is as
+follows:
+\begin{code}
+record Probability (Q : Set) : Set1 where
+  field
+    overlap {{supersemiring}} : Semiring Q
+    overlap {{superord}} : Ord Q
+    neg : Q -> Q
+    negpow2 : Nat -> Q
+
+  embed : Nat -> Q
+  embed zero = zro
+  embed (suc n) = one + embed n
+\end{code}
+
+The definitions of |Semiring| and |Ord| require that |Q| implement |_+_|, |_*_|, |zro|, |one|, |_<_|, and |compare|.
+
+This choice of requirements on |Q| implies that |Q| contains some elements (e.g. |plus one one|) that are not valid
+probabilities.  We consider this a worthwhile trade-off: when we use these operations, we often know a priori that the
+result will be a probability due to how we choose our summands.  Having to prove this fact to be able to formulate the
+computation would be a needless complication, since we can do the same proof separately if we need to.  The primary
+downside is that it is harder to state that some property holds for every probability, but this is irrelevant for us
+since we will typically not be making such statements.
+
+Another consequence of this choice is that the |compare| operation imposes a \emph{decidable} total order on |Q|, which
+precludes us from using a formalisation of $\mathbb{R}$ as a model.  Since we are interested exclusively in discrete
+probability distributions, we do not expect this to be an issue.  Furthermore, due to the way the order is used, we
+expect that this requirement could be removed.
+
+Having established the operations, we specify the properties that the type must satisfy.  We use the usual axioms for an
+ordered commutative ring, augmented with the requirement that |negpow2 n| be the multiplicative inverse of |pow2 n|, and
+the requirement that |embed| be injective.
+
+We express this in Agda by fixing |Q| and an instance of |PQ : Probability Q| (for example, by taking these as module
+parameters) and defining
+\begin{code}
+\end{code}
 
 We have chosen to go for the later options.  It is very convenient for probabilities to be a group under addition, which
 the interval $[0, 1]$ is not.  While an implementation that distinguishes the types of probabilities, differences

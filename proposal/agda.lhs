@@ -161,6 +161,7 @@
 %format then        = "\K{then}"
 %format else        = "\K{else}"
 %format open        = "\K{open}"
+%format overlap     = "\K{overlap}"
 %format constructor = "\K{constructor}"
 
 %% Agda standard types
@@ -238,7 +239,6 @@
 %format rbracket        = "\rrbracket"
 
 %format (SPLIT (a) (b)) = "\langle {" a "} , {" b "} \rangle"
-%format (VAL (a)) = "\llbracket {" a "} \rrbracket"
 
 %% Useful symbols
 %format cdots     = "\cdots"

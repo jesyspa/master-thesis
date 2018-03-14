@@ -4,6 +4,9 @@
 %format SimpleEavAdv = "\D{SimpleEAVAdv}"
 %format SimpleCPAAdv = "\D{SimpleCPAAdv}"
 %format BitVec       = "\D{BitVec}"
+%format Probability  = "\D{Probability}"
+%format Semiring     = "\D{Semiring}"
+%format Ord          = "\D{Ord}"
 
 %% Constructors
 %format encscheme    = "\IC{enc-scheme}"
@@ -15,6 +18,8 @@
 %format keygen = "\RF{keygen}"
 %format A1     = "\RF{A\textsubscript{1}}"
 %format A2     = "\RF{A\textsubscript{2}}"
+%format supersemiring = "\RF{super-semiring}"
+%format superord = "\RF{super-ord}"
 
 %% CryptoExpressions
 %format uniformexpr = "\F{uniform-expr}"
@@ -37,12 +42,23 @@
 %format isYes                     = "\F{isYes}"
 %format fmap                      = "\F{fmap}"
 %format negpow2                   = "\F{negpow2}"
-%format (plus (a) (b))            = "{" a "}\mathbin{\F{+}}{" b "}"
-%format (times (a) (b))           = "{" a "}\mathbin{\F{$\cdot$}}{" b "}"
+%format compare                   = "\F{compare}"
+%format zro                       = "\F{zro}"
+%format one                       = "\F{one}"
+
+%% Infix operator standalones
+%format _+_ = "\F{\_\hspace{-0.1em}+\hspace{-0.1em}\_}"
+%format _*_ = "\F{\_\hspace{-0.1em}*\hspace{-0.1em}\_}"
+%format _<_ = "\F{\_\hspace{-0.1em}\textless\hspace{-0.1em}\_}"
 
 %% Punctuation
 %format dot   = "\hspace{-0.3em}.\,"
 %format comma = "\hspace{-0.3em},"
+
+%% Misc stuff
+%format (plus (a) (b))  = "{" a "}\mathbin{\F{+}}{" b "}"
+%format (times (a) (b)) = "{" a "}\mathbin{\F{$\cdot$}}{" b "}"
+%format (VAL (a))       = "\llbracket {" a "} \rrbracket"
 
 %% Things annoying to :Align
 %format ==D = "\F{$\equiv^D$}"
