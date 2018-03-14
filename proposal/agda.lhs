@@ -234,7 +234,6 @@
 %format pi_1            = "\pi_1"
 %format pi_2            = "\pi_2"
 %format pis             = "{\pi}s"
-%format dot             = ".\,"
 %format lbracket        = "\llbracket"
 %format rbracket        = "\rrbracket"
 

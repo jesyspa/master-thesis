@@ -37,7 +37,11 @@
 %format isYes                     = "\F{isYes}"
 %format fmap                      = "\F{fmap}"
 
+%% Punctuation
+%format dot   = "\hspace{-0.3em}.\,"
+%format comma = "\hspace{-0.3em},"
+
 %% Things annoying to :Align
 %format ==D = "\F{$\equiv^D$}"
-%format (eq (a) (b)) = "{" a "}\mathbin{\F{==}}{" b "}"
+%format eq (a) (b) = "{" a "}\mathbin{\F{==}}{" b "}"
 %format congbind = "\F{cong-\textgreater\!\!\textgreater\!=}"
