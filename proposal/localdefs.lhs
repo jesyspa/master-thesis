@@ -36,6 +36,9 @@
 %format xor a b                   = "{" a "}\mathbin{\F{$\otimes$}}{" b "}"
 %format isYes                     = "\F{isYes}"
 %format fmap                      = "\F{fmap}"
+%format negpow2                   = "\F{negpow2}"
+%format (plus (a) (b))            = "{" a "}\mathbin{\F{+}}{" b "}"
+%format (times (a) (b))           = "{" a "}\mathbin{\F{$\cdot$}}{" b "}"
 
 %% Punctuation
 %format dot   = "\hspace{-0.3em}.\,"

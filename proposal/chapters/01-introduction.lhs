@@ -360,3 +360,6 @@ depends on |b|, and an essential step of the proof was making the adversary comm
 (I don't like how this section was, but feel like something needs to be said.  We want to somehow motivate that
 formalised proofs are a good choice here, but there's (IMHO) nothing particular about the situation that makes them
 more worthwhile than elsewhere.)
+
+In the rest of this thesis, we will show how these ideas can be encoded in Agda.  For this, we will make extensive use
+of Ulf Norell's \texttt{agda-prelude}\footnote{\url{https://github.com/UlfNorell/agda-prelude}} library.

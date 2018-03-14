@@ -1,8 +1,15 @@
 \chapter{Probability in Agda}
 
-Before we can look at representing complex constructions such as games, let us lay the groundwork for working with
-non-deterministic computations.  We will postulate a certain basic type for working with probabilities, and then define
-what it means for a type transformer to be a probability distribution monad.
+In this chapter, we discuss how we can use Agda to represent the probability distributions that our games ultimately
+stand for.  The goal is to obtain a type |Q| of probabilities and a type constructor |D| that sends a type |A| to the
+type of probability distributions over |A| and establish the properties that these must have to be useable in providing
+valuations for games.
+
+For greater generality, we use Agda's |record| feature to split the interface that we require |Q| and |D| to have from
+the implementation.  We do not currently have an example of |Q| implemented, but all the properties we require hold in
+the rational numbers, which are representable in Agda.  For |D| we provide an outline for to approaches to its
+implementation.
+
 
 \section{Probability}
 
@@ -16,8 +23,8 @@ between probabilities, and sums of probabilities would be an interesting project
 logic we are studying.
 
 Instead, we require that the type of probabilities |Q| be an ordered ring with negative powers of two, in the sense that
-there is a function |negpow2 : Nat -> Q| such |negpow2 0 == 1| and |2 * negpow2 (n+1) = negpow2 n|.\footnote{Where by 0
-and 1 we mean the corresponding values in the ring structure, and |2 = 1 + 1|.}  This suffices to implement
+there is a function |negpow2 : Nat -> Q| such |negpow2 0 == 1| and |times 2 (negpow2 ((plus n 1))) == negpow2 n|.\footnote{Where by 0
+and 1 we mean the corresponding values in the ring structure, and |2 == (plus 1 1)|.}  This suffices to implement
 probabilities that occur when the only source of randomness are uniform distributions over sets with size a power of
 two.  If we wish to add a |Repeat| combinator, as discussed in the previous chapter, then requiring that |Q| be an
 ordered field will be necessary.
