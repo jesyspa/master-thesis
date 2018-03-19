@@ -7,6 +7,7 @@
 %format Probability  = "\D{Probability}"
 %format Semiring     = "\D{Semiring}"
 %format Ord          = "\D{Ord}"
+%format ProbabilityProps = "\D{ProbabilityProps}"
 
 %% Constructors
 %format encscheme    = "\IC{enc-scheme}"
@@ -14,12 +15,15 @@
 %format simplecpaadv = "\IC{simple-cpa-adv}"
 
 %% Record fields
-%format enc    = "\RF{enc}"
-%format keygen = "\RF{keygen}"
-%format A1     = "\RF{A\textsubscript{1}}"
-%format A2     = "\RF{A\textsubscript{2}}"
+%format enc           = "\RF{enc}"
+%format keygen        = "\RF{keygen}"
+%format A1            = "\RF{A\textsubscript{1}}"
+%format A2            = "\RF{A\textsubscript{2}}"
 %format supersemiring = "\RF{super-semiring}"
-%format superord = "\RF{super-ord}"
+%format superord      = "\RF{super-ord}"
+%format one           = "\RF{one}"
+%format zro           = "\RF{zro}"
+%format neg           = "\RF{neg}"
 
 %% CryptoExpressions
 %format uniformexpr = "\F{uniform-expr}"
@@ -43,8 +47,11 @@
 %format fmap                      = "\F{fmap}"
 %format negpow2                   = "\F{negpow2}"
 %format compare                   = "\F{compare}"
-%format zro                       = "\F{zro}"
-%format one                       = "\F{one}"
+%format embed                     = "\F{embed}"
+%format pow2                      = "\F{pow2}"
+
+%% Not sure where to put
+%format Injective = "\F{Injective}"
 
 %% Infix operator standalones
 %format _+_ = "\F{\_\hspace{-0.1em}+\hspace{-0.1em}\_}"
@@ -56,8 +63,8 @@
 %format comma = "\hspace{-0.3em},"
 
 %% Misc stuff
-%format (plus (a) (b))  = "{" a "}\mathbin{\F{+}}{" b "}"
-%format (times (a) (b)) = "{" a "}\mathbin{\F{$\cdot$}}{" b "}"
+%format (plus (a) (b))  = "{" a "}\mathbin{\RF{+}}{" b "}"
+%format (times (a) (b)) = "{" a "}\mathbin{\RF{$\cdot$}}{" b "}"
 %format (VAL (a))       = "\llbracket {" a "} \rrbracket"
 
 %% Things annoying to :Align

@@ -19,3 +19,6 @@ proposal.pdf: proposal.bib proposal.tex
 proposal.tex: root.lhs agda.lhs localdefs.lhs ${CHAPTERS_SRC}
 	lhs2TeX --agda root.lhs -o proposal.tex
 
+.PHONY: quick
+quick: proposal.tex
+	pdflatex proposal.tex

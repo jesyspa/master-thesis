@@ -19,11 +19,7 @@ record ProbabilityProps : Set where
     embed-zero          : zro ≡ embed 0
     embed-succ          : ∀ n → one + embed n ≡ embed (suc n)
     negpow2-add         : ∀ n → negpow2 n ≡ negpow2 (suc n) + negpow2 (suc n)
-    negpow2-zro         : one ≡ negpow2 zro
-
-  pow2-negpow2-cancel : ∀ n → one ≡ embed (pow2 n) * negpow2 n
-  pow2-negpow2-cancel zero = {!negpow2-zro!}
-  pow2-negpow2-cancel (suc n) = {!!}
+    pow2-negpow2-cancel : ∀ n → one ≡ embed (pow2 n) * negpow2 n
 
   embed-1 : one ≡ embed 1
   embed-1 = +-unit-right one ⟨≡⟩ cong (λ e → one + e) embed-zero ⟨≡⟩ embed-succ zero

@@ -53,33 +53,75 @@ the requirement that |embed| be injective.
 
 We express this in Agda by fixing |Q| and an instance of |PQ : Probability Q| (for example, by taking these as module
 parameters) and defining
+%{
+%format srprops = "\RF{ring-props}"
+%format poprops = "\RF{order-props}"
+%format SemiringProps = "\F{RingProps}"
+%format PreorderProps = "\F{OrderProps}"
+
+%format mulcomm = "\RF{*-comm}"
+%format negisinv = "\RF{neg-is-+-inv}"
+%format embedInj = "\RF{embed-Inj}"
+%format plusorder = "\RF{+-preserves-order}"
+%format mulorder = "\RF{*-respects-order}"
+%format pow2cancel = "\RF{pow2-negpow2-cancel}"
 \begin{code}
+record ProbabilityProps : Set where
+  open Probability PQ
+  field
+    overlap {{srprops}}  : SemiringProps
+    overlap {{poprops}}  : PreorderProps
+    mulcomm              : (a b : Q) -> (times a b) == (times b a)
+    negisinv             : (a : Q) -> zro == (plus a (neg a))
+    embedInj             : Injective embed
+    plusorder            : (a b c : Q) -> a < b
+                         -> (plus a c) < (plus b c)
+    mulorder             : (a b : Q) -> zro < a -> zro < b
+                         -> zro < (times a b)
+    pow2cancel           : forall n -> one == (times (embed (pow2 n)) (negpow2 n))
 \end{code}
 
-We have chosen to go for the later options.  It is very convenient for probabilities to be a group under addition, which
-the interval $[0, 1]$ is not.  While an implementation that distinguishes the types of probabilities, differences
-between probabilities, and sums of probabilities would be an interesting project in itself, it would add little to the
-logic we are studying.
+We assume that |SemiringProps| and |PreorderProps| are also specific to |Q| and |PQ|.
 
-Instead, we require that the type of probabilities |Q| be an ordered ring with negative powers of two, in the sense that
-there is a function |negpow2 : Nat -> Q| such |negpow2 0 == 1| and |times 2 (negpow2 ((plus n 1))) == negpow2 n|.\footnote{Where by 0
-and 1 we mean the corresponding values in the ring structure, and |2 == (plus 1 1)|.}  This suffices to implement
-probabilities that occur when the only source of randomness are uniform distributions over sets with size a power of
-two.  If we wish to add a |Repeat| combinator, as discussed in the previous chapter, then requiring that |Q| be an
-ordered field will be necessary.
+Up to now, most of our work has only used the semiring structure of probabilities.  The additive inverse and order will
+become important when we look at non-perfect security, at which point we may need to augment this with further
+assumptions.
 
-We have so far not implemented this type, but given that the rationals satisfy all these assumptions in a constructive
-manner, we believe that it should have an implementation.
+An important consideration is whether we wish to allow uniform distributions over an arbitrary finite set, and (more
+strongly) whether we wish to allow the repetition of a (stateless) computation until some condition is satisfied.  The
+former corresponds with requiring the existence of multiplicative inverses for all (embedded) natural numbers, while the
+latter corresponds to requiring the existence of multiplicative inverses for all non-zero elements.
+%}
 
-Note that since an ordered ring necessarily has a \emph{total} order, the real numbers are \emph{not} a model of
-probability, since real equality is not constructively decidable.  We have yet to see whether we will ever make use of
-this decidability.  In any case, it is unclear that using the real numbers as |Q| would have any advantages, since all
-probabilities we arrive at are by construction rational.
-
-Having posed these requirements, we allow the user of our code to specify their preferred type that satisfies these
-properties, by the means of implementing a record.  This corresponds to defining a |Probability| typeclass in Haskell.
+While it would certainly be amusing to find an argument that benefited from choosing an unusual structure such as a
+matrix or polynomial ring for the type of probabilities, we do not consider this likely.  Our motivational example is
+still $\mathbb{Q}$, and we consider any statements that (constructively) hold for $\mathbb{Q}$ to be admissible
+extensions of this set of requirements.
 
 \section{Distributions: Abstract Specification}
+
+We will now provide a similar description for the notion of a distribution. 
+\begin{code}
+record DistMonad (D : Set → Set) : Set₁ where
+  field
+    probability : Set
+    uniform : forall n -> D (BitVec n)
+    sample : forall {A} -> {{_ : Eq A}} -> D A -> A -> probability
+    overlap {{probability-super}} : Probability probability
+    overlap {{monad-super}} : Monad D
+  infix 4 _==D_
+  _==D_ : forall {A} -> {{_ : Eq A}} -> D A -> D A -> Set
+  _
+  coin : D Bool
+  coin = fmap head (uniform 1)
+\end{code}
+
+We will now assume a type |Q| of probabilities with an associated |PQ : Probability P|, but will be explicit about when
+we also assume the existence of a |PPQ : ProbabilityProps|.  Our construction here will mimic the construction in the
+previous section; we will present a |record Distribution| that specifies the operations a distribution must support, and
+then a secondary |record DistributionProps| that specifies the laws that a distribution must satisfy.
+
+A distribution is 
 
 We now assume that we have a specific type |Q| of probabilities and build a notion of distributions on top of it.
 A distribution is a type |D A| parametrised over the type |A| of values that the distribution takes.
