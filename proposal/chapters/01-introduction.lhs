@@ -14,6 +14,7 @@ The computations performed by the challenger are known, while the adversary may 
 this series of computations, the adversary must give some `answer' which determines whether it wins or loses.  The goal
 of a proof is to bound the probability with which the adversary can win.
 
+% TODO: No longer true, fix this.
 In the remainder of this chapter, we will give an informal introduction to the kind of cryptographic proofs that we are
 interested in, using encryption schemes as a running example.  The next two chapters are dedicated to showing the
 portion of the system which we have so far been able to formalise in Agda.  In the fourth chapter, we will present more
