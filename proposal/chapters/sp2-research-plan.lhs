@@ -1,4 +1,5 @@
 \chapter{Research Plan}
+\label{chp:research-plan}
 
 We have now outlined the results we have obtained from our research so far.  We will conclude the proposal with a
 demonstration of the formalised version of the example presented in the introduction, and with a discussion of the
