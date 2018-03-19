@@ -5,8 +5,8 @@ The goal of the reseach proposed in this document is to create a library for rea
 in particular to show their security properties.  Such proofs are not new\footnote{TODO: cite something}, and there is a
 commonly used game-based approach~\cite{gameexamples} to formulating them.  In addition, there exist frameworks
 of these proofs in special-purpose languages\footnote{E.g. EasyCrypt, \url{www.easycrypt.info}} and Coq\cite{fcf}.  Our
-contribution is to create a comparable framework for the Agda programming language.
-\todo{Why is this a worthwhile goal?}
+contribution is to create a comparable framework for the Agda programming language, making use of the more powerful
+type-theoretic features it provides.
 
 The problems we are looking at typically have the following structure: the situation is described as a series of
 interactions between a \emph{challenger} and an \emph{adversary}.  Both parties have access to a source of randomness.
@@ -327,20 +327,20 @@ Since the |encrypt| function of OTP is at once its |decrypt| function, it is cle
 it to |m'| and return the correct value.  We can express this in code as follows, with the |Int| parameter being the
 security parameter used for the game:
 \begin{code}
-    otp_cpa_adv_cm :: Int -> Game (BitVector comma BitVector) (BitVector comma BitVector)
-    otp_cpa_adv_cm n = do
-        m0 <- uniform n
-        m1 <- uniform n
-        putAdvState (m0 comma m1)
-        return (m0 comma m1)
+otp_cpa_adv_cm :: Int -> Game (BitVector comma BitVector) (BitVector comma BitVector)
+otp_cpa_adv_cm n = do
+    m0  <- uniform n
+    m1  <- uniform n
+    putAdvState (m0 comma m1)
+    return (m0 comma m1)
 
-    otp_cpa_adv_co  :: BitVector
-                    -> (BitVector -> Game (BitVector comma BitVector) BitVector)
-                    -> Game (BitVector comma BitVector) Bool
-    otp_cpa_adv_co m' e = do
-        (m0 comma m1) <- getAdvState
-        putAdvState (undefined comma undefined)
-        return (eq (e m1) m')
+otp_cpa_adv_co  :: BitVector
+                -> (BitVector -> Game (BitVector comma BitVector) BitVector)
+                -> Game (BitVector comma BitVector) Bool
+otp_cpa_adv_co m' e = do
+    (m0 comma m1) <- getAdvState
+    putAdvState (undefined comma undefined)
+    return (eq (e m1) m')
 \end{code}
 
 The |putAdvState (undefined comma undefined)| line is necessary to satisfy our guarantee that the initial adversary
@@ -356,6 +356,11 @@ depends on |b|, and an essential step of the proof was making the adversary comm
 %}
 
 \section{Formalised Proofs}
+
+In the above, have used Haskell to precisely express the programs we were discussing, but reasoned about their
+equivalence only at an informal level.  Only an attentive reader can notice if we have made a mistake.
+
+Mention: Agda has powerful dependent types, which we can use to clearly express these matters.
 
 (I don't like how this section was, but feel like something needs to be said.  We want to somehow motivate that
 formalised proofs are a good choice here, but there's (IMHO) nothing particular about the situation that makes them
