@@ -358,13 +358,15 @@ depends on |b|, and an essential step of the proof was making the adversary comm
 \section{Formalised Proofs}
 
 In the above, have used Haskell to precisely express the programs we were discussing, but reasoned about their
-equivalence only at an informal level.  Only an attentive reader can notice if we have made a mistake.
+equivalence only at an informal level.  This is a reasonable approach when the programs in question are so simple, but
+becomes increasingly error-prone as we move to more complicated algorithms, which require considerably more bookkeeping.
+Since cryptographic algorithms are often used in safety-critical\todo{mission-critical? government?} contexts, it is
+worth going the extra distance to verify their correctness formally in a proof-assistant.
 
-Mention: Agda has powerful dependent types, which we can use to clearly express these matters.
+We have chosen Agda as the language of formalisation, since it provides extensive support for dependent types, which
+make it possible to express the notions we are working with in natural ways.  In particular, it allows us to use the
+same language to express the games, challengers, adversaries, and properties of the above, all in the same language.
 
-(I don't like how this section was, but feel like something needs to be said.  We want to somehow motivate that
-formalised proofs are a good choice here, but there's (IMHO) nothing particular about the situation that makes them
-more worthwhile than elsewhere.)
+Our work in expressing games is strongly inspired by Peter Hancock's Interaction Structures.\todo{cite}  We will also
+make use of Ulf Norell's \texttt{agda-prelude}\footnote{\url{https://github.com/UlfNorell/agda-prelude}} library.
 
-In the rest of this thesis, we will show how these ideas can be encoded in Agda.  For this, we will make extensive use
-of Ulf Norell's \texttt{agda-prelude}\footnote{\url{https://github.com/UlfNorell/agda-prelude}} library.
