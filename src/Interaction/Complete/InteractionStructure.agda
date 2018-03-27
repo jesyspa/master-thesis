@@ -100,9 +100,5 @@ module _ (IS₁ IS₂ : InteractionStructure) where
           mcase false = m₁
           mcase true  = m₂
 
-{-
-
-Coproduct*-IS : List InteractionStructure → InteractionStructure
-Coproduct*-IS = foldr (flip BinCoproduct-IS) Zero-IS
-
--}
+BinCoproduct*-IS : List InteractionStructure → InteractionStructure
+BinCoproduct*-IS = foldr BinCoproduct-IS Zero-IS

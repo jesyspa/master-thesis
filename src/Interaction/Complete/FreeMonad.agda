@@ -19,6 +19,7 @@ module _ {IS : InteractionStructure} where
 FMMorphism : (IS₁ IS₂ : InteractionStructure) → Set₁
 FMMorphism IS₁ IS₂ = ∀{A} → FreeMonad IS₁ A → FreeMonad IS₂ A
 
-action-FM : {IS₁ IS₂ : InteractionStructure} → ISMorphism IS₁ IS₂ → FMMorphism IS₁ IS₂
-action-FM m (Return-FM a) = Return-FM a
-action-FM m (Invoke-FM c cont) = Invoke-FM (CommandF m c) λ r → action-FM m (cont (ResponseF m r))
+fmap-FM : {IS₁ IS₂ : InteractionStructure} → ISMorphism IS₁ IS₂ → FMMorphism IS₁ IS₂
+fmap-FM m (Return-FM a) = Return-FM a
+fmap-FM m (Invoke-FM c cont) = Invoke-FM (CommandF m c) λ r → fmap-FM m (cont (ResponseF m r))
+
