@@ -26,3 +26,4 @@ module _ {IS₁ IS₂ : InteractionStructure} where
   MethodName (Combine plr₁ plr₂) = MethodName plr₁ ⊎ MethodName plr₂
   MethodImpl (Combine plr₁ plr₂) (left  n) = Method-fmap (Incl-L IS₁ IS₂) (MethodImpl plr₁ n)
   MethodImpl (Combine plr₁ plr₂) (right n) = Combine-Impl plr₁ (MethodImpl plr₂ n)
+

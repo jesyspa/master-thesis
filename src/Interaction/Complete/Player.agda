@@ -8,24 +8,46 @@ open import Interaction.Complete.FreeMonad
 open InteractionStructure
 open ISMorphism
 
-record Method (IS : InteractionStructure) : Set₁ where
+record MethodSig : Set₁ where
   field
     Argument : Set
     Result : Argument → Set
-    Impl : (arg : Argument) → FreeMonad IS (Result arg)
-open Method
+open MethodSig
 
-Method-fmap : ∀{IS₁ IS₂} → ISMorphism IS₁ IS₂ → Method IS₁ → Method IS₂
-Argument (Method-fmap m mth)     = Argument mth
-Result   (Method-fmap m mth) arg = Result mth arg
-Impl     (Method-fmap m mth) arg = action-FM m (Impl mth arg)
+record PlayerSig : Set₁ where
+  field
+    MethodName : Set
+    MethodSigs : MethodName → MethodSig
+open PlayerSig
 
+
+{- Idea:
+Given a list of playersigs, we can get a corresponding list of implementations.
+The list of implementations uses playersigs augmented with earlier ISs.
+We can combine the implementations using the usual combine construction.
+Can we combine interpretations of these implementations the same way?  Should be doable.
+-}
+
+
+       
+
+{-
+Method : ∀{IS}(sig : MethodSig IS)(arg : Argument sig) → FreeMonad IS (Result sig arg)
+Method = 
+-}
+
+
+{-
     
 record Player (IS : InteractionStructure) : Set₁ where
   field
     MethodName : Set
     MethodImpl : MethodName → Method IS
 open Player
+
+EmptyPlayer : ∀{IS} → Player IS
+MethodName EmptyPlayer = ⊥
+MethodImpl EmptyPlayer ()
 
 MkCommands : ∀{IS} → Player IS → Set
 MkCommands plr = Σ (MethodName plr) (λ n → Argument (MethodImpl plr n))
@@ -54,3 +76,5 @@ CommandF  (Augment-bind plr m) (right c) = right c
 ResponseF (Augment-bind plr m) {left  c} r = ResponseF m r
 ResponseF (Augment-bind plr m) {right c} r = r
 
+
+-}

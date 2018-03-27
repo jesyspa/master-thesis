@@ -6,34 +6,6 @@ open import Interaction.Complete.InteractionStructure
 open import Interaction.Complete.FreeMonad
 
 
-MkCommand : PlayerSig → Set
-MkCommand [] = ⊥
-MkCommand ((arg , ret) ∷ ps) = arg ⊎ MkCommand ps
-
-MkResponse : (ps : PlayerSig) → MkCommand ps → Set 
-MkResponse [] ()
-MkResponse ((arg , ret) ∷ ps) (left  c) = ret
-MkResponse ((arg , ret) ∷ ps) (right c) = MkResponse ps c
-
-Augment* : InteractionStructure → PlayerSig → InteractionStructure
-Command  (Augment* IS ps) = Command IS ⊎ MkCommand ps 
-Response (Augment* IS ps) (left  c) = Response IS c
-Response (Augment* IS ps) (right c) = MkResponse ps c
-
-Augment** : InteractionStructure → List PlayerSig → InteractionStructure
-Augment** IS [] = IS
-Augment** IS (ps ∷ pss) = Augment* (Augment** IS pss) ps
-
-embed-Augment* : (IS : InteractionStructure)(ps : PlayerSig) → ISMorphism IS (Augment* IS ps)
-CommandF  (embed-Augment* IS ps) = left
-ResponseF (embed-Augment* IS ps) = id
-
-fmap-Augment* : ∀{IS₁ IS₂ : InteractionStructure}(ps : PlayerSig) → ISMorphism IS₁ IS₂ → ISMorphism (Augment* IS₁ ps) (Augment* IS₂ ps)
-CommandF  (fmap-Augment* ps m) (left  c) = left (CommandF m c)
-CommandF  (fmap-Augment* ps m) (right c) = right c
-ResponseF (fmap-Augment* ps m) {left  c} r = ResponseF m r
-ResponseF (fmap-Augment* ps m) {right c} r = r
-
 embed-Augment** : (IS : InteractionStructure)(pss : List PlayerSig) → ISMorphism IS (Augment** IS pss)
 embed-Augment** IS [] = id-IS
 embed-Augment** IS (ps ∷ pss) = comp-IS (embed-Augment* IS ps) (fmap-Augment* ps (embed-Augment** IS pss))

@@ -15,14 +15,6 @@ record ISMorphism (IS₁ IS₂ : InteractionStructure) : Set where
     ResponseF : ∀{c} → Response IS₂ (CommandF c) → Response IS₁ c
 open ISMorphism
 
-Zero-IS : InteractionStructure
-Command  Zero-IS = ⊥
-Response Zero-IS ()
-
-init-IS : ∀{IS} → ISMorphism Zero-IS IS
-CommandF  init-IS ()
-ResponseF init-IS {()}
-
 id-IS : ∀{IS} → ISMorphism IS IS
 CommandF  id-IS = id
 ResponseF id-IS = id
@@ -31,22 +23,86 @@ comp-IS : ∀{IS₁ IS₂ IS₃} → ISMorphism IS₁ IS₂ → ISMorphism IS₂
 CommandF  (comp-IS m₁ m₂) = CommandF m₂ ∘′ CommandF m₁
 ResponseF (comp-IS m₁ m₂) = ResponseF m₁ ∘′ ResponseF m₂
 
-module _ (IS₁ IS₂ : InteractionStructure) where
+Zero-IS : InteractionStructure
+Command  Zero-IS = ⊥
+Response Zero-IS ()
+
+init-IS : ∀{IS} → ISMorphism Zero-IS IS
+CommandF  init-IS ()
+ResponseF init-IS {()}
+
+Unit-IS : InteractionStructure
+Command  Unit-IS = ⊤
+Response Unit-IS tt = ⊥
+
+term-IS : ∀{IS} → ISMorphism IS Unit-IS
+CommandF  term-IS c = tt
+ResponseF term-IS ()
+
+module _ {A : Set}(ISf : A → InteractionStructure) where
   Coproduct-IS : InteractionStructure
-  Command  Coproduct-IS = Command IS₁ ⊎ Command IS₂
-  Response Coproduct-IS (left  c) = Response IS₁ c
-  Response Coproduct-IS (right c) = Response IS₂ c
+  Command  Coproduct-IS = Σ A (Command ∘′ ISf)
+  Response Coproduct-IS (a , c) = Response (ISf a) c
+  
+  Incl-IS : (a : A) → ISMorphism (ISf a) Coproduct-IS
+  CommandF  (Incl-IS a) c = a , c
+  ResponseF (Incl-IS a) r = r
 
-  Incl-L : ISMorphism IS₁ Coproduct-IS
-  CommandF  Incl-L = left
-  ResponseF Incl-L = id
+  Match-IS : ∀{IS}(mf : ∀ a → ISMorphism (ISf a) IS) → ISMorphism Coproduct-IS IS
+  CommandF  (Match-IS mf) (a , c) = CommandF (mf a) c
+  ResponseF (Match-IS mf) {a , c} r = ResponseF (mf a) r
 
-  Incl-R : ISMorphism IS₂ Coproduct-IS
-  CommandF  Incl-R = right
-  ResponseF Incl-R = id
+  Product-IS : InteractionStructure
+  Command  Product-IS = ∀ a → Command (ISf a)
+  Response Product-IS c = Σ A λ a → Response (ISf a) (c a)
 
-  Match : ∀{IS} → ISMorphism IS₁ IS → ISMorphism IS₂ IS → ISMorphism Coproduct-IS IS
-  CommandF  (Match m₁ m₂) (left  c) = CommandF m₁ c
-  CommandF  (Match m₁ m₂) (right c) = CommandF m₂ c
-  ResponseF (Match m₁ m₂) {left  c} r = ResponseF m₁ r
-  ResponseF (Match m₁ m₂) {right c} r = ResponseF m₂ r
+  Proj-IS : (a : A) → ISMorphism Product-IS (ISf a)
+  CommandF  (Proj-IS a) c = c a
+  ResponseF (Proj-IS a) r = a , r
+
+  Pair-IS : ∀{IS}(mf : ∀ a → ISMorphism IS (ISf a)) → ISMorphism IS Product-IS
+  CommandF  (Pair-IS mf) c a = CommandF (mf a) c
+  ResponseF (Pair-IS mf) (a , r) = ResponseF (mf a) r
+
+module _ (IS₁ IS₂ : InteractionStructure) where
+  private
+    bincase : Bool → InteractionStructure
+    bincase false = IS₁
+    bincase true  = IS₂
+
+  BinCoproduct-IS : InteractionStructure
+  BinCoproduct-IS = Coproduct-IS bincase
+
+  InclL-IS : ISMorphism IS₁ BinCoproduct-IS
+  InclL-IS = Incl-IS bincase false
+
+  InclR-IS : ISMorphism IS₂ BinCoproduct-IS
+  InclR-IS = Incl-IS bincase true
+
+  BinMatch-IS : ∀{IS} → ISMorphism IS₁ IS → ISMorphism IS₂ IS → ISMorphism BinCoproduct-IS IS
+  BinMatch-IS {IS} m₁ m₂ = Match-IS bincase mcase
+    where mcase : (b : Bool) → ISMorphism (bincase b) IS
+          mcase false = m₁
+          mcase true  = m₂
+
+  BinProduct-IS : InteractionStructure
+  BinProduct-IS = Product-IS bincase
+
+  ProjL-IS : ISMorphism BinProduct-IS IS₁
+  ProjL-IS = Proj-IS bincase false
+
+  ProjR-IS : ISMorphism BinProduct-IS IS₂
+  ProjR-IS = Proj-IS bincase true
+
+  BinPair-IS : ∀{IS} → ISMorphism IS IS₁ → ISMorphism IS IS₂ → ISMorphism IS BinProduct-IS
+  BinPair-IS {IS} m₁ m₂ = Pair-IS bincase mcase
+    where mcase : (b : Bool) → ISMorphism IS (bincase b)
+          mcase false = m₁
+          mcase true  = m₂
+
+{-
+
+Coproduct*-IS : List InteractionStructure → InteractionStructure
+Coproduct*-IS = foldr (flip BinCoproduct-IS) Zero-IS
+
+-}
