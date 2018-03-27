@@ -9,12 +9,17 @@ open InteractionStructure
 open ISMorphism
 
 record MethodSig : Set₁ where
+  constructor method-sig
   field
     Argument : Set
     Result : Argument → Set
 open MethodSig
 
+method-sig′ : Set → Set → MethodSig
+method-sig′ arg res = method-sig arg (const res)
+
 record PlayerSig : Set₁ where
+  constructor player-sig
   field
     MethodName : Set
     MethodSigs : MethodName → MethodSig
