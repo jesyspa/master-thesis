@@ -75,7 +75,38 @@ Sig2IS : PlayerSig → InteractionStructure
 Command  (Sig2IS sig) = Σ (MethodName sig) (Argument ∘′ MethodSigs sig)
 Response (Sig2IS sig) (name , arg) = Result (MethodSigs sig name) arg 
   
+record PlayerDef : Set₁ where
+  constructor player-def
+  field
+    IS-PD  : InteractionStructure 
+    Sig-PD : PlayerSig
+open PlayerDef
 
+Trivial-PD : PlayerDef
+Trivial-PD = player-def Zero-IS Trivial-PS
+      
+Impl-PD : PlayerDef → Set
+Impl-PD (player-def IS sig) = PlayerImpl IS sig
+
+ImplTrivial-PD : Impl-PD Trivial-PD
+ImplTrivial-PD = ImplTrivial-PS Zero-IS
+
+Join-PD : PlayerDef → PlayerDef → PlayerDef
+IS-PD  (Join-PD def₁ def₂) = BinCoproduct-IS (IS-PD def₁) (IS-PD def₂)
+Sig-PD (Join-PD def₁ def₂) = BinUnion-PS (Sig-PD def₁) (Sig-PD def₂)
+
+Join*-PD : List PlayerDef → PlayerDef
+Join*-PD = foldr Join-PD Trivial-PD
+
+Extend-PD : PlayerDef → PlayerDef → PlayerDef
+IS-PD  (Extend-PD def₁ def₂) = BinCoproduct-IS (IS-PD def₁) (Sig2IS (Sig-PD def₂))
+Sig-PD (Extend-PD def₁ def₂) = Sig-PD def₁
+
+MkExtend*-PD : List PlayerDef → PlayerDef
+MkExtend*-PD = foldr Extend-PD Trivial-PD
+
+Extend*-PD : PlayerDef → List PlayerDef → PlayerDef
+Extend*-PD def defs = Extend-PD def (Join*-PD defs)
 
 {- Idea:
 Given a list of playersigs, we can get a corresponding list of implementations.

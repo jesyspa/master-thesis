@@ -27,6 +27,9 @@ Response CE = ResponseCE
 challengerSig : PlayerSig
 challengerSig = player-sig ⊤ (const $ method-sig′ ⊤ Bool)
 
+baseChallengerDef : PlayerDef
+baseChallengerDef = player-def CE challengerSig 
+  
 module _ (PT CT : Set) where
   data NamesADV : Set where
     GetMessages : NamesADV
@@ -42,14 +45,20 @@ module _ (PT CT : Set) where
   MethodName adversarySig = NamesADV
   MethodSigs adversarySig GetMessages = getMessagesSig
   MethodSigs adversarySig GetResponse = getResponseSig
-  
-  challengerImpl : PlayerImpl (BinCoproduct-IS CE (Sig2IS (BinUnion-PS adversarySig Trivial-PS))) challengerSig
+
+  baseAdversaryDef : PlayerDef
+  baseAdversaryDef = player-def CE adversarySig
+
+  challengerDef : PlayerDef 
+  challengerDef = Extend*-PD baseChallengerDef (baseAdversaryDef ∷ [])
+
+  challengerImpl : Impl-PD challengerDef
   challengerImpl tt tt = {!!} -- implementation of the game
 
-  AdversaryImplType : Set
-  AdversaryImplType = PlayerImpl (BinCoproduct-IS CE (Sig2IS Trivial-PS)) adversarySig
+  adversaryDef : PlayerDef
+  adversaryDef = Extend*-PD baseAdversaryDef []
 
-  game-players : AdversaryImplType → PlayerList (CE ∷ CE ∷ []) (challengerSig ∷ adversarySig ∷ [])
+  game-players : Impl-PD adversaryDef → PlayerList (baseChallengerDef ∷ baseAdversaryDef ∷ [])
   game-players adv = Cons-PL challengerImpl (Cons-PL adv Nil-PL)
 
 

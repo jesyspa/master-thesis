@@ -7,18 +7,13 @@ open import Interaction.Complete.FreeMonad
 open import Interaction.Complete.Player 
 open import Interaction.Complete.Combine 
 
-open InteractionStructure
-open ISMorphism
-open MethodSig
-open PlayerSig
+data PlayerList : List PlayerDef → Set₁ where
+  Nil-PL : PlayerList []
+  Cons-PL : ∀{def defs}
+          → Impl-PD (Extend*-PD def defs)
+          → PlayerList defs
+          → PlayerList (def ∷ defs)
 
-data PlayerList : List InteractionStructure → List PlayerSig → Set₁ where
-  Nil-PL : PlayerList [] []
-  Cons-PL : ∀{IS ISs sig sigs}
-          → PlayerImpl (BinCoproduct-IS IS (Sig2IS (BinUnion*-PS sigs))) sig
-          → PlayerList ISs sigs
-          → PlayerList (IS ∷ ISs) (sig ∷ sigs)
-
-Combine* : ∀{ISs sigs} → PlayerList ISs sigs → PlayerImpl (BinCoproduct*-IS ISs) (BinUnion*-PS sigs)
-Combine* Nil-PL = ImplTrivial-PS Zero-IS 
+Combine* : ∀{defs} → PlayerList defs → Impl-PD (Join*-PD defs)
+Combine* Nil-PL = ImplTrivial-PD
 Combine* (Cons-PL plr plrs) = Combine plr (Combine* plrs)
