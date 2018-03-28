@@ -8,21 +8,19 @@ open import Interaction.Complete.FreeMonad
 open InteractionStructure
 open ISMorphism
 
-record MethodSig : Set₁ where
-  constructor method-sig
-  field
-    Argument : Set
-    Result : Argument → Set
-open MethodSig
+Implementation : (M : Set → Set)(IS : InteractionStructure) → Set
+Implementation M IS = (c : Command IS) → M (Response IS c)
 
-method-sig′ : Set → Set → MethodSig
-method-sig′ arg res = method-sig arg (const res)
+SyntacticImplementation : SyntaxDef → Set
+SyntacticImplementation (syntax-def IS₁ IS₂) = Implementation (FreeMonad IS₁) IS₂
 
+
+{-
 record PlayerSig : Set₁ where
   constructor player-sig
   field
     MethodName : Set
-    MethodSigs : MethodName → MethodSig
+    MethodSigs : MethodName → InteractionStructure
 open PlayerSig
 
 Trivial-PS : PlayerSig
@@ -123,3 +121,5 @@ We can combine the implementations using the usual combine construction.
 Can we combine interpretations of these implementations the same way?  Should be doable.
 -}
 
+
+-}
