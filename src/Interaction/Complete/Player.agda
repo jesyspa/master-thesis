@@ -45,9 +45,9 @@ module _ (sig₁ sig₂ : PlayerSig) where
 BinUnion*-PS : List PlayerSig → PlayerSig
 BinUnion*-PS = foldr BinUnion-PS Trivial-PS
 
-module _ (IS : InteractionStructure) where
+module _ (M : Set → Set) where
   MethodImpl : MethodSig → Set
-  MethodImpl msig = (arg : Argument msig) → FreeMonad IS (Result msig arg)
+  MethodImpl msig = (arg : Argument msig) → M (Result msig arg)
 
   PlayerImpl : PlayerSig → Set
   PlayerImpl sig = (name : MethodName sig) → MethodImpl (MethodSigs sig name)
@@ -59,18 +59,26 @@ module _ (IS : InteractionStructure) where
     ImplUnion-PS : (∀ i → PlayerImpl (sigs i)) → PlayerImpl (Union-PS sigs)
     ImplUnion-PS fn (i , name) = fn i name
 
-MIMorphism : (IS₁ IS₂ : InteractionStructure) → Set₁
-MIMorphism IS₁ IS₂ = ∀{sig} → MethodImpl IS₁ sig → MethodImpl IS₂ sig
+module _ (M₁ M₂ : Set → Set) where
+  MIMorphism : Set₁
+  MIMorphism = ∀{sig} → MethodImpl M₁ sig → MethodImpl M₂ sig
+  
+  PIMorphism : Set₁
+  PIMorphism = ∀{sig} → PlayerImpl M₁ sig → PlayerImpl M₂ sig
+  
+  fmap-PI : MIMorphism → PIMorphism
+  fmap-PI m plr name = m (plr name)
 
-fmap-MI : ∀{IS₁ IS₂} → FMMorphism IS₁ IS₂ → MIMorphism IS₁ IS₂
-fmap-MI m impl arg = m (impl arg)
+  FunctorMorphism : Set₁
+  FunctorMorphism = ∀{A} → M₁ A → M₂ A
 
-PIMorphism : (IS₁ IS₂ : InteractionStructure) → Set₁
-PIMorphism IS₁ IS₂ = ∀{sig} → PlayerImpl IS₁ sig → PlayerImpl IS₂ sig
+  Reinterpret-PI : FunctorMorphism → {sig : PlayerSig} → PlayerImpl M₁ sig → PlayerImpl M₂ sig
+  Reinterpret-PI mrph impl name arg = mrph (impl name arg)
 
-fmap-PI : ∀{IS₁ IS₂} → MIMorphism IS₁ IS₂ → PIMorphism IS₁ IS₂
-fmap-PI m plr name = m (plr name)
-
+module _ {IS₁ IS₂ : InteractionStructure} where
+  fmap-MI : FMMorphism IS₁ IS₂ → MIMorphism (FreeMonad IS₁) (FreeMonad IS₂)
+  fmap-MI m impl arg = m (impl arg)
+  
 Sig2IS : PlayerSig → InteractionStructure
 Command  (Sig2IS sig) = Σ (MethodName sig) (Argument ∘′ MethodSigs sig)
 Response (Sig2IS sig) (name , arg) = Result (MethodSigs sig name) arg 
@@ -86,10 +94,10 @@ Trivial-PD : PlayerDef
 Trivial-PD = player-def Zero-IS Trivial-PS
       
 Impl-PD : PlayerDef → Set
-Impl-PD (player-def IS sig) = PlayerImpl IS sig
+Impl-PD (player-def IS sig) = PlayerImpl (FreeMonad IS) sig
 
 ImplTrivial-PD : Impl-PD Trivial-PD
-ImplTrivial-PD = ImplTrivial-PS Zero-IS
+ImplTrivial-PD = ImplTrivial-PS (FreeMonad Zero-IS)
 
 Join-PD : PlayerDef → PlayerDef → PlayerDef
 IS-PD  (Join-PD def₁ def₂) = BinCoproduct-IS (IS-PD def₁) (IS-PD def₂)
