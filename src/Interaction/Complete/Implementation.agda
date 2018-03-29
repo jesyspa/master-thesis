@@ -29,9 +29,9 @@ module _ {IS₁ M₁ IS₂ M₂ IS₃ M₃} where
   InterpretationM (comp-ImplM m₁ m₂) = InterpretationM m₁ ∘′ InterpretationM m₂
 
 module _ {A}(M : Set → Set){ISf : A → InteractionStructure} where
-  Match-Impl : (sif : ∀ a → Implementation (ISf a) M) → Implementation (Coproduct-IS ISf) M
+  Match-Impl : (sif : ∀ a → Implementation (ISf a) M) → Implementation (Σ-IS ISf) M
   Match-Impl sif (a  , c) = sif a c
 
 module _ {IS₁ IS₂}(M : Set → Set) where
-  BinMatch-Impl : Implementation IS₁ M → Implementation IS₂ M → Implementation (BinCoproduct-IS IS₁ IS₂) M
+  BinMatch-Impl : Implementation IS₁ M → Implementation IS₂ M → Implementation (IS₁ ⊎-IS IS₂) M
   BinMatch-Impl si₁ si₂ = Match-Impl M λ { false → si₁ ; true → si₂ }

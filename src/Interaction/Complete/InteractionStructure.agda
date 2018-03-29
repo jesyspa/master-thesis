@@ -24,9 +24,15 @@ comp-IS : ∀{IS₁ IS₂ IS₃} → ISMorphism IS₁ IS₂ → ISMorphism IS₂
 CommandF  (comp-IS m₁ m₂) = CommandF m₂ ∘′ CommandF m₁
 ResponseF (comp-IS m₁ m₂) = ResponseF m₁ ∘′ ResponseF m₂
 
+infixr 9 _∘′-IS_
+_∘′-IS_ : ∀{IS₁ IS₂ IS₃} → ISMorphism IS₂ IS₃ → ISMorphism IS₁ IS₂ → ISMorphism IS₁ IS₃
+_∘′-IS_ = flip comp-IS
+
 Zero-IS : InteractionStructure
 Command  Zero-IS = ⊥
 Response Zero-IS ()
+
+⊥-IS = Zero-IS
 
 init-IS : ∀{IS} → ISMorphism Zero-IS IS
 CommandF  init-IS ()
@@ -36,6 +42,8 @@ Unit-IS : InteractionStructure
 Command  Unit-IS = ⊤
 Response Unit-IS tt = ⊥
 
+⊤-IS = Unit-IS
+
 term-IS : ∀{IS} → ISMorphism IS Unit-IS
 CommandF  term-IS c = tt
 ResponseF term-IS ()
@@ -44,6 +52,8 @@ module _ {A : Set}(ISf : A → InteractionStructure) where
   Coproduct-IS : InteractionStructure
   Command  Coproduct-IS = Σ A (Command ∘′ ISf)
   Response Coproduct-IS (a , c) = Response (ISf a) c
+
+  Σ-IS = Coproduct-IS
   
   Incl-IS : (a : A) → ISMorphism (ISf a) Coproduct-IS
   CommandF  (Incl-IS a) c = a , c
@@ -74,6 +84,9 @@ module _ (IS₁ IS₂ : InteractionStructure) where
   BinCoproduct-IS : InteractionStructure
   BinCoproduct-IS = Coproduct-IS bincase
 
+  infixr 2 _⊎-IS_
+  _⊎-IS_ = BinCoproduct-IS
+
   InclL-IS : ISMorphism IS₁ BinCoproduct-IS
   InclL-IS = Incl-IS bincase false
 
@@ -85,6 +98,9 @@ module _ (IS₁ IS₂ : InteractionStructure) where
 
   BinProduct-IS : InteractionStructure
   BinProduct-IS = Product-IS bincase
+
+  infixr 3 _×-IS_
+  _×-IS_ = BinProduct-IS
 
   ProjL-IS : ISMorphism BinProduct-IS IS₁
   ProjL-IS = Proj-IS bincase false
@@ -98,17 +114,37 @@ module _ (IS₁ IS₂ : InteractionStructure) where
 BinCoproduct*-IS : List InteractionStructure → InteractionStructure
 BinCoproduct*-IS = foldr BinCoproduct-IS Zero-IS
 
+Extend*-IS : InteractionStructure → List InteractionStructure → InteractionStructure
+Extend*-IS IS ISs = IS ⊎-IS BinCoproduct*-IS ISs
+
+Coproduct-RightUnit-IS : ∀{IS} → ISMorphism (IS ⊎-IS ⊥-IS) IS
+CommandF  Coproduct-RightUnit-IS (false , c)  = c
+CommandF  Coproduct-RightUnit-IS (true  , ())
+ResponseF Coproduct-RightUnit-IS {false , c} r = r
+ResponseF Coproduct-RightUnit-IS {true , ()} r
+
+{-
 ListCoproduct-IS : List InteractionStructure → InteractionStructure
-ListCoproduct-IS xs = Coproduct-IS (getElem {xs = xs})
+ListCoproduct-IS xs = Coproduct-IS (getElem {lzero} ?) 
 
 embedListCoproduct-IS : ∀{x xs} → ISMorphism (ListCoproduct-IS xs) (ListCoproduct-IS (x ∷ xs))
 CommandF  embedListCoproduct-IS (p , c) = that p , c
 ResponseF embedListCoproduct-IS {p , c} r = r
 
 Bin*2List-IS : ∀{xs} → ISMorphism (BinCoproduct*-IS xs) (ListCoproduct-IS xs)
-CommandF  (Bin*2List-IS {[]}) ()
+CommandF  (Bin*2List-IS {[]})     ()
 CommandF  (Bin*2List-IS {x ∷ xs}) (false , c) = this x , c
 CommandF  (Bin*2List-IS {x ∷ xs}) (true  , c) = CommandF (comp-IS Bin*2List-IS embedListCoproduct-IS) c 
-ResponseF (Bin*2List-IS {[]}) {()}
+ResponseF (Bin*2List-IS {[]})     {()}
 ResponseF (Bin*2List-IS {x ∷ xs}) {false , c} r = r
 ResponseF (Bin*2List-IS {x ∷ xs}) {true  , c} r = ResponseF (comp-IS (Bin*2List-IS {xs}) embedListCoproduct-IS) r 
+
+List2Bin*-IS : ∀{xs} → ISMorphism (ListCoproduct-IS xs) (BinCoproduct*-IS xs)
+CommandF  (List2Bin*-IS {[]})     (() , _)
+CommandF  (List2Bin*-IS {x ∷ xs}) (this .x , c) = CommandF (InclL-IS _ _) c
+CommandF  (List2Bin*-IS {x ∷ xs}) (that p  , c) = CommandF (comp-IS {!!} List2Bin*-IS) c
+ResponseF (List2Bin*-IS {[]})     {() , _}
+ResponseF (List2Bin*-IS {x ∷ xs}) {this .x , c} r = {!!}
+ResponseF (List2Bin*-IS {x ∷ xs}) {that p  , c} r = {!!}
+
+-}
