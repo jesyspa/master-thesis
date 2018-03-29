@@ -7,19 +7,10 @@ open import Interaction.Complete.FreeMonad
 
 open InteractionStructure
 
-Implementation : (M : Set → Set)(IS : InteractionStructure) → Set
-Implementation M IS = (c : Command IS) → M (Response IS c)
+Implementation : (IS : InteractionStructure)(M : Set → Set) → Set
+Implementation IS M = (c : Command IS) → M (Response IS c)
 
-record SyntaxDef : Set₁ where
-  constructor syntax-def
-  field
-    ImplLang : InteractionStructure
-    InfcLang : InteractionStructure
-
-SyntacticImplementation : SyntaxDef → Set
-SyntacticImplementation (syntax-def IS₁ IS₂) = Implementation (FreeMonad IS₁) IS₂
-
-record ImplMorphism (M₁ : Set → Set)(IS₁ : InteractionStructure)(M₂ : Set → Set)(IS₂ : InteractionStructure) : Set₁ where
+record ImplMorphism (IS₁ : InteractionStructure)(M₁ : Set → Set)(IS₂ : InteractionStructure)(M₂ : Set → Set) : Set₁ where
   field
     UnderlyingISM   : ISMorphism IS₁ IS₂
   open ISMorphism UnderlyingISM
@@ -27,12 +18,21 @@ record ImplMorphism (M₁ : Set → Set)(IS₁ : InteractionStructure)(M₂ : Se
     InterpretationM : ∀{c} → M₂ (Response IS₂ (CommandF c)) → M₁ (Response IS₁ c)
 open ImplMorphism
 
-SyntacticImplMorphism : SyntaxDef → SyntaxDef → Set₁
-SyntacticImplMorphism (syntax-def JS₁ IS₁) (syntax-def JS₂ IS₂) = ImplMorphism (FreeMonad JS₁) IS₁ (FreeMonad JS₂) IS₂
+module _ {IS : InteractionStructure}{M : Set → Set} where
+  id-ImplM : ImplMorphism IS M IS M
+  UnderlyingISM   id-ImplM = id-IS
+  InterpretationM id-ImplM = id
 
-module _ {IS₁ IS₂}(M : Set → Set){{_ : Functor M}} where
-  fmap-Impl : ISMorphism IS₁ IS₂ → ImplMorphism M IS₁ M IS₂
-  UnderlyingISM   (fmap-Impl m) = m
-  InterpretationM (fmap-Impl m) mr = fmap ResponseF mr
-    where open ISMorphism m
+module _ {IS₁ M₁ IS₂ M₂ IS₃ M₃} where
+  comp-ImplM : ImplMorphism IS₁ M₁ IS₂ M₂ → ImplMorphism IS₂ M₂ IS₃ M₃ → ImplMorphism IS₁ M₁ IS₃ M₃
+  UnderlyingISM   (comp-ImplM m₁ m₂) = comp-IS (UnderlyingISM m₁) (UnderlyingISM m₂)
+  InterpretationM (comp-ImplM m₁ m₂) = InterpretationM m₁ ∘′ InterpretationM m₂
+
+module _ {A}(M : Set → Set){ISf : A → InteractionStructure} where
+  Match-Impl : (sif : ∀ a → Implementation (ISf a) M) → Implementation (Coproduct-IS ISf) M
+  Match-Impl sif (a  , c) = sif a c
+
+module _ {IS₁ IS₂}(M : Set → Set) where
+  BinMatch-Impl : Implementation IS₁ M → Implementation IS₂ M → Implementation (BinCoproduct-IS IS₁ IS₂) M
+  BinMatch-Impl si₁ si₂ = Match-Impl M λ { false → si₁ ; true → si₂ }
 

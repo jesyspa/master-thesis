@@ -80,10 +80,7 @@ module _ (IS₁ IS₂ : InteractionStructure) where
   InclR-IS = Incl-IS bincase true
 
   BinMatch-IS : ∀{IS} → ISMorphism IS₁ IS → ISMorphism IS₂ IS → ISMorphism BinCoproduct-IS IS
-  BinMatch-IS {IS} m₁ m₂ = Match-IS bincase mcase
-    where mcase : (b : Bool) → ISMorphism (bincase b) IS
-          mcase false = m₁
-          mcase true  = m₂
+  BinMatch-IS {IS} m₁ m₂ = Match-IS bincase λ { false → m₁ ; true → m₂ }
 
   BinProduct-IS : InteractionStructure
   BinProduct-IS = Product-IS bincase
@@ -95,10 +92,7 @@ module _ (IS₁ IS₂ : InteractionStructure) where
   ProjR-IS = Proj-IS bincase true
 
   BinPair-IS : ∀{IS} → ISMorphism IS IS₁ → ISMorphism IS IS₂ → ISMorphism IS BinProduct-IS
-  BinPair-IS {IS} m₁ m₂ = Pair-IS bincase mcase
-    where mcase : (b : Bool) → ISMorphism IS (bincase b)
-          mcase false = m₁
-          mcase true  = m₂
+  BinPair-IS {IS} m₁ m₂ = Pair-IS bincase λ { false → m₁ ; true → m₂ }
 
 BinCoproduct*-IS : List InteractionStructure → InteractionStructure
 BinCoproduct*-IS = foldr BinCoproduct-IS Zero-IS

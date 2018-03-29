@@ -38,9 +38,10 @@ module _ {IS : InteractionStructure} where
     MonadFreeMonad : Monad (FreeMonad IS)
     MonadFreeMonad = record { _>>=_ = bind-FM }
 
-FMMorphism : (IS₁ IS₂ : InteractionStructure) → Set₁
+FMMorphism : ∀ IS₁ IS₂ → Set₁
 FMMorphism IS₁ IS₂ = ∀{A} → FreeMonad IS₁ A → FreeMonad IS₂ A
 
-fmap-IS-FM : {IS₁ IS₂ : InteractionStructure} → ISMorphism IS₁ IS₂ → FMMorphism IS₁ IS₂
+fmap-IS-FM : ∀{IS₁ IS₂} → ISMorphism IS₁ IS₂ → FMMorphism IS₁ IS₂
 fmap-IS-FM m (Return-FM a) = Return-FM a
 fmap-IS-FM m (Invoke-FM c cont) = Invoke-FM (CommandF m c) λ r → fmap-IS-FM m (cont (ResponseF m r))
+
