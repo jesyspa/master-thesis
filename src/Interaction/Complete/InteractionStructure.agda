@@ -2,6 +2,7 @@ module Interaction.Complete.InteractionStructure where
 
 open import ThesisPrelude
 open import Algebra.Proposition
+open import Interaction.Complete.Elem 
 
 record InteractionStructure : Set₁ where
   field
@@ -96,3 +97,18 @@ module _ (IS₁ IS₂ : InteractionStructure) where
 
 BinCoproduct*-IS : List InteractionStructure → InteractionStructure
 BinCoproduct*-IS = foldr BinCoproduct-IS Zero-IS
+
+ListCoproduct-IS : List InteractionStructure → InteractionStructure
+ListCoproduct-IS xs = Coproduct-IS (getElem {xs = xs})
+
+embedListCoproduct-IS : ∀{x xs} → ISMorphism (ListCoproduct-IS xs) (ListCoproduct-IS (x ∷ xs))
+CommandF  embedListCoproduct-IS (p , c) = that p , c
+ResponseF embedListCoproduct-IS {p , c} r = r
+
+Bin*2List-IS : ∀{xs} → ISMorphism (BinCoproduct*-IS xs) (ListCoproduct-IS xs)
+CommandF  (Bin*2List-IS {[]}) ()
+CommandF  (Bin*2List-IS {x ∷ xs}) (false , c) = this x , c
+CommandF  (Bin*2List-IS {x ∷ xs}) (true  , c) = CommandF (comp-IS Bin*2List-IS embedListCoproduct-IS) c 
+ResponseF (Bin*2List-IS {[]}) {()}
+ResponseF (Bin*2List-IS {x ∷ xs}) {false , c} r = r
+ResponseF (Bin*2List-IS {x ∷ xs}) {true  , c} r = ResponseF (comp-IS (Bin*2List-IS {xs}) embedListCoproduct-IS) r 

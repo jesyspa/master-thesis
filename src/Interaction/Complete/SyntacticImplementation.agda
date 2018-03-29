@@ -8,33 +8,10 @@ open import Interaction.Complete.Implementation
 
 open ImplMorphism 
 
-record SyntaxDef : Set₁ where
-  constructor syntax-def
-  field
-    InfcLang : InteractionStructure
-    ImplLang : InteractionStructure
-open SyntaxDef
+SyntacticImplementation : ∀ IS₁ IS₂ → Set
+SyntacticImplementation IS₁ IS₂ = Implementation IS₁ (FreeMonad IS₂)
 
-Trivial-SD : SyntaxDef
-Trivial-SD = syntax-def Zero-IS Zero-IS
-
-BinJoin-SD : SyntaxDef → SyntaxDef → SyntaxDef
-InfcLang (BinJoin-SD def₁ def₂) = BinCoproduct-IS (InfcLang def₁) (InfcLang def₂)
-ImplLang (BinJoin-SD def₁ def₂) = BinCoproduct-IS (ImplLang def₁) (ImplLang def₂)
-
-BinExtend-SD : SyntaxDef → SyntaxDef → SyntaxDef
-InfcLang (BinExtend-SD def₁ def₂) = InfcLang def₁
-ImplLang (BinExtend-SD def₁ def₂) = BinCoproduct-IS (ImplLang def₁) (InfcLang def₂)
-
-BinExtend*-SD : SyntaxDef → List SyntaxDef → SyntaxDef
-BinExtend*-SD def defs = BinExtend-SD def (foldr BinJoin-SD Trivial-SD defs)
-
-
-SyntacticImplementation : SyntaxDef → Set
-SyntacticImplementation (syntax-def IS₁ IS₂) = Implementation IS₁ (FreeMonad IS₂)
-
-SynImpl : ∀ IS₁ IS₂ → Set
-SynImpl IS₁ IS₂ = SyntacticImplementation (syntax-def IS₁ IS₂)
+SynImpl = SyntacticImplementation
 
 module _ {IS₁ IS₂} where
   free-SynImpl : ISMorphism IS₁ IS₂ → SynImpl IS₁ IS₂
@@ -48,7 +25,7 @@ module _ (M : Set → Set){{_ : Functor M}} {IS₁ IS₂}where
     where open ISMorphism m
 
 module _ {IS₁ IS₂} where
-  fmap-SynImpl-FM : ∀{A} → SyntacticImplementation (syntax-def IS₁ IS₂) → FreeMonad IS₁ A → FreeMonad IS₂ A
+  fmap-SynImpl-FM : ∀{A} → SynImpl IS₁ IS₂ → FreeMonad IS₁ A → FreeMonad IS₂ A
   fmap-SynImpl-FM si (Return-FM a) = Return-FM a
   fmap-SynImpl-FM si (Invoke-FM c cont) = bind-FM (si c) λ r → fmap-SynImpl-FM si (cont r)
 

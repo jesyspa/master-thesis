@@ -35,4 +35,3 @@ module _ {A}(M : Set → Set){ISf : A → InteractionStructure} where
 module _ {IS₁ IS₂}(M : Set → Set) where
   BinMatch-Impl : Implementation IS₁ M → Implementation IS₂ M → Implementation (BinCoproduct-IS IS₁ IS₂) M
   BinMatch-Impl si₁ si₂ = Match-Impl M λ { false → si₁ ; true → si₂ }
-
