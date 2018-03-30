@@ -51,3 +51,4 @@ data ImplTelescope : List InteractionStructure → List InteractionStructure →
 CombineSyn* : ∀{ISAs ISBs} → ImplTelescope ISAs ISBs → SynImpl (BinCoproduct*-IS ISAs) (BinCoproduct*-IS ISBs)
 CombineSyn* Nil-IT              = id-SynI
 CombineSyn* (Cons-IT impl tele) = CombineSyn impl (CombineSyn* tele)
+

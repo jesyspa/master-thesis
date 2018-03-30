@@ -65,3 +65,6 @@ module _ (K PT CT : Set) where
   game : encSchemeImplType → adversaryImplType → ImplTelescope (challengerInfc ∷ adversaryInfc ∷ []) (CE ∷ CE ∷ [])
   game scheme adv = Cons-IT (bindEncScheme scheme) (Cons-IT adv Nil-IT)
 
+
+  game′ : encSchemeImplType → adversaryImplType → SynImpl challengerInfc CE
+  game′ scheme adv = free-SynImpl (BinMatch-IS _ _ id-IS Coproduct-RightUnit-IS) ∘′-SI CombineSyn* (game scheme adv) ∘′-SI free-SynImpl (InclL-IS _ _)
