@@ -35,6 +35,10 @@ id-SynI c = Invoke-FM c Return-FM
 comp-SynI : ∀{IS₁ IS₂ IS₃} → SynImpl IS₁ IS₂ → SynImpl IS₂ IS₃ → SynImpl IS₁ IS₃ 
 comp-SynI si₁ si₂ c = fmap-SynImpl-FM si₂ (si₁ c)
 
+infixr 9 _∘′-SI_
+_∘′-SI_ : ∀{IS₁ IS₂ IS₃} → SynImpl IS₂ IS₃ → SynImpl IS₁ IS₂ → SynImpl IS₁ IS₃ 
+_∘′-SI_ = flip comp-SynI
+
 module _ {A IS}{ISf : A → InteractionStructure} where
   Match-SynI : (sif : ∀ a → SynImpl (ISf a) IS) → SynImpl (Σ-IS ISf) IS
   Match-SynI = Match-Impl (FreeMonad IS)

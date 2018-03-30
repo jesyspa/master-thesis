@@ -46,7 +46,7 @@ module _ (K PT CT : Set) where
   challengerImpl tt =
     Invoke-FM (true , false , keygen)                λ k →
     Invoke-FM (true , true , false , generate-msgs)  λ m →
-    Invoke-FM (false , uniform 1 )                   λ bv →
+    Invoke-FM (false , uniform 1)                    λ bv →
     Invoke-FM (true , false , enc k (if head bv
                                      then fst m
                                      else snd m))    λ ct →
@@ -54,51 +54,14 @@ module _ (K PT CT : Set) where
     Return-FM (isYes (head bv == b))
 
   encSchemeImplType : Set
-  encSchemeImplType = SynImpl encSchemeInfc (BinCoproduct*-IS $ CE ∷ [])
+  encSchemeImplType = SynImpl encSchemeInfc (Extend*-IS CE [])
 
   adversaryImplType : Set
-  adversaryImplType = SynImpl adversaryInfc (BinCoproduct*-IS $ CE ∷ [])
+  adversaryImplType = SynImpl adversaryInfc (Extend*-IS CE [])
+
+  bindEncScheme : encSchemeImplType → SynImpl challengerInfc (Extend*-IS CE [ adversaryInfc ])
+  bindEncScheme scheme = CombineHead {challengerInfc} {encSchemeInfc} {CE} {[ adversaryInfc ]} challengerImpl (WeakenBy {encSchemeInfc} {CE} {[]} adversaryInfc scheme)
  
-  game : encSchemeImplType → adversaryImplType → ISTelescope (challengerInfc ∷ adversaryInfc ∷ CE ∷ [])
-  game scheme adv = Cons-IST (CombineSynJ {!challengerImpl!} {!!}) (Cons-IST adv (Cons-IST  Nil-DSIL)
+  game : encSchemeImplType → adversaryImplType → ImplTelescope (challengerInfc ∷ adversaryInfc ∷ []) (CE ∷ CE ∷ [])
+  game scheme adv = Cons-IT (bindEncScheme scheme) (Cons-IT adv Nil-IT)
 
-{-
-challengerSig : PlayerSig
-challengerSig = player-sig ⊤ (const $ method-sig′ ⊤ Bool)
-
-baseChallengerDef : PlayerDef
-baseChallengerDef = player-def CE challengerSig 
-  
-  data NamesADV : Set where
-    GetMessages : NamesADV
-    GetResponse : NamesADV
-  
-  getMessagesSig : MethodSig
-  getMessagesSig = method-sig′ ⊤ (PT × PT)
-
-  getResponseSig : MethodSig
-  getResponseSig = method-sig′ CT Bool
-
-  adversarySig : PlayerSig
-  MethodName adversarySig = NamesADV
-  MethodSigs adversarySig GetMessages = getMessagesSig
-  MethodSigs adversarySig GetResponse = getResponseSig
-
-  baseAdversaryDef : PlayerDef
-  baseAdversaryDef = player-def CE adversarySig
-
-  challengerDef : PlayerDef 
-  challengerDef = Extend*-PD baseChallengerDef (baseAdversaryDef ∷ [])
-
-  challengerImpl : Impl-PD challengerDef
-  challengerImpl tt tt = {!!} -- implementation of the game
-
-  adversaryDef : PlayerDef
-  adversaryDef = Extend*-PD baseAdversaryDef []
-
-  game-players : Impl-PD adversaryDef → PlayerList (baseChallengerDef ∷ baseAdversaryDef ∷ [])
-  game-players adv = Cons-PL challengerImpl (Cons-PL adv Nil-PL)
-
-
-
--}

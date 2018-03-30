@@ -111,17 +111,38 @@ module _ (IS₁ IS₂ : InteractionStructure) where
   BinPair-IS : ∀{IS} → ISMorphism IS IS₁ → ISMorphism IS IS₂ → ISMorphism IS BinProduct-IS
   BinPair-IS {IS} m₁ m₂ = Pair-IS bincase λ { false → m₁ ; true → m₂ }
 
+module _ {IS} where
+  Codiagonal-IS : ISMorphism (IS ⊎-IS IS) IS
+  Codiagonal-IS = BinMatch-IS _ _ id-IS id-IS
+
+module _ {ISA₁ ISB₁ ISA₂ ISB₂} where
+  BinJoin-IS : ISMorphism ISA₁ ISA₂ → ISMorphism ISB₁ ISB₂ → ISMorphism (ISA₁ ⊎-IS ISB₁) (ISA₂ ⊎-IS ISB₂)
+  BinJoin-IS mA mB = BinMatch-IS _ _ (InclL-IS _ _ ∘′-IS mA) (InclR-IS _ _ ∘′-IS mB)
+
 BinCoproduct*-IS : List InteractionStructure → InteractionStructure
 BinCoproduct*-IS = foldr BinCoproduct-IS Zero-IS
 
 Extend*-IS : InteractionStructure → List InteractionStructure → InteractionStructure
 Extend*-IS IS ISs = IS ⊎-IS BinCoproduct*-IS ISs
 
+Reassoc-Coproduct-IS : ∀{ISA ISB ISC} → ISMorphism (ISA ⊎-IS ISB ⊎-IS ISC) ((ISA ⊎-IS ISB) ⊎-IS ISC)
+Reassoc-Coproduct-IS = BinMatch-IS _ _
+                                   (comp-IS (InclL-IS _ _) (InclL-IS _ _))
+                                   (BinMatch-IS _ _
+                                                (comp-IS (InclR-IS _ _) (InclL-IS _ _))
+                                                (InclR-IS _ _))
+Reassoc′-Coproduct-IS : ∀{ISA ISB ISC} → ISMorphism ((ISA ⊎-IS ISB) ⊎-IS ISC) (ISA ⊎-IS ISB ⊎-IS ISC)
+Reassoc′-Coproduct-IS = BinMatch-IS _ _
+                                    (BinMatch-IS _ _
+                                                 (InclL-IS _ _)
+                                                 (comp-IS (InclL-IS _ _) (InclR-IS _ _)))
+                                    (comp-IS (InclR-IS _ _) (InclR-IS _ _))
+
+Commute-Coproduct-IS : ∀{ISA ISB} → ISMorphism (ISA ⊎-IS ISB) (ISB ⊎-IS ISA)
+Commute-Coproduct-IS = BinMatch-IS _ _ (InclR-IS _ _) (InclL-IS _ _)
+
 Coproduct-RightUnit-IS : ∀{IS} → ISMorphism (IS ⊎-IS ⊥-IS) IS
-CommandF  Coproduct-RightUnit-IS (false , c)  = c
-CommandF  Coproduct-RightUnit-IS (true  , ())
-ResponseF Coproduct-RightUnit-IS {false , c} r = r
-ResponseF Coproduct-RightUnit-IS {true , ()} r
+Coproduct-RightUnit-IS = BinMatch-IS _ _ id-IS init-IS
 
 {-
 ListCoproduct-IS : List InteractionStructure → InteractionStructure

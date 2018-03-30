@@ -29,28 +29,25 @@ module _ {ISA ISB IST} where
               → SynImpl ISA IST
   CombineSynJ I₁ I₂ = comp-SynI (CombineSynL I₁ I₂) (free-SynImpl (BinMatch-IS _ _ id-IS id-IS))
 
-data ISTelescope : List InteractionStructure → Set₁ where
-  Base-IST  : ∀{IS} → ISTelescope [ IS ]
-  Cons-IST : ∀{IS ISs}
-           → SynImpl IS (BinCoproduct*-IS ISs)
-           → ISTelescope ISs
-           → ISTelescope (IS ∷ ISs)
+module _ {ISA ISB ISC ISs} where
+  CombineHead : SynImpl ISA (Extend*-IS ISC (ISB ∷ ISs))
+              → SynImpl ISB (Extend*-IS ISC ISs)
+              → SynImpl ISA (Extend*-IS ISC ISs)
+  CombineHead I₁ I₂ = BinMatch-SynI I₂ id-SynI ∘′-SI rearrange ∘′-SI I₁
+    where rearrange : SynImpl (Extend*-IS ISC (ISB ∷ ISs)) (ISB ⊎-IS (Extend*-IS ISC ISs) )
+          rearrange = free-SynImpl $ Reassoc′-Coproduct-IS ∘′-IS BinJoin-IS Commute-Coproduct-IS id-IS ∘′-IS Reassoc-Coproduct-IS
 
-First*-IS : List InteractionStructure → InteractionStructure
-First*-IS = foldr const ⊥-IS
+module _ {ISA ISB ISs} where
+  WeakenBy : ∀ ISC → SynImpl ISA (Extend*-IS ISB ISs) → SynImpl ISA (Extend*-IS ISB (ISC ∷ ISs))
+  WeakenBy ISC I = BinJoin-SynI id-SynI (free-SynImpl (InclR-IS _ _)) ∘′-SI I
 
-Last*-IS : List InteractionStructure → InteractionStructure
-Last*-IS (x ∷ y ∷ ys) = Last*-IS (y ∷ ys)
-Last*-IS (x ∷ []) = x
-Last*-IS [] = ⊥-IS
+data ImplTelescope : List InteractionStructure → List InteractionStructure → Set₁ where
+  Nil-IT  : ImplTelescope [] []
+  Cons-IT : ∀{ISA ISAs ISB ISBs}
+          → SynImpl ISA (Extend*-IS ISB ISAs)
+          → ImplTelescope ISAs ISBs
+          → ImplTelescope (ISA ∷ ISAs) (ISB ∷ ISBs)
 
-CombineSyn* : ∀{ISs} → ISTelescope ISs → SynImpl (BinCoproduct*-IS ISs) (Last*-IS ISs) 
-CombineSyn* (Base-IST {IS}) = free-SynImpl lem
-  where lem : ISMorphism (IS ⊎-IS ⊥-IS) IS
-        lem = {!!}
-CombineSyn* (Cons-IST I Is) = {!!} 
-
-ComposeSyn* : ∀{ISs} → ISTelescope ISs → SynImpl (First*-IS ISs) (Last*-IS ISs)
-ComposeSyn* Base-IST = {!!}
-ComposeSyn* (Cons-IST I Is) = {!!}
-  
+CombineSyn* : ∀{ISAs ISBs} → ImplTelescope ISAs ISBs → SynImpl (BinCoproduct*-IS ISAs) (BinCoproduct*-IS ISBs)
+CombineSyn* Nil-IT              = id-SynI
+CombineSyn* (Cons-IT impl tele) = CombineSyn impl (CombineSyn* tele)
