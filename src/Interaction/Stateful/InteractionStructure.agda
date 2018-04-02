@@ -68,13 +68,20 @@ ResponseF term-IS {()}
 nextF     term-IS {()}
 
 module _ {A : Set}{{_ : Eq A}}(ISf : A → InteractionStructure) where
+  private
+    Coproduct-IS-nextHelper : (s : (a : A) → State (ISf a))(a : A)(c : Command (ISf a) (s a))
+                            → Response (ISf a) c
+                            → (a′ : A)
+                            → State (ISf a′)
+    Coproduct-IS-nextHelper s a c r a′ with a == a′
+    ... | yes refl = next (ISf a) r
+    ... | no neq = s a′
+
   Coproduct-IS : InteractionStructure
-  State    Coproduct-IS = ∀ a → State (ISf a)
+  State    Coproduct-IS = (a : A) → State (ISf a)
   Command  Coproduct-IS s = Σ A (λ a → Command (ISf a) (s a))
   Response Coproduct-IS (a , c) = Response (ISf a) c
-  next     Coproduct-IS {s} {a , c} r a′ with a == a′
-  ... | yes refl = next (ISf a) r
-  ... | no neq = s a′
+  next     Coproduct-IS {s} {a , c} r a′ = Coproduct-IS-nextHelper s a c r a′
 
   Σ-IS = Coproduct-IS
   
@@ -87,11 +94,16 @@ module _ {A : Set}{{_ : Eq A}}(ISf : A → InteractionStructure) where
   ... | no neq = ⊥-elim (neq refl) 
   
 
-  Match-IS : ∀{IS}(mf : ∀ a → ISMorphism (ISf a) IS) → ISMorphism Coproduct-IS IS
-  StateF    (Match-IS mf) s a = StateF (mf a) s
-  CommandF  (Match-IS mf) {s} (a , c) = CommandF (mf a) c
-  ResponseF (Match-IS mf) {s} {a , c} r = ResponseF (mf a) r
-  nextF     (Match-IS mf) {s} {a , c} r = {!!} -- might not be provable
+  module _ {IS}(mf : ∀ a → ISMorphism (ISf a) IS) where
+    private
+      Match-IS-StateHelper : State IS → State Coproduct-IS
+      Match-IS-StateHelper s a = StateF (mf a) s
+
+    Match-IS : ISMorphism Coproduct-IS IS
+    StateF    Match-IS s = Match-IS-StateHelper s
+    CommandF  (Match-IS) {s} (a , c) = CommandF (mf a) c
+    ResponseF (Match-IS) {s} {a , c} r = ResponseF (mf a) r
+    nextF     (Match-IS) {s} {a , c} r = {!fun-ext ? ? ?!} -- might not be provable
 
   Product-IS : InteractionStructure
   State    Product-IS = Σ A λ a → State (ISf a)
@@ -179,4 +191,5 @@ Commute-Coproduct-IS = BinMatch-IS _ _ (InclR-IS _ _) (InclL-IS _ _)
 
 Coproduct-RightUnit-IS : ∀{IS} → ISMorphism (IS ⊎-IS ⊥-IS) IS
 Coproduct-RightUnit-IS = BinMatch-IS _ _ id-IS init-IS
+
 
