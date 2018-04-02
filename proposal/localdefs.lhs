@@ -7,6 +7,8 @@
 %format Probability  = "\D{Probability}"
 %format Semiring     = "\D{Semiring}"
 %format Ord          = "\D{Ord}"
+%format ListDist     = "\D{ListDist}"
+%format Writer       = "\D{Writer}"
 %format ProbabilityProps = "\D{ProbabilityProps}"
 
 %% Constructors

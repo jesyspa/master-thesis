@@ -11,7 +11,47 @@ is to show that the problem we have set out to solve is reasonably solvable.
 
 \section{Preliminary Setup}
 
+We assume that the reader is already familiar with the Agda programming language.\todo{Add a link to a tutorial?}
+
+Our focus in this project is on the representation of and reasoning with probability distributions and randomised
+computations.  As such, we use existing libraries for basic type constructions like sums, products, lists, and natural
+numbers, as well as for common typeclasses such as functor and monad.  In our implementation, we use Ulf Norell's
+\texttt{agda-prelude} library for this.
+
+Additionally, we have for now assumed the existence of a type |Q| suitable for representing probabilities.  It is
+convenient from a programming perspective to not require such a type to contain values exclusively in the $[0, 1]$
+interval; though this would make it easier to quantify over an arbitrary probability, it would mean the type is not
+closed under addition or subtraction, making it considerably harder to express the operations we care about.  As such,
+we require that this type be an ordered ring of characteristic zero with an additional |negpow2 : Nat -> Q| operation
+that maps $n$ to the multiplicative inverse of $2^n$.  Since the rationals constructively satisfy these properties and
+are thus a valid implementation of this type, we consider postulating the existince of an implementation to be
+unproblematic.
+
+A consequence of this choice of requirements on $Q$ is that a formalisation of the real numbers does \emph{not} a valid
+implementation, as they lack a decidable total order.  We have as of yet not made sufficient use of the order on $Q$ to
+determine whether this is a correctable issue.  However, given the nature of our problem it seems unlikely that
+non-rational probabilities are of interest, and so we consider this not to be a significant handicap.
+
 \section{Representation of Distributions}
+
+There is considerable prior work done on formalising probability distributions in a functional setting in the
+past.\todo{cite relevant stuff}  For our purposes, the primary interest lies in probability distributions with finite
+support.  The most fitting representation for a distribution in this setting is a list of pairs, each pair containing an
+outcome and its probability.  Duplicates are allowed, in which case the probability of the outcome is the sum of the
+probabilities it is paired with.
+
+In other words, given a type |A| we construct a type |ListDist A| isomorphic to |List (A * Q)|.  This is easily seen to
+be the |Writer| monad transformer applied to the |List| monad, with multiplication on |Q| as the monoidal operation.
+The monadic structure expresses the following: given a distribution |D : ListDist A| and a family of distributions |f :
+A -> ListDist B|, the combined distribution |D >>= f| represents picking an |a : A| according to |D| and then a |b : B|
+according to |f a|.
+
+The monadic structure also gives rise to a way of constructing distributions: given |a : A|, |return a : ListDist A| is
+the distribution that always yields |a|.  We also require that the uniform distribution over bitstrings of length |n|
+exist for every |n : Nat|; that is, we require a function |uniform : (n : Nat) -> ListDist (BitVec n)| which gives
+probability |negpow2 n| to each outcome.
+
+% Sampling!
 
 \section{Representation of Games}
 

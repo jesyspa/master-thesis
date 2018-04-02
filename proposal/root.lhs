@@ -34,10 +34,10 @@
 
     %include chapters/01-introduction.lhs
     %include chapters/sp1-implementation-outline.lhs
-    %include chapters/sp2-research-plan.lhs
     % %include chapters/02-distributions.lhs
     % %include chapters/03-syntax.lhs
     % %include chapters/04-crypto-games.lhs
+    %include chapters/sp2-research-plan.lhs
 
     \bibliography{proposal}
     \bibliographystyle{alpha}
