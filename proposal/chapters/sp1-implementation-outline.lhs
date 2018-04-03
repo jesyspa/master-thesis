@@ -51,7 +51,28 @@ the distribution that always yields |a|.  We also require that the uniform distr
 exist for every |n : Nat|; that is, we require a function |uniform : (n : Nat) -> ListDist (BitVec n)| which gives
 probability |negpow2 n| to each outcome.
 
-% Sampling!
+%{
+%format D1 = "D_1"
+%format D2 = "D_2"
+Finally, we require that if the type |A| has decidable equality, then we can compute the probability of sampling an |a :
+A| from a |D : ListDist A|; that is, that there exists a function |sample : {{Eq A}} -> ListDist A -> A -> Q|.  This
+gives rise to a notion of indistinguishibility of distributions |==D|, where |D1 ==D D2| is a type that is inhabited iff
+for every |a : A|, |sample D1 a == sample D2 a|.  We will generally be interested in distributions up to this
+equivalence relation.
+%}
+
+Although this implementation of distribution seems to be the most practical for our purposes, we parametrise the
+remainder of the construction by the implementation used, allowing a different implementation to be specified if
+desired.
 
 \section{Representation of Games}
 
+A game represents a non-deterministic computation.  While we could represent a game directly in the |ListDist| monad,
+this would make it harder to argue about properties of the adversary.  Instead, we provide a monad in which games and
+adversaries can be described syntactically and provide a valuation function from this monad into the distribution monad.
+
+This syntactic monad is the free monad over the signature of operations that players have access to.  Due to the limited
+scope of what has been implemented so far, this is only the |uniform| operation that takes an |n : Nat| and returns a
+|BitVec n| uniformly at random.
+
+\todo{Say something more?}

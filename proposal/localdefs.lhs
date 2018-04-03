@@ -70,6 +70,6 @@
 %format (VAL (a))       = "\llbracket {" a "} \rrbracket"
 
 %% Things annoying to :Align
-%format ==D = "\F{$\equiv^D$}"
+%format ==D = "\F{$\equiv_D$}"
 %format eq (a) (b) = "{" a "}\mathbin{\F{==}}{" b "}"
 %format congbind = "\F{cong-\textgreater\!\!\textgreater\!=}"
