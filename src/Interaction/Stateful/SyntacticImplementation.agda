@@ -1,15 +1,15 @@
-module Interaction.Complete.SyntacticImplementation where
+module Interaction.Stateful.SyntacticImplementation where
 
 open import ThesisPrelude
 open import Algebra.Proposition
-open import Interaction.Complete.InteractionStructure 
-open import Interaction.Complete.FreeMonad 
-open import Interaction.Complete.Implementation 
+open import Interaction.Stateful.InteractionStructure 
+open import Interaction.Stateful.FreeMonad 
+open import Interaction.Stateful.Implementation 
 
-open ImplMorphism 
+SyntacticImplementation : (IS₁ IS₂ : InteractionStructure) → Set₁
+SyntacticImplementation IS₁ IS₂ = Implementation IS₁ {!FreeMonad ?!}
 
-SyntacticImplementation : ∀ IS₁ IS₂ → Set
-SyntacticImplementation IS₁ IS₂ = Implementation IS₁ (FreeMonad IS₂)
+{-
 
 SynImpl = SyntacticImplementation
 
@@ -58,3 +58,4 @@ module _ {ISA₁ ISB₁ ISA₂ ISB₂} where
 module _ {ISA ISB ISBs} where
   Weaken-SynI : ∀{ISB′} → SynImpl ISA (Extend*-IS ISB ISBs) → SynImpl ISA (Extend*-IS ISB (ISB′ ∷ ISBs))
   Weaken-SynI I = comp-SynI I (BinJoin-SynI id-SynI (free-SynImpl (InclR-IS _ _)))
+-}

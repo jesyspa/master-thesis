@@ -8,6 +8,9 @@ open import Interaction.Stateful.InteractionStructure
 open InteractionStructure
 open ISMorphism
 
+data Atkey {l l′}{S : Set l}(x : Set l′): S → S → Set l′ where
+  V : ∀{s} → x → Atkey x s s
+
 data FreeMonad (IS : InteractionStructure) : (State IS → Set) → (State IS → Set) where
   Return-FM : ∀{A s} → A s → FreeMonad IS A s 
   Invoke-FM : ∀{A s} → (c : Command IS s) → ((r : Response IS c) → FreeMonad IS A (next IS r)) → FreeMonad IS A s
