@@ -69,3 +69,4 @@ silly-coin true  = lem
                   | adj-plus pow2-expand
                   | sym (abs-pos (negpow2 1) (embed-< (negpow-pos 1)))
                   = ≤-refl (negpow2 1)
+
