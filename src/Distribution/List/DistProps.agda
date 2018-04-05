@@ -133,9 +133,6 @@ module _ {{PPQ : ProbabilityProps}} where
     sample-LD (ys >>= f) b
     ∎
 
-  return-certain-LD : ∀{A}{{_ : Eq A}}(a : A) → sample-LD (return a) a ≡ one
-  return-certain-LD a rewrite yes-refl a = sym (singleton-sum-id one)
-
   uniform-not-return-LD : ∀ n (v : BitVec n) → ¬(n ≡ 0) → ¬(uniform-LD n ≡LD return v)
   uniform-not-return-LD n v ne p with embed-Inj {suc zero} {pow2 n} (embed-1 ʳ⟨≡⟩ lem2)
     where
@@ -146,7 +143,7 @@ module _ {{PPQ : ProbabilityProps}} where
         sample-LD (uniform-LD n) v
           ≡⟨ sample-invariant-LD p v ⟩
         sample-LD (return v) v
-          ≡⟨ return-certain-LD v ⟩
+          ≡⟨ return-sample-1-LD v ⟩ʳ
         one
         ∎
       lem2 : one ≡ embed (pow2 n)
@@ -175,7 +172,6 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; uniform-bijection-invariant = uniform-LD-bijection-invariant
                                ; sample-equality = sample-equiv
                                ; sample-invariant = sample-invariant-LD
-                               ; return-certain = return-certain-LD
                                ; injection-invariant = injections-preserve-distributions-LD
                                ; irrelevance = irrelevance-LD
                                ; interchange = interchange-LD
