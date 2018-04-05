@@ -99,11 +99,31 @@ module _ {A : Set}{{_ : Eq A}}(ISf : A → InteractionStructure) where
       Match-IS-StateHelper : State IS → State Coproduct-IS
       Match-IS-StateHelper s a = StateF (mf a) s
 
+    postulate
+      -- It feels to me like this should be provable given function extensionality, but I've not found a way to do so.
+      -- The statement is that
+      --   StateF (mf a′) (next IS {s} r)
+      -- is equal to
+      --   next (ISf a) (ResponseF (mf a) r)
+      -- if a == a′ and
+      --   StateF (mf a′) s
+      -- otherwise.  Could it have something to do with the function being dependent?
+      nextF-pos : ∀{s a}{c : Command (ISf a) (StateF (mf a) s)}
+                  (r : Response IS (CommandF (mf a) c))
+                → Match-IS-StateHelper (next IS r) ≡ Coproduct-IS-nextHelper (Match-IS-StateHelper s) a c (ResponseF (mf a) r) 
+
     Match-IS : ISMorphism Coproduct-IS IS
     StateF    Match-IS s = Match-IS-StateHelper s
     CommandF  (Match-IS) {s} (a , c) = CommandF (mf a) c
     ResponseF (Match-IS) {s} {a , c} r = ResponseF (mf a) r
-    nextF     (Match-IS) {s} {a , c} r = {!fun-ext ? ? ?!} -- might not be provable
+    nextF     (Match-IS) {s} {a , c} r = dep-fun-ext (Match-IS-StateHelper (next IS r))
+                                                     (Coproduct-IS-nextHelper (Match-IS-StateHelper s) a c (ResponseF (mf a) r))
+                                                     lem
+      where
+        lem : ∀ a′ → Match-IS-StateHelper (next IS r) a′ ≡ Coproduct-IS-nextHelper (Match-IS-StateHelper s) a c (ResponseF (mf a) r) a′
+        lem a′ with a == a′
+        ... | yes refl = nextF (mf a′) r
+        ... | no neq = {!!}
 
   Product-IS : InteractionStructure
   State    Product-IS = Σ A λ a → State (ISf a)
@@ -124,6 +144,24 @@ module _ {A : Set}{{_ : Eq A}}(ISf : A → InteractionStructure) where
   nextF     (Pair-IS mf) {a , s} r rewrite nextF (mf a) r = refl
 
 module _ (IS₁ IS₂ : InteractionStructure) where
+  BC-IS : InteractionStructure
+  State    BC-IS = State IS₁ × State IS₂
+  Command  BC-IS (s₁ , s₂) = Command IS₁ s₁ ⊎ Command IS₂ s₂
+  Response BC-IS {s₁ , s₂} (left  c) = Response IS₁ c
+  Response BC-IS {s₁ , s₂} (right c) = Response IS₂ c
+  next     BC-IS {s₁ , s₂} {left  c} r = next IS₁ r , s₂
+  next     BC-IS {s₁ , s₂} {right c} r = s₁ , next IS₂ r
+
+  module _ {IS : InteractionStructure}(m₁ : ISMorphism IS₁ IS)(m₂ : ISMorphism IS₂ IS) where
+    BCM-IS : ISMorphism BC-IS IS
+    StateF    BCM-IS s = StateF m₁ s , StateF m₂ s 
+    CommandF  BCM-IS (left  c) = CommandF m₁ c
+    CommandF  BCM-IS (right c) = CommandF m₂ c
+    ResponseF BCM-IS {s} {left  c} r = ResponseF m₁ r
+    ResponseF BCM-IS {s} {right c} r = ResponseF m₂ r
+    nextF     BCM-IS {s} {left  c} r rewrite nextF m₁ r = {!!}
+    nextF     BCM-IS {s} {right c} r = {!!}
+
   private
     bincase : Bool → InteractionStructure
     bincase false = IS₁
