@@ -9,8 +9,13 @@ open import Algebra.Preorder
 record Probability (A : Set) : Set₁ where
   field
     overlap {{super-semiring}} : Semiring A
+    overlap {{super-subtractive}} : Subtractive A
     overlap {{super-ord}} : Ord A
     embed : Nat → A
     negpow2 : Nat → A
+    abs : A → A
+
+  bounded-diff : A → A → A → Set
+  bounded-diff a b ε = abs (a - b) < ε
 
 
