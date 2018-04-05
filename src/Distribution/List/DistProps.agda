@@ -97,6 +97,73 @@ module _ {{PPQ : ProbabilityProps}} where
   return-sample-0-LD : ∀{A}{{_ : Eq A}}(a a′ : A) → ¬ (a ≡ a′) → zro ≡ sample-LD (return a) a′
   return-sample-0-LD a a′ np rewrite no-neq a′ a (np ∘′ sym) = refl
 
+  >>=-D-inv-normal2-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+                       → (xs ys : ListDist A)
+                       → (f : A → ListDist B)
+                       → xs ≡LD ys
+                       → (normalize-LD xs >>= f) ≡LD (normalize-LD ys >>= f)
+  >>=-D-inv-normal2-LD xs ys f eq = sample-equiv λ b →
+    {!!}
+      ≡⟨ {!!} ⟩
+    {!!}
+    ∎
+
+  >>=-D-inv-normal-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+                      → (xs : ListDist A)
+                      → (f : A → ListDist B)
+                      → (xs >>= f) ≡LD (normalize-LD xs >>= f)
+  >>=-D-inv-normal-LD xs f = sample-equiv λ b →
+    sum (filter-vals b (xs >>= f))
+      ≡⟨ {!!} ⟩
+    sum (filter-vals b (normalize-LD xs >>= f))
+    ∎
+
+  >>=-D-inv-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+               → (xs ys : ListDist A)
+               → (f : A → ListDist B)
+               → xs ≡LD ys
+               → (xs >>= f) ≡LD (ys >>= f) 
+  >>=-D-inv-LD xs ys f eq = sample-equiv λ b →
+    sample-LD (xs >>= f) b
+      ≡⟨ sample-invariant-LD (>>=-D-inv-normal-LD xs f) b ⟩
+    sample-LD (normalize-LD xs >>= f) b
+      ≡⟨ sample-invariant-LD (>>=-D-inv-normal2-LD xs ys f eq) b ⟩
+    sample-LD (normalize-LD ys >>= f) b
+      ≡⟨ sample-invariant-LD (>>=-D-inv-normal-LD ys f) b ⟩ʳ
+    sample-LD (ys >>= f) b
+    ∎
+
+  return-certain-LD : ∀{A}{{_ : Eq A}}(a : A) → sample-LD (return a) a ≡ one
+  return-certain-LD a rewrite yes-refl a = sym (singleton-sum-id one)
+
+  uniform-not-return-LD : ∀ n (v : BitVec n) → ¬(n ≡ 0) → ¬(uniform-LD n ≡LD return v)
+  uniform-not-return-LD n v ne p with embed-Inj {suc zero} {pow2 n} (embed-1 ʳ⟨≡⟩ lem2)
+    where
+      lem : negpow2 n ≡ one
+      lem =
+        negpow2 n
+          ≡⟨ uniform-LD-is-uniform n v ⟩
+        sample-LD (uniform-LD n) v
+          ≡⟨ sample-invariant-LD p v ⟩
+        sample-LD (return v) v
+          ≡⟨ return-certain-LD v ⟩
+        one
+        ∎
+      lem2 : one ≡ embed (pow2 n)
+      lem2 =
+        one
+          ≡⟨ pow2-negpow2-cancel n ⟩
+        embed (pow2 n) * negpow2 n
+          ≡⟨ cong (_*_ (embed (pow2 n))) lem ⟩
+        embed (pow2 n) * one
+          ≡⟨ *-unit-right (embed (pow2 n)) ⟩ʳ
+        embed (pow2 n)
+        ∎
+  ... | z = ne lem3
+    where
+      lem3 : n ≡ 0
+      lem3 = {!!}
+               
   open import Distribution.PropsClass ListDist
   
   instance
@@ -108,6 +175,7 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; uniform-bijection-invariant = uniform-LD-bijection-invariant
                                ; sample-equality = sample-equiv
                                ; sample-invariant = sample-invariant-LD
+                               ; return-certain = return-certain-LD
                                ; injection-invariant = injections-preserve-distributions-LD
                                ; irrelevance = irrelevance-LD
                                ; interchange = interchange-LD
@@ -115,4 +183,7 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; >>=-D-approx-ext = >>=-D-approx-ext-LD
                                ; return-sample-1 = return-sample-1-LD
                                ; return-sample-0 = return-sample-0-LD
+                               ; >>=-D-inv = >>=-D-inv-LD
+                               ; uniform-not-return = uniform-not-return-LD
                                }
+

@@ -159,4 +159,3 @@ module _ {{PPQ : ProbabilityProps}} where
           fun-b-equiv = fun-gen-equiv B A (flip f) xs
           fun-equiv : (pb : B × Q)(pa : A × Q) → flip fun-a pb pa ≡ fun-b pb pa
           fun-equiv (b , q) (a , p) = cong (λ e → e * sample-LD (f a b) c) $ *-comm p q
-               
