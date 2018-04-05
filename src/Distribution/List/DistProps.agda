@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import Probability.Class using (Probability)
 module Distribution.List.DistProps (Q : Set) {{PQ : Probability Q}} where
 
@@ -146,9 +147,7 @@ module _ {{PPQ : ProbabilityProps}} where
   ... | z = ne lem3
     where
       lem3 : n ≡ 0
-      lem3 with n
-      ... | zero = ?
-      ... | suc k = ?
+      lem3 = {!!}
                
   open import Distribution.PropsClass ListDist
   
