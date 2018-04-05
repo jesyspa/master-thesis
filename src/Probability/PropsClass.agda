@@ -7,6 +7,7 @@ open import Algebra.Monoid
 open import Algebra.Function
 open import Algebra.Preorder
 open import Algebra.SemiringProps Q
+open import Algebra.Function
 open import Probability.Class
 
 record ProbabilityProps : Set where
@@ -37,6 +38,10 @@ record ProbabilityProps : Set where
                            embed* n m        = +-comm (embed m) (embed n * embed m)
                                             ⟨≡⟩ cong (_+_ (embed n * embed m)) (*-unit-left (embed m))
                                             ⟨≡⟩ʳ +*-right-dist (embed n) one (embed m)
+
+  non-trivial : ¬(zro ≡ one as Q)
+  non-trivial p with embed-Inj {zero} {suc zero} (p ⟨≡⟩ embed-1)
+  ... | ()
 
   negpow2-zro-one : one ≡ negpow2 zro
   negpow2-zro-one =
