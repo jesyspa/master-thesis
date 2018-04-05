@@ -59,16 +59,16 @@ record ProbabilityProps : Set where
     negpow2 zro
     ∎
 
-  bounded-diff-refl : (a ε : Q) → (zro < ε) → bounded-diff a a ε
-  bounded-diff-refl a ε pf rewrite sub-cancelling a | sym (abs-zro zro (≤-refl zro)) = pf
+  bounded-diff-refl : (a : Q){ε : Q} → (zro < ε) → bounded-diff a a ε
+  bounded-diff-refl a pf rewrite sub-cancelling a | sym (abs-zro zro (≤-refl zro)) = pf
 
-  bounded-diff-sym : (a b ε : Q) → bounded-diff a b ε → bounded-diff b a ε
-  bounded-diff-sym a b ε bd rewrite abs-sub-sym a b = bd
+  bounded-diff-sym : {a b ε : Q} → bounded-diff a b ε → bounded-diff b a ε
+  bounded-diff-sym {a} {b} bd rewrite abs-sub-sym a b = bd
 
-  bounded-diff-trans : (a b c ε₁ ε₂ : Q)
+  bounded-diff-trans : {a b c ε₁ ε₂ : Q}
                      → bounded-diff a b ε₁ → bounded-diff b c ε₂
                      → bounded-diff a c (ε₁ + ε₂)
-  bounded-diff-trans a b c ε₁ ε₂ bd₁ bd₂ = <-transˡ lem2 (<-dist-+ bd₁ bd₂)
+  bounded-diff-trans {a} {b} {c} bd₁ bd₂ = <-transˡ lem2 (<-dist-+ bd₁ bd₂)
     where
       lem1 : a - c ≡ (a - b) + (b - c)
       lem1 = adj-plus (
