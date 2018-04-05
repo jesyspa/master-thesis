@@ -133,8 +133,8 @@ module _ {{PPQ : ProbabilityProps}} where
     sample-LD (ys >>= f) b
     ∎
 
-  uniform-not-return-LD : ∀ n (v : BitVec n) → ¬(n ≡ 0) → ¬(uniform-LD n ≡LD return v)
-  uniform-not-return-LD n v ne p with embed-Inj {suc zero} {pow2 n} (embed-1 ʳ⟨≡⟩ lem2)
+  uniform-not-return-LD : ∀ n (v : BitVec n) → ¬(0 ≡ n) → ¬(uniform-LD n ≡LD return v)
+  uniform-not-return-LD n v ne p = ne $ pow2-Inj $ embed-Inj {suc zero} {pow2 n} (embed-1 ʳ⟨≡⟩ lem2)
     where
       lem : negpow2 n ≡ one
       lem =
@@ -156,10 +156,6 @@ module _ {{PPQ : ProbabilityProps}} where
           ≡⟨ *-unit-right (embed (pow2 n)) ⟩ʳ
         embed (pow2 n)
         ∎
-  ... | z = ne lem3
-    where
-      lem3 : n ≡ 0
-      lem3 = {!!}
                
   open import Distribution.PropsClass ListDist
   

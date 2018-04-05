@@ -10,6 +10,7 @@ pow2 (suc n) = 2 *N pow2 n
 postulate
   -- Obviously true, too much hassle to prove now.
   pow2-nz : ∀ n → ¬ (pow2 n ≡ zero)
+  pow2-Inj : Injective pow2
 
 suc-Inj : Injective Nat.suc
 suc-Inj {zero} {.zero} refl = refl

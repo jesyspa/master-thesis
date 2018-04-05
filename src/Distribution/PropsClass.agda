@@ -59,7 +59,7 @@ record DistMonadProps : Set₂ where
                      → (ε : probability)
                      → (∀ a → bounded-dist-diff (Df a) (Dg a) ε)
                      → bounded-dist-diff (DA >>= Df) (DA >>= Dg) ε
-    uniform-not-return : ∀ n v → ¬(n ≡ 0) → ¬(uniform n ≡D return v)
+    uniform-not-return : ∀ n v → ¬(0 ≡ n) → ¬(uniform n ≡D return v)
 
   sample-invariant-at : ∀{A}{{_ : Eq A}}{D₁ D₂ : F A} → (a : A) → D₁ ≡D D₂ → sample D₁ a ≡ sample D₂ a
   sample-invariant-at = flip sample-invariant
