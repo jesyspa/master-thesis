@@ -15,7 +15,7 @@ record Probability (Q : Set) : Set₁ where
     abs : Q → Q
 
   bounded-diff : Q → Q → Q → Set
-  bounded-diff a b ε = abs (a - b) < ε
+  bounded-diff a b ε = abs (a - b) ≤ ε
 
   embed : Nat → Q
   embed zero = zro

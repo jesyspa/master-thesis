@@ -25,7 +25,8 @@ record ProbabilityProps : Set where
     embed-Inj           : Injective embed
     *-Inj               : (a : Q) → ¬ (a ≡ zro) → Injective (_*_ a)
     pow2-negpow2-cancel : ∀ n → one ≡ embed (pow2 n) * negpow2 n
-    abs-zro             : (a : Q) → (zro ≤ a) → a ≡ abs a
+    negpow-pos          : ∀ n → zro < negpow2 n
+    abs-pos             : (a : Q) → (zro ≤ a) → a ≡ abs a
     abs-nonneg          : (a : Q) → zro ≤ abs a
     abs-sub-sym         : (a b : Q) → abs (a - b) ≡ abs (b - a) 
     abs-plus-dist       : (a b : Q) → abs (a + b) ≤ abs a + abs b
@@ -59,8 +60,8 @@ record ProbabilityProps : Set where
     negpow2 zro
     ∎
 
-  bounded-diff-refl : (a : Q){ε : Q} → (zro < ε) → bounded-diff a a ε
-  bounded-diff-refl a pf rewrite sub-cancelling a | sym (abs-zro zro (≤-refl zro)) = pf
+  bounded-diff-refl : (a : Q){ε : Q} → (zro ≤ ε) → bounded-diff a a ε
+  bounded-diff-refl a pf rewrite sub-cancelling a | sym (abs-pos zro (≤-refl zro)) = pf
 
   bounded-diff-sym : {a b ε : Q} → bounded-diff a b ε → bounded-diff b a ε
   bounded-diff-sym {a} {b} bd rewrite abs-sub-sym a b = bd
@@ -68,7 +69,7 @@ record ProbabilityProps : Set where
   bounded-diff-trans : {a b c ε₁ ε₂ : Q}
                      → bounded-diff a b ε₁ → bounded-diff b c ε₂
                      → bounded-diff a c (ε₁ + ε₂)
-  bounded-diff-trans {a} {b} {c} bd₁ bd₂ = <-transˡ lem2 (<-dist-+ bd₁ bd₂)
+  bounded-diff-trans {a} {b} {c} bd₁ bd₂ = ≤-trans lem2 (≤-dist-+ bd₁ bd₂)
     where
       lem1 : a - c ≡ (a - b) + (b - c)
       lem1 = adj-plus (
