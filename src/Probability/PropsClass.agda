@@ -68,7 +68,7 @@ record ProbabilityProps : Set where
   bounded-diff-trans : (a b c ε₁ ε₂ : Q)
                      → bounded-diff a b ε₁ → bounded-diff b c ε₂
                      → bounded-diff a c (ε₁ + ε₂)
-  bounded-diff-trans a b c ε₁ ε₂ bd₁ bd₂ = <-trans {!lem2!} {!!}
+  bounded-diff-trans a b c ε₁ ε₂ bd₁ bd₂ = <-transˡ lem2 (<-dist-+ bd₁ bd₂)
     where
       lem1 : a - c ≡ (a - b) + (b - c)
       lem1 = adj-plus (
@@ -80,7 +80,7 @@ record ProbabilityProps : Set where
           ≡⟨ +-assoc (a - b) (b - c) c ⟩
         (a - b) + (b - c) + c
         ∎)
-      lem2 : abs (a - c) < abs (a - b) + abs (b - c)
+      lem2 : abs (a - c) ≤ abs (a - b) + abs (b - c)
       lem2 rewrite lem1 = abs-plus-dist (a - b) (b - c)
 
   negpow2-add : ∀ n → negpow2 n ≡ negpow2 (suc n) + negpow2 (suc n)

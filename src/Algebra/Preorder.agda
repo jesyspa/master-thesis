@@ -10,4 +10,8 @@ record PreorderProps : Set where
     ≤-trans : {a b c : A} → a ≤ b → b ≤ c → a ≤ c
     <-norefl : (a : A) → ¬ (a < a)
     <-trans : {a b c : A} → a < b → b < c → a < c
+    <-transˡ : {a b c : A} → a ≤ b → b < c → a < c
+    <-transʳ : {a b c : A} → a < b → b ≤ c → a < c
+    embed-< : {a b : A} → a < b → a ≤ b
+    neq-< : {a b : A} → a < b → ¬ (a ≡ b)
 
