@@ -50,6 +50,13 @@ record DistMonadProps : Set₂ where
     return-sample-1 : ∀{A}{{_ : Eq A}}(a : A) → one ≡ sample (return a) a
     return-sample-0 : ∀{A}{{_ : Eq A}}(a a′ : A) → ¬ (a ≡ a′) → zro ≡ sample (return a) a′
 
+    >>=-D-approx-ext : ∀{A B}{{_ : Eq B}}
+                     → (DA : F A)
+                     → (Df Dg : A → F B)
+                     → (ε : probability)
+                     → (∀ a → bounded-dist-diff (Df a) (Dg a) ε)
+                     → bounded-dist-diff (DA >>= Df) (DA >>= Dg) ε
+
   sample-invariant-at : ∀{A}{{_ : Eq A}}{D₁ D₂ : F A} → (a : A) → D₁ ≡D D₂ → sample D₁ a ≡ sample D₂ a
   sample-invariant-at = flip sample-invariant
 

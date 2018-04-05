@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import Probability.Class using (Probability)
 module Distribution.List.DistProps (Q : Set) {{PQ : Probability Q}} where
 
@@ -22,6 +23,7 @@ open import Distribution.List.BasicProps Q
 open import Distribution.List.SlowProps Q public
 
 open Probability PQ
+open DistMonad DistMonadListDist
 
 module _ {{PPQ : ProbabilityProps}} where
   open ProbabilityProps PPQ
@@ -81,6 +83,14 @@ module _ {{PPQ : ProbabilityProps}} where
     sample-LD (xs >>= g) b
     ∎
 
+  >>=-D-approx-ext-LD : ∀{A B}{{_ : Eq B}}
+                      → (DA : ListDist A)
+                      → (Df Dg : A → ListDist B)
+                      → (ε : Q)
+                      → (∀ a → bounded-dist-diff (Df a) (Dg a) ε)
+                      → bounded-dist-diff (DA >>= Df) (DA >>= Dg) ε
+  >>=-D-approx-ext-LD DA Df Dg ε pf a = {!!}
+
   return-sample-1-LD : ∀{A}{{_ : Eq A}}(a : A) → one ≡ sample-LD (return a) a
   return-sample-1-LD a rewrite yes-refl a = singleton-sum-id one
 
@@ -102,6 +112,7 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; irrelevance = irrelevance-LD
                                ; interchange = interchange-LD
                                ; >>=-D-ext = >>=-D-ext-LD
+                               ; >>=-D-approx-ext = >>=-D-approx-ext-LD
                                ; return-sample-1 = return-sample-1-LD
                                ; return-sample-0 = return-sample-0-LD
                                }
