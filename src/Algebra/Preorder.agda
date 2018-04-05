@@ -6,5 +6,8 @@ open import ThesisPrelude
 record PreorderProps : Set where
   field
     ≤-refl  : (a : A)                     → a ≤ a
-    ≤-trans : (a b c : A) → a ≤ b → b ≤ c → a ≤ c
+    ≤-antisym : {a b : A} → a ≤ b → b ≤ a → a ≡ b
+    ≤-trans : {a b c : A} → a ≤ b → b ≤ c → a ≤ c
+    <-norefl : (a : A) → ¬ (a < a)
+    <-trans : {a b c : A} → a < b → b < c → a < c
 

@@ -29,6 +29,8 @@ record ProbabilityProps : Set where
     abs-nonneg          : (a : Q) → zro ≤ abs a
     abs-sub-sym         : (a b : Q) → abs (a - b) ≡ abs (b - a) 
     abs-plus-dist       : (a b : Q) → abs (a + b) ≤ abs a + abs b
+    ≤-dist-+            : {a b c d : Q} → a ≤ c → b ≤ d → a + b ≤ c + d
+    <-dist-+            : {a b c d : Q} → a < c → b < d → a + b < c + d
 
   embed-1 : one ≡ embed 1
   embed-1 = +-unit-left one
@@ -66,18 +68,20 @@ record ProbabilityProps : Set where
   bounded-diff-trans : (a b c ε₁ ε₂ : Q)
                      → bounded-diff a b ε₁ → bounded-diff b c ε₂
                      → bounded-diff a c (ε₁ + ε₂)
-  bounded-diff-trans a b c ε₁ ε₂ bd₁ bd₂ = {!!}
+  bounded-diff-trans a b c ε₁ ε₂ bd₁ bd₂ = <-trans {!lem2!} {!!}
     where
       lem1 : a - c ≡ (a - b) + (b - c)
       lem1 = adj-plus (
         a
-          ≡⟨ {!!} ⟩
+          ≡⟨ plus-sub-cancelling a b ⟩
         (a - b) + b
           ≡⟨ cong (λ e → (a - b) + e) (plus-sub-cancelling b c) ⟩
         (a - b) + ((b - c) + c)
-          ≡⟨ +-assoc {!!} {!!} {!!} ⟩
+          ≡⟨ +-assoc (a - b) (b - c) c ⟩
         (a - b) + (b - c) + c
         ∎)
+      lem2 : abs (a - c) < abs (a - b) + abs (b - c)
+      lem2 rewrite lem1 = abs-plus-dist (a - b) (b - c)
 
   negpow2-add : ∀ n → negpow2 n ≡ negpow2 (suc n) + negpow2 (suc n)
   negpow2-add n = *-Inj (embed (pow2 n)) lem-embed-nz (
