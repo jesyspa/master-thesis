@@ -26,6 +26,7 @@ open Probability PQ
 module _ {{PPQ : ProbabilityProps}} where
   open ProbabilityProps PPQ
   open SemiringProps srprops
+  open DistMonad DistMonadListDist
   instance
     private
       MonoidPropsMulQ : MonoidProps Q
@@ -34,7 +35,7 @@ module _ {{PPQ : ProbabilityProps}} where
   module _ {A} {{_ : Eq A }} where
 --   TODO: Acutally reverse the order of statements and update syms.
     irrelevance-LD : ∀ n (xs : ListDist A)
-                   → xs ≡LD (uniform-LD n >>= const xs)
+                   → xs ≡D (uniform-LD n >>= const xs)
     irrelevance-LD n xs = sample-equiv λ a → sym (
       sample-LD (uniform-LD n >>= const xs) a
         ≡⟨ refl ⟩
@@ -73,7 +74,7 @@ module _ {{PPQ : ProbabilityProps}} where
 
   interchange-LD : ∀{A B C}{{_ : Eq C}}(xs : ListDist A)(ys : ListDist B)
                     (f : A → B → ListDist C)
-                  → (xs >>= λ a → ys >>= f a) ≡LD (ys >>= λ b → xs >>= λ a → f a b)
+                  → (xs >>= λ a → ys >>= f a) ≡D (ys >>= λ b → xs >>= λ a → f a b)
   interchange-LD {A} {B} {C} xs ys f = sample-equiv lem
     where
       lem : (c : C) → sample-LD (xs >>= λ a → ys >>= f a) c ≡ sample-LD (ys >>= λ b → xs >>= λ a → f a b) c

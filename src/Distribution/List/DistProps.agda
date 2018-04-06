@@ -55,7 +55,7 @@ module _ {{PPQ : ProbabilityProps}} where
   
   uniform-LD-bijection-invariant : ∀ n (f : BitVec n → BitVec n)
                                  → Bijective f 
-                                 → uniform-LD n ≡LD fmap f (uniform-LD n)
+                                 → uniform-LD n ≡D fmap f (uniform-LD n)
   uniform-LD-bijection-invariant n f (fi , pa , pb) = sample-equiv λ v →
     sample-LD (uniform-LD n) v
       ≡⟨ uniform-LD-is-uniform n v  ⟩ʳ
@@ -71,8 +71,8 @@ module _ {{PPQ : ProbabilityProps}} where
   >>=-D-ext-LD : ∀{A B}{{_ : Eq B}}
                → (xs : ListDist A)
                → (f g : A → ListDist B)
-               → (∀ a → f a ≡LD g a)
-               → (xs >>= f) ≡LD (xs >>= g)
+               → (∀ a → f a ≡D g a)
+               → (xs >>= f) ≡D (xs >>= g)
   >>=-D-ext-LD xs f g pf = sample-equiv λ b →
     sample-LD (xs >>= f) b
       ≡⟨ bind-universal-prop xs f b ⟩
@@ -100,18 +100,18 @@ module _ {{PPQ : ProbabilityProps}} where
   >>=-D-inv-normal2-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
                        → (xs ys : ListDist A)
                        → (f : A → ListDist B)
-                       → xs ≡LD ys
-                       → (normalize-LD xs >>= f) ≡LD (normalize-LD ys >>= f)
+                       → xs ≡D ys
+                       → (normalize-LD xs >>= f) ≡D (normalize-LD ys >>= f)
   >>=-D-inv-normal2-LD xs ys f eq = sample-equiv λ b →
     sum (filter-vals b (normalize-LD xs >>= f))
       ≡⟨ {!!} ⟩
-    {!sum (filter-vals b (normalize-LD ys >>= f))!}
+    sum (filter-vals b (normalize-LD ys >>= f))
     ∎
 
   >>=-D-inv-normal-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
                       → (xs : ListDist A)
                       → (f : A → ListDist B)
-                      → (xs >>= f) ≡LD (normalize-LD xs >>= f)
+                      → (xs >>= f) ≡D (normalize-LD xs >>= f)
   >>=-D-inv-normal-LD xs f = sample-equiv λ b →
     sum (filter-vals b (xs >>= f))
       ≡⟨ {!!} ⟩
@@ -121,8 +121,8 @@ module _ {{PPQ : ProbabilityProps}} where
   >>=-D-inv-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
                → (xs ys : ListDist A)
                → (f : A → ListDist B)
-               → xs ≡LD ys
-               → (xs >>= f) ≡LD (ys >>= f) 
+               → xs ≡D ys
+               → (xs >>= f) ≡D (ys >>= f) 
   >>=-D-inv-LD xs ys f eq = sample-equiv λ b →
     sample-LD (xs >>= f) b
       ≡⟨ sample-invariant-LD (>>=-D-inv-normal-LD xs f) b ⟩
@@ -133,7 +133,7 @@ module _ {{PPQ : ProbabilityProps}} where
     sample-LD (ys >>= f) b
     ∎
 
-  uniform-not-return-LD : ∀ n (v : BitVec n) → ¬(0 ≡ n) → ¬(uniform-LD n ≡LD return v)
+  uniform-not-return-LD : ∀ n (v : BitVec n) → ¬(0 ≡ n) → ¬(uniform-LD n ≡D return v)
   uniform-not-return-LD n v ne p = ne $ pow2-Inj $ embed-Inj {suc zero} {pow2 n} (embed-1 ʳ⟨≡⟩ lem2)
     where
       lem : negpow2 n ≡ one
