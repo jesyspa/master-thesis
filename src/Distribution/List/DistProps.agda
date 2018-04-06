@@ -86,12 +86,22 @@ module _ {{PPQ : ProbabilityProps}} where
     ∎
 
   >>=-D-approx-ext-LD : ∀{A B}{{_ : Eq B}}
-                      → (DA : ListDist A)
+                      → (Da : ListDist A)
                       → (Df Dg : A → ListDist B)
                       → (ε : Q)
                       → (∀ a → bounded-dist-diff (Df a) (Dg a) ε)
-                      → bounded-dist-diff (DA >>= Df) (DA >>= Dg) ε
-  >>=-D-approx-ext-LD DA Df Dg ε pf a = {!!}
+                      → bounded-dist-diff (Da >>= Df) (Da >>= Dg) ε
+  >>=-D-approx-ext-LD Da Df Dg ε pf a
+    rewrite bind-universal-prop Da Df a
+          | bind-universal-prop Da Dg a = {!!}
+
+  >>=-D-approx-inv-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+                      → (Da Db : ListDist A)
+                      → (Df : A → ListDist B)
+                      → (ε : Q)
+                      → bounded-dist-diff Da Db ε
+                      → bounded-dist-diff (Da >>= Df) (Db >>= Df) ε
+  >>=-D-approx-inv-LD Da Db Df ε pf a = {!!}
 
   return-sample-1-LD : ∀{A}{{_ : Eq A}}(a : A) → one ≡ sample-LD (return a) a
   return-sample-1-LD a rewrite yes-refl a = singleton-sum-id one
@@ -171,11 +181,10 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; injection-invariant = injections-preserve-distributions-LD
                                ; irrelevance = irrelevance-LD
                                ; interchange = interchange-LD
-                               ; >>=-D-ext = >>=-D-ext-LD
                                ; >>=-D-approx-ext = >>=-D-approx-ext-LD
+                               ; >>=-D-approx-inv = >>=-D-approx-inv-LD
                                ; return-sample-1 = return-sample-1-LD
                                ; return-sample-0 = return-sample-0-LD
-                               ; >>=-D-inv = >>=-D-inv-LD
                                ; uniform-not-return = uniform-not-return-LD
                                }
 
