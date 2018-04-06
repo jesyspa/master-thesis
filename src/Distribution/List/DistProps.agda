@@ -103,9 +103,9 @@ module _ {{PPQ : ProbabilityProps}} where
                        → xs ≡LD ys
                        → (normalize-LD xs >>= f) ≡LD (normalize-LD ys >>= f)
   >>=-D-inv-normal2-LD xs ys f eq = sample-equiv λ b →
-    {!!}
+    sum (filter-vals b (normalize-LD xs >>= f))
       ≡⟨ {!!} ⟩
-    {!!}
+    {!sum (filter-vals b (normalize-LD ys >>= f))!}
     ∎
 
   >>=-D-inv-normal-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}

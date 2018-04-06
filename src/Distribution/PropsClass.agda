@@ -92,6 +92,12 @@ record DistMonadProps : Set₂ where
     sample coin b
     ∎
 
+  bounded-dist-0-eq : ∀{A}{{_ : Eq A}}
+                    → (D₁ D₂ : F A)
+                    → bounded-dist-diff D₁ D₂ zro
+                    → D₁ ≡D D₂
+  bounded-dist-0-eq D₁ D₂ pf = sample-equality λ a → abs-zero-eq $ abs-zero-min $ pf a
+
 -- The FPF paper/thesis suggests the following laws as well:
 -- Commutativity:
 -- a >>= λ x → b >>= λ y → f a b ≡D b >>= λ y → a >>= λ x → f a b

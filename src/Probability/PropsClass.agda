@@ -31,6 +31,7 @@ record ProbabilityProps : Set where
     abs-nonneg          : (a : Q) → zro ≤ abs a
     abs-sub-sym         : (a b : Q) → abs (a - b) ≡ abs (b - a) 
     abs-plus-dist       : (a b : Q) → abs (a + b) ≤ abs a + abs b
+    abs-zero-eq         : {a b : Q} → zro ≡ abs (a - b) → a ≡ b
     ≤-dist-+            : {a b c d : Q} → a ≤ c → b ≤ d → a + b ≤ c + d
     <-dist-+            : {a b c d : Q} → a < c → b < d → a + b < c + d
 
@@ -114,3 +115,6 @@ record ProbabilityProps : Set where
             ⟨≡⟩ cong₂ _+_ (sym (*-unit-left a)) (sym (*-unit-left a)) 
       lem-embed-nz : ¬ (embed (pow2 n) ≡ zro)
       lem-embed-nz p = pow2-nz n (embed-Inj p)
+
+  abs-zero-min : {a : Q} → abs a ≤ zro → zro ≡ abs a
+  abs-zero-min {a} pf = ≤-antisym (abs-nonneg a) pf 
