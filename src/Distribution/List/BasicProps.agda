@@ -22,9 +22,9 @@ open import Distribution.List.MonadProps Q
 import Utility.Writer.Transformer Q List as WriterT
 
 open Probability PQ
+open DistMonad DistMonadListDist
 
 module _ {{PPQ : ProbabilityProps}} where
-  open DistMonad DistMonadListDist
   open ProbabilityProps PPQ
   open SemiringProps srprops
   instance
@@ -34,9 +34,6 @@ module _ {{PPQ : ProbabilityProps}} where
 
 
   module _ {A} {{_ : Eq A}} where
-    sample-invariant-LD : {xs ys : ListDist A} → xs ≡D ys → (a : A) → sample-LD xs a ≡ sample-LD ys a
-    sample-invariant-LD (sample-equiv p) a = p a
-
     normalize-correct-lemma : (xs : ListDist A) (a : A)
                             → sample-LD xs a ≡ sum (map (sample-LD xs) $ filter (isYes ∘ (_==_ a)) $ support-LD xs)
     normalize-correct-lemma xs a with decide-Index a xs
@@ -126,4 +123,4 @@ module _ {{PPQ : ProbabilityProps}} where
                     (eq : ∀ a → f a ≡D g a)
                     (aq : A × Q)
                   → sample-over-LD f b aq ≡ sample-over-LD g b aq
-  sample-over-ext f g b eq (a , p) = cong (_*_ p) (sample-invariant-LD (eq a) b)
+  sample-over-ext f g b eq (a , p) = cong (_*_ p) (sample-invariant (eq a) b)

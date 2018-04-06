@@ -27,7 +27,7 @@ record ProbabilityProps : Set where
     *-Inj               : (a : Q) → ¬ (a ≡ zro) → Injective (_*_ a)
     pow2-negpow2-cancel : ∀ n → one ≡ embed (pow2 n) * negpow2 n
     negpow-pos          : ∀ n → zro < negpow2 n
-    abs-pos             : (a : Q) → (zro ≤ a) → a ≡ abs a
+    abs-pos             : {a : Q} → (zro ≤ a) → a ≡ abs a
     abs-nonneg          : (a : Q) → zro ≤ abs a
     abs-sub-sym         : (a b : Q) → abs (a - b) ≡ abs (b - a) 
     abs-plus-dist       : (a b : Q) → abs (a + b) ≤ abs a + abs b
@@ -67,7 +67,7 @@ record ProbabilityProps : Set where
     ∎
 
   bounded-diff-refl : (a : Q){ε : Q} → (zro ≤ ε) → bounded-diff a a ε
-  bounded-diff-refl a pf rewrite sub-cancelling a | sym (abs-pos zro (≤-refl zro)) = pf
+  bounded-diff-refl a pf rewrite sub-cancelling a | sym (abs-pos (≤-refl zro)) = pf
 
   bounded-diff-sym : {a b ε : Q} → bounded-diff a b ε → bounded-diff b a ε
   bounded-diff-sym {a} {b} bd rewrite abs-sub-sym a b = bd

@@ -10,6 +10,7 @@ open import Algebra.Monoid
 open import Algebra.Equality
 open import Probability.Class
 open import Algebra.SemiringProps Q
+open import Algebra.SubtractiveProps Q
 open import Probability.PropsClass Q
 open import Utility.Num
 open import Utility.List
@@ -28,6 +29,7 @@ open DistMonad DistMonadListDist
 module _ {{PPQ : ProbabilityProps}} where
   open ProbabilityProps PPQ
   open SemiringProps srprops
+  open SubtractiveProps subprops
   instance
     private
       MonoidPropsMulQ : MonoidProps Q
@@ -125,11 +127,11 @@ module _ {{PPQ : ProbabilityProps}} where
                → (xs >>= f) ≡D (ys >>= f) 
   >>=-D-inv-LD xs ys f eq = sample-equiv λ b →
     sample-LD (xs >>= f) b
-      ≡⟨ sample-invariant-LD (>>=-D-inv-normal-LD xs f) b ⟩
+      ≡⟨ sample-invariant (>>=-D-inv-normal-LD xs f) b ⟩
     sample-LD (normalize-LD xs >>= f) b
-      ≡⟨ sample-invariant-LD (>>=-D-inv-normal2-LD xs ys f eq) b ⟩
+      ≡⟨ sample-invariant (>>=-D-inv-normal2-LD xs ys f eq) b ⟩
     sample-LD (normalize-LD ys >>= f) b
-      ≡⟨ sample-invariant-LD (>>=-D-inv-normal-LD ys f) b ⟩ʳ
+      ≡⟨ sample-invariant (>>=-D-inv-normal-LD ys f) b ⟩ʳ
     sample-LD (ys >>= f) b
     ∎
 
@@ -141,7 +143,7 @@ module _ {{PPQ : ProbabilityProps}} where
         negpow2 n
           ≡⟨ uniform-LD-is-uniform n v ⟩
         sample-LD (uniform-LD n) v
-          ≡⟨ sample-invariant-LD p v ⟩
+          ≡⟨ sample-invariant p v ⟩
         sample-LD (return v) v
           ≡⟨ return-sample-1-LD v ⟩ʳ
         one
@@ -166,8 +168,6 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; is-probability = PPQ
                                ; uniform-is-uniform = uniform-LD-is-uniform
                                ; uniform-bijection-invariant = uniform-LD-bijection-invariant
-                               ; sample-equality = sample-equiv
-                               ; sample-invariant = sample-invariant-LD
                                ; injection-invariant = injections-preserve-distributions-LD
                                ; irrelevance = irrelevance-LD
                                ; interchange = interchange-LD

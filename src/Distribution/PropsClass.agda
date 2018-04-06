@@ -11,7 +11,9 @@ open import Utility.Vector
 open import Algebra.Function
 open import Algebra.LiftingProps F
 open import Algebra.LiftingProps (λ τ → Vec {lzero} τ 1) as V1LProps
-open import Probability.PropsClass (probability)
+open import Probability.PropsClass probability
+open import Algebra.SubtractiveProps probability
+open import Algebra.Preorder probability
 
 record DistMonadProps : Set₂ where
   field
@@ -22,9 +24,9 @@ record DistMonadProps : Set₂ where
   open FunctorProps fprops
   open Probability probability-super
   open ProbabilityProps is-probability
+  open SubtractiveProps subprops
+  open PreorderProps poprops
   field
-    sample-equality : ∀ {A} {{_ : Eq A}} {D₁ D₂ : F A} → (∀ a → sample D₁ a ≡ sample D₂ a) → D₁ ≡D D₂
-    sample-invariant : ∀ {A} {{_ : Eq A}} {D₁ D₂ : F A} → D₁ ≡D D₂ → (a : A) → sample D₁ a ≡ sample D₂ a
     uniform-is-uniform : ∀ n (xs : BitVec n) → negpow2 n ≡ sample (uniform n) xs
     uniform-bijection-invariant : ∀ n (f : BitVec n → BitVec n)
                                 → Bijective f
@@ -37,16 +39,6 @@ record DistMonadProps : Set₂ where
                         → sample D a ≡ sample (fmap f D) (f a)
     irrelevance : ∀{A} {{_ : Eq A}} n (D : F A)
                 → D ≡D (uniform n >>= const D)
-    >>=-D-ext : ∀{A B}{{_ : Eq B}}
-              → (x : F A)
-              → (f g : A → F B)
-              → (∀ a → f a ≡D g a)
-              → (x >>= f) ≡D (x >>= g) 
-    >>=-D-inv : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
-              → (x y : F A)
-              → (f : A → F B)
-              → (x ≡D y)
-              → (x >>= f) ≡D (y >>= f) 
     interchange : ∀{A B C}{{_ : Eq C}}(DA : F A)(DB : F B)
                    (f : A → B → F C)
                 → (DA >>= λ a → DB >>= f a) ≡D (DB >>= λ b → DA >>= λ a → f a b)
@@ -59,15 +51,45 @@ record DistMonadProps : Set₂ where
                      → (ε : probability)
                      → (∀ a → bounded-dist-diff (Df a) (Dg a) ε)
                      → bounded-dist-diff (DA >>= Df) (DA >>= Dg) ε
+
+    >>=-D-approx-inv : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+                     → (Da Db : F A)
+                     → (Df : A → F B)
+                     → (ε : probability)
+                     → bounded-dist-diff Da Db ε
+                     → bounded-dist-diff (Da >>= Df) (Db >>= Df) ε
     uniform-not-return : ∀ n v → ¬(0 ≡ n) → ¬(uniform n ≡D return v)
 
-  sample-invariant-at : ∀{A}{{_ : Eq A}}{D₁ D₂ : F A} → (a : A) → D₁ ≡D D₂ → sample D₁ a ≡ sample D₂ a
-  sample-invariant-at = flip sample-invariant
+  bounded-dist-0-eq : ∀{A}{{_ : Eq A}}
+                    → (D₁ D₂ : F A)
+                    → bounded-dist-diff D₁ D₂ zro
+                    → D₁ ≡D D₂
+  bounded-dist-0-eq D₁ D₂ pf = sample-equiv λ a → abs-zero-eq $ abs-zero-min $ pf a
+
+  bounded-dist-0-eq-inv : ∀{A}{{_ : Eq A}}
+                        → (D₁ D₂ : F A)
+                        → D₁ ≡D D₂
+                        → bounded-dist-diff D₁ D₂ zro
+  bounded-dist-0-eq-inv D₁ D₂ pf a rewrite sample-invariant pf a | sub-cancelling (sample D₂ a) | sym $ abs-pos (≤-refl zro) = ≤-refl zro
+
+  >>=-D-ext : ∀{A B}{{_ : Eq B}}
+            → (Da : F A)
+            → (Df Dg : A → F B)
+            → (∀ a → Df a ≡D Dg a)
+            → (Da >>= Df) ≡D (Da >>= Dg) 
+  >>=-D-ext Da Df Dg pf = bounded-dist-0-eq (Da >>= Df) (Da >>= Dg) $ >>=-D-approx-ext Da Df Dg zro λ a → bounded-dist-0-eq-inv (Df a) (Dg a) (pf a)
+
+  >>=-D-inv : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+            → (Da Db : F A)
+            → (Df : A → F B)
+            → (Da ≡D Db)
+            → (Da >>= Df) ≡D (Db >>= Df) 
+  >>=-D-inv Da Db Df pf = bounded-dist-0-eq (Da >>= Df) (Db >>= Df) $ >>=-D-approx-inv Da Db Df zro (bounded-dist-0-eq-inv Da Db pf)
 
   coin-bijection-invariant : (f : Bool → Bool)
                            → Bijective f
                            → coin ≡D fmap-F f coin
-  coin-bijection-invariant f pf = sample-equality λ a →
+  coin-bijection-invariant f pf = sample-equiv λ a →
     sample coin a
       ≡⟨ injection-invariant head head1-Inj (uniform 1) (a ∷ []) ⟩ʳ
     sample (uniform 1) (a ∷ [])
@@ -91,12 +113,6 @@ record DistMonadProps : Set₂ where
       ≡⟨ refl ⟩
     sample coin b
     ∎
-
-  bounded-dist-0-eq : ∀{A}{{_ : Eq A}}
-                    → (D₁ D₂ : F A)
-                    → bounded-dist-diff D₁ D₂ zro
-                    → D₁ ≡D D₂
-  bounded-dist-0-eq D₁ D₂ pf = sample-equality λ a → abs-zero-eq $ abs-zero-min $ pf a
 
 -- The FPF paper/thesis suggests the following laws as well:
 -- Commutativity:

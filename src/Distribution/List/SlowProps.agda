@@ -22,11 +22,11 @@ import Utility.Writer.Transformer Q List as WriterT
 open import Distribution.List.BasicProps Q
 
 open Probability PQ
+open DistMonad DistMonadListDist
 
 module _ {{PPQ : ProbabilityProps}} where
   open ProbabilityProps PPQ
   open SemiringProps srprops
-  open DistMonad DistMonadListDist
   instance
     private
       MonoidPropsMulQ : MonoidProps Q

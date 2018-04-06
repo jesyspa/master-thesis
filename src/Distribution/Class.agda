@@ -22,5 +22,12 @@ record DistMonad (D : Set → Set) : Set₁ where
                  → ((a : A) → sample da a ≡ sample db a)
                  → da ≡D db
 
+  sample-invariant : ∀ {A} {{_ : Eq A}} {D₁ D₂ : D A} → D₁ ≡D D₂ → (a : A) → sample D₁ a ≡ sample D₂ a
+  sample-invariant (sample-equiv f) a = f a
+
+  sample-invariant-at : ∀{A}{{_ : Eq A}}{D₁ D₂ : D A} → (a : A) → D₁ ≡D D₂ → sample D₁ a ≡ sample D₂ a
+  sample-invariant-at = flip sample-invariant
+
   bounded-dist-diff : ∀{A}{{_ : Eq A}} → D A → D A → probability → Set
   bounded-dist-diff D₁ D₂ ε = ∀ a → bounded-diff (sample D₁ a) (sample D₂ a) ε 
+
