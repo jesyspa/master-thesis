@@ -7,6 +7,7 @@ open import Probability.Class
 open import Algebra.MonadProps F
 open import Algebra.ApplicativeProps F
 open import Algebra.FunctorProps F
+open import Algebra.FiniteSet
 open import Utility.Vector
 open import Algebra.Function
 open import Algebra.LiftingProps F
@@ -45,14 +46,27 @@ record DistMonadProps : Set₂ where
     return-sample-1 : ∀{A}{{_ : Eq A}}(a : A) → one ≡ sample (return a) a
     return-sample-0 : ∀{A}{{_ : Eq A}}(a a′ : A) → ¬ (a ≡ a′) → zro ≡ sample (return a) a′
 
-    >>=-D-approx-ext : ∀{A B}{{_ : Eq B}}
+
+    >>=-D-ext : ∀{A B}{{_ : Eq B}}
+              → (Da : F A)
+              → (Df Dg : A → F B)
+              → (∀ a → Df a ≡D Dg a)
+              → (Da >>= Df) ≡D (Da >>= Dg) 
+  
+    >>=-D-inv : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+              → (Da Db : F A)
+              → (Df : A → F B)
+              → (Da ≡D Db)
+              → (Da >>= Df) ≡D (Db >>= Df) 
+
+    >>=-D-approx-ext : ∀{A B}{{_ : FiniteSet A}}{{_ : Eq B}}
                      → (DA : F A)
                      → (Df Dg : A → F B)
                      → (ε : probability)
                      → (∀ a → bounded-dist-diff (Df a) (Dg a) ε)
                      → bounded-dist-diff (DA >>= Df) (DA >>= Dg) ε
 
-    >>=-D-approx-inv : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+    >>=-D-approx-inv : ∀{A B}{{_ : FiniteSet A}}{{_ : Eq B}}
                      → (Da Db : F A)
                      → (Df : A → F B)
                      → (ε : probability)
@@ -71,20 +85,6 @@ record DistMonadProps : Set₂ where
                         → D₁ ≡D D₂
                         → bounded-dist-diff D₁ D₂ zro
   bounded-dist-0-eq-inv D₁ D₂ pf a rewrite sample-invariant pf a | sub-cancelling (sample D₂ a) | sym $ abs-pos (≤-refl zro) = ≤-refl zro
-
-  >>=-D-ext : ∀{A B}{{_ : Eq B}}
-            → (Da : F A)
-            → (Df Dg : A → F B)
-            → (∀ a → Df a ≡D Dg a)
-            → (Da >>= Df) ≡D (Da >>= Dg) 
-  >>=-D-ext Da Df Dg pf = bounded-dist-0-eq (Da >>= Df) (Da >>= Dg) $ >>=-D-approx-ext Da Df Dg zro λ a → bounded-dist-0-eq-inv (Df a) (Dg a) (pf a)
-
-  >>=-D-inv : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
-            → (Da Db : F A)
-            → (Df : A → F B)
-            → (Da ≡D Db)
-            → (Da >>= Df) ≡D (Db >>= Df) 
-  >>=-D-inv Da Db Df pf = bounded-dist-0-eq (Da >>= Df) (Db >>= Df) $ >>=-D-approx-inv Da Db Df zro (bounded-dist-0-eq-inv Da Db pf)
 
   coin-bijection-invariant : (f : Bool → Bool)
                            → Bijective f

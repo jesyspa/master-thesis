@@ -24,11 +24,6 @@ record Listable (A : Set) : Set where
     IsComplete      : (a : A) → a ∈ ListEnumeration
 open Listable
 
-FiniteSetsListable : ∀{A} → FiniteSet A → Listable A
-ListEnumeration (FiniteSetsListable fs) = map (Enumeration fs) (all-bitvecs $ SizeBound fs) 
-IsComplete      (FiniteSetsListable fs) a with IsEnumeration fs a
-... | v , refl = map-preserves-in (Enumeration fs) v (all-bitvecs $ SizeBound fs) (all-bitvecs-complete v)
-
 elem-index : ∀{l}{A : Set l}{a}{xs : List A} → a ∈ xs → Nat
 elem-index (here x xs) = zero
 elem-index (there x y xs p) = suc (elem-index p)
@@ -46,8 +41,31 @@ elem-index-Inj {p = there a y xs p} {there b .y .xs q} eq with elem-index-Inj (s
 decide-equality : ∀{A} → Listable A → (a b : A) → Dec (a ≡ b)
 decide-equality LA a b with elem-index (IsComplete LA a) == elem-index (IsComplete LA b)
 decide-equality LA a b  | yes eq with elem-index-Inj eq
-decide-equality LA a .a | yes eq | refl , z′ = yes refl
+decide-equality LA a .a | yes eq | refl , _ = yes refl
 decide-equality LA a b  | no neq = no λ { refl → neq refl }
 
-DecEquality : ∀ A {{_ : Listable A}} → Eq A
-_==_ {{DecEquality A {{LA}}}} = decide-equality LA
+record UniqueListable (A : Set) : Set where
+  field
+    UniqueListEnumeration : List A
+    UniqueIsComplete      : (a : A) → a ∈ UniqueListEnumeration
+    UniqueIsUnique        : (a : A)(p : a ∈ UniqueListEnumeration) → p ≡ UniqueIsComplete a
+open UniqueListable
+
+instance
+  FiniteSetsListable : ∀{A}{{_ : FiniteSet A}} → Listable A
+  ListEnumeration (FiniteSetsListable {{FS}}) = map (Enumeration FS) (all-bitvecs $ SizeBound FS) 
+  IsComplete      (FiniteSetsListable {{FS}}) a with IsEnumeration FS a
+  ... | v , refl = map-preserves-in (Enumeration FS) v (all-bitvecs $ SizeBound FS) (all-bitvecs-complete v)
+
+  DecEquality : ∀{A}{{_ : Listable A}} → Eq A
+  _==_ {{DecEquality {{LA}}}} = decide-equality LA
+
+listable-unique : ∀{A} → Listable A → UniqueListable A
+UniqueListEnumeration (listable-unique LS)     = uniques {{DecEquality {{LS}}}} (ListEnumeration LS)
+UniqueIsComplete      (listable-unique LS) a   = unique-preserves-elem {{DecEquality {{LS}}}} _ _ (IsComplete LS a)
+UniqueIsUnique        (listable-unique LS) a p = uniques-unique {{DecEquality {{LS}}}} _ _ (IsComplete LS a) p
+
+instance
+  ListableUniqueListable : ∀{A}{{_ : Listable A}} → UniqueListable A
+  ListableUniqueListable {{LA}} = listable-unique LA
+

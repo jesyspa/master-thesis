@@ -8,6 +8,7 @@ open import Distribution.List.Definition Q
 open import Algebra.Function
 open import Algebra.Monoid
 open import Algebra.Equality
+open import Algebra.FiniteSet
 open import Probability.Class
 open import Algebra.SemiringProps Q
 open import Algebra.SubtractiveProps Q
@@ -85,7 +86,7 @@ module _ {{PPQ : ProbabilityProps}} where
     sample-LD (xs >>= g) b
     ∎
 
-  >>=-D-approx-ext-LD : ∀{A B}{{_ : Eq B}}
+  >>=-D-approx-ext-LD : ∀{A B}{{_ : FiniteSet A}}{{_ : Eq B}}
                       → (Da : ListDist A)
                       → (Df Dg : A → ListDist B)
                       → (ε : Q)
@@ -95,7 +96,7 @@ module _ {{PPQ : ProbabilityProps}} where
     rewrite bind-universal-prop Da Df a
           | bind-universal-prop Da Dg a = {!!}
 
-  >>=-D-approx-inv-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+  >>=-D-approx-inv-LD : ∀{A B}{{_ : FiniteSet A}}{{_ : Eq B}}
                       → (Da Db : ListDist A)
                       → (Df : A → ListDist B)
                       → (ε : Q)
@@ -181,6 +182,8 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; injection-invariant = injections-preserve-distributions-LD
                                ; irrelevance = irrelevance-LD
                                ; interchange = interchange-LD
+                               ; >>=-D-ext = >>=-D-ext-LD
+                               ; >>=-D-inv = >>=-D-inv-LD
                                ; >>=-D-approx-ext = >>=-D-approx-ext-LD
                                ; >>=-D-approx-inv = >>=-D-approx-inv-LD
                                ; return-sample-1 = return-sample-1-LD

@@ -4,6 +4,7 @@ open import ThesisPrelude
 open import Probability.Class
 open import Utility.Vector
 open import Algebra.Function
+open import Algebra.FiniteSet
 
 record DistMonad (D : Set → Set) : Set₁ where
   field
@@ -28,6 +29,6 @@ record DistMonad (D : Set → Set) : Set₁ where
   sample-invariant-at : ∀{A}{{_ : Eq A}}{D₁ D₂ : D A} → (a : A) → D₁ ≡D D₂ → sample D₁ a ≡ sample D₂ a
   sample-invariant-at = flip sample-invariant
 
-  bounded-dist-diff : ∀{A}{{_ : Eq A}} → D A → D A → probability → Set
+  bounded-dist-diff : ∀{A}{{_ : Listable A}} → D A → D A → probability → Set
   bounded-dist-diff D₁ D₂ ε = ∀ a → bounded-diff (sample D₁ a) (sample D₂ a) ε 
 
