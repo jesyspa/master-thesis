@@ -29,8 +29,11 @@ record DistMonad (D : Set → Set) : Set₁ where
   sample-invariant-at : ∀{A}{{_ : Eq A}}{D₁ D₂ : D A} → (a : A) → D₁ ≡D D₂ → sample D₁ a ≡ sample D₂ a
   sample-invariant-at = flip sample-invariant
 
+  sample-diff : ∀{A}{{_ : Eq A}} → D A → D A → A → probability
+  sample-diff D₁ D₂ a = abs (sample D₁ a - sample D₂ a)
+
   dist-diff : ∀{A}{{_ : FiniteSet A}} → D A → D A → probability
-  dist-diff D₁ D₂ = sum (map (λ a → abs (sample D₁ a - sample D₂ a)) ListEnumeration)
+  dist-diff D₁ D₂ = sum (map (sample-diff D₁ D₂) ListEnumeration)
     where open UniqueListable {{...}}
           open Listable super-Enumeration
 

@@ -64,6 +64,10 @@ module _ {{PPQ : ProbabilityProps}} where
               → x + sum xs ≡ sum (x ∷ xs)
   sum-rewrite x xs = sum-rewrite-gen x zro xs
 
+  sum-rewrite′ : (x : Q)(xs : List Q)
+               → sum (x ∷ xs) ≡ x + sum xs
+  sum-rewrite′ x xs = sym $ sum-rewrite x xs
+
   singleton-sum-id : Retraction sum {A = Q} of [_]
   singleton-sum-id x =
     x

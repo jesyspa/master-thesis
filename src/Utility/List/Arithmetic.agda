@@ -10,6 +10,7 @@ open import Probability.Class
 open import Probability.PropsClass Q
 open import Utility.List.Lookup
 open import Utility.List.Props
+open import Utility.List.Elem
 open import Utility.List.SlowArithmetic Q public
 
 module _ {{PPQ : ProbabilityProps}} where
@@ -25,7 +26,7 @@ module _ {{PPQ : ProbabilityProps}} where
                 → (xs : List A)
                 → sum (map (const q) xs) ≡ q * embed (length xs)
   sum-const-mul q [] = zro-right-nil q
-  sum-const-mul q (x ∷ xs) rewrite sym (sum-rewrite q (map (const q) xs)) | sum-const-mul q xs =
+  sum-const-mul q (x ∷ xs) rewrite sum-rewrite′ q (map (const q) xs) | sum-const-mul q xs =
     q + q * embed (length xs)
       ≡⟨ cong (λ e → e + q * embed (length xs)) (*-unit-right q) ⟩
     q * one + q * embed (length xs)
@@ -42,5 +43,31 @@ module _ {{PPQ : ProbabilityProps}} where
                   → sum (map f xs) ≤ sum (map g xs)
   sum-preserves-≤ f g [] pf = ≤-refl (sum [])
   sum-preserves-≤ f g (x ∷ xs) pf
-    rewrite sym (sum-rewrite (f x) (map f xs))
-          | sym (sum-rewrite (g x) (map g xs)) = ≤-dist-+ (pf x) (sum-preserves-≤ f g xs pf)
+    rewrite sum-rewrite′ (f x) (map f xs)
+          | sum-rewrite′ (g x) (map g xs) = ≤-dist-+ (pf x) (sum-preserves-≤ f g xs pf)
+
+  nonnegative-sum : (xs : List Q)
+                  → (∀{p} → p ∈ xs → zro ≤ p)
+                  → zro ≤ sum xs
+  nonnegative-sum [] pf = ≤-refl zro
+  nonnegative-sum (x ∷ xs) pf
+    rewrite sum-rewrite′ x xs = transport (λ e → e ≤ x + sum xs)
+                                          (sym $ +-unit-left zro)
+                                          (≤-dist-+ (pf (here x _))
+                                                    (nonnegative-sum xs λ pt → pf (there _ _ _ pt)))
+
+  sum-bounds-individuals : {q : Q}{xs : List Q}
+                         → q ∈ xs
+                         → (∀{p} → p ∈ xs → zro ≤ p)
+                         → q ≤ sum xs
+  sum-bounds-individuals (here x xs) nn
+    rewrite sum-rewrite′ x xs = transport (λ e → e ≤ x + sum xs)
+                                          (sym $ +-unit-right x)
+                                          (≤-dist-+ (≤-refl x)
+                                                    (nonnegative-sum xs (λ pt → nn (there _ _ _ pt))))
+  sum-bounds-individuals (there x y xs pt) nn
+    rewrite sum-rewrite′ y xs = transport (λ e → e ≤ y + sum xs)
+                                          (sym $ +-unit-left x)
+                                          (≤-dist-+ (nn (here y _))
+                                                    (sum-bounds-individuals pt λ pt′ → nn (there _ _ _ pt′)))
+                         

@@ -35,7 +35,7 @@ module _ {A}{{FS : FiniteSet A}} where
     zro * embed (length ListEnumeration)
       ≡⟨ sum-const-mul zro ListEnumeration ⟩ʳ
     sum (map (const zro) ListEnumeration)
-      ≡⟨ cong sum $ map-ext (const zro) (λ a → abs (sample D a - sample D a)) (λ a → lem (sample D a)) ListEnumeration ⟩
+      ≡⟨ cong sum $ map-ext (const zro) (sample-diff D D) (λ a → lem (sample D a)) ListEnumeration ⟩
     sum (map (λ a → abs (sample D a - sample D a)) ListEnumeration)
     ∎
     where

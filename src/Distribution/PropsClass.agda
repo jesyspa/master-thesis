@@ -10,12 +10,15 @@ open import Algebra.ApplicativeProps F
 open import Algebra.FunctorProps F
 open import Algebra.FiniteSet
 open import Utility.Vector
+open import Utility.List
+open import Utility.List.Arithmetic probability
 open import Algebra.Function
 open import Algebra.LiftingProps F
 open import Algebra.LiftingProps (λ τ → Vec {lzero} τ 1) as V1LProps
 open import Probability.PropsClass probability
 open import Algebra.SubtractiveProps probability
 open import Algebra.Preorder probability
+open import Algebra.SemiringProps probability
 
 record DistMonadProps : Set₂ where
   field
@@ -26,6 +29,7 @@ record DistMonadProps : Set₂ where
   open FunctorProps fprops
   open Probability probability-super
   open ProbabilityProps is-probability
+  open SemiringProps srprops
   open SubtractiveProps subprops
   open PreorderProps poprops
   field
@@ -75,17 +79,51 @@ record DistMonadProps : Set₂ where
                      → bounded-dist-diff (Da >>= Df) (Db >>= Df) ε
     uniform-not-return : ∀ n v → ¬(0 ≡ n) → ¬(uniform n ≡D return v)
 
+  sample-invariant-≤zro : ∀{A}{{_ : Eq A}}{D₁ D₂ : F A} → (a : A) → D₁ ≡D D₂ → sample-diff D₁ D₂ a ≤ zro
+  sample-invariant-≤zro {D₂ = D₂} a eq rewrite sample-invariant eq a
+                                             | sub-cancelling (sample D₂ a)
+                                             | sym (abs-pos (≤-refl _)) = ≤-refl _
+
+  bounded-dist-bounds-elements : ∀{A}{{_ : FiniteSet A}}
+                               → (D₁ D₂ : F A)
+                               → (ε : probability)
+                               → bounded-dist-diff D₁ D₂ ε
+                               → (a : A)
+                               → bounded-diff (sample D₁ a) (sample D₂ a) ε
+  bounded-dist-bounds-elements D₁ D₂ ε pf a = ≤-trans lem pf
+    where
+      open UniqueListable {{...}}
+      open Listable super-Enumeration
+      lem = sum-bounds-individuals (map-preserves-in (sample-diff D₁ D₂) a ListEnumeration (IsComplete a))
+                                   (map-preserves-prop (sample-diff D₁ D₂) (_≤_ zro) (λ a → abs-nonneg _) ListEnumeration)
+
   bounded-dist-0-eq : ∀{A}{{_ : FiniteSet A}}
                     → (D₁ D₂ : F A)
                     → bounded-dist-diff D₁ D₂ zro
                     → D₁ ≡D D₂
-  bounded-dist-0-eq D₁ D₂ pf = {!!}
+  bounded-dist-0-eq D₁ D₂ pf = sample-equiv λ a → abs-zero-eq (abs-zero-min (bounded-dist-bounds-elements D₁ D₂ zro pf a))
+
+  dist-0-eq-inv : ∀{A}{{_ : FiniteSet A}}
+                → (D₁ D₂ : F A)
+                → D₁ ≡D D₂
+                → zro ≡ dist-diff D₁ D₂
+  dist-0-eq-inv D₁ D₂ pf =
+    zro
+      ≡⟨ zro-left-nil (embed (length ListEnumeration)) ⟩
+    zro * embed (length ListEnumeration)
+      ≡⟨ sum-const-mul zro ListEnumeration ⟩ʳ
+    sum (map (const zro) ListEnumeration)
+      ≡⟨ cong sum $ map-ext (const zro) (sample-diff D₁ D₂) (λ a → {!!}) ListEnumeration ⟩
+    sum (map (sample-diff D₁ D₂) ListEnumeration)
+    ∎
+    where open UniqueListable {{...}}
+          open Listable super-Enumeration
 
   bounded-dist-0-eq-inv : ∀{A}{{_ : FiniteSet A}}
                         → (D₁ D₂ : F A)
                         → D₁ ≡D D₂
                         → bounded-dist-diff D₁ D₂ zro
-  bounded-dist-0-eq-inv D₁ D₂ pf = {!!}
+  bounded-dist-0-eq-inv D₁ D₂ pf rewrite sym (dist-0-eq-inv D₁ D₂ pf) = ≤-refl _
 
   coin-bijection-invariant : (f : Bool → Bool)
                            → Bijective f
