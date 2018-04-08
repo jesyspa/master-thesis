@@ -29,18 +29,7 @@ module _ {A}{{FS : FiniteSet A}} where
   open Listable super-Enumeration
 
   dist-diff-refl : (D : M A) → zro ≡ dist-diff D D
-  dist-diff-refl D =
-    zro
-      ≡⟨ zro-left-nil (embed (length ListEnumeration)) ⟩
-    zro * embed (length ListEnumeration)
-      ≡⟨ sum-const-mul zro ListEnumeration ⟩ʳ
-    sum (map (const zro) ListEnumeration)
-      ≡⟨ cong sum $ map-ext (const zro) (sample-diff D D) (λ a → lem (sample D a)) ListEnumeration ⟩
-    sum (map (λ a → abs (sample D a - sample D a)) ListEnumeration)
-    ∎
-    where
-      lem : ∀ q → zro ≡ abs (q - q)
-      lem q = abs-pos (≤-refl zro) ⟨≡⟩ʳ cong abs (sub-cancelling q)
+  dist-diff-refl D = dist-0-eq-inv D D (≡D-refl _)
 
   bounded-dist-diff-refl : (ε : Q)(D : M A) → (zro ≤ ε) → bounded-dist-diff D D ε
   bounded-dist-diff-refl ε D pf rewrite sym (dist-diff-refl D) = pf
