@@ -79,13 +79,13 @@ record DistMonadProps : Set₂ where
                     → (D₁ D₂ : F A)
                     → bounded-dist-diff D₁ D₂ zro
                     → D₁ ≡D D₂
-  bounded-dist-0-eq D₁ D₂ pf = ?
+  bounded-dist-0-eq D₁ D₂ pf = {!!}
 
   bounded-dist-0-eq-inv : ∀{A}{{_ : FiniteSet A}}
                         → (D₁ D₂ : F A)
                         → D₁ ≡D D₂
                         → bounded-dist-diff D₁ D₂ zro
-  bounded-dist-0-eq-inv D₁ D₂ pf = ?
+  bounded-dist-0-eq-inv D₁ D₂ pf = {!!}
 
   coin-bijection-invariant : (f : Bool → Bool)
                            → Bijective f

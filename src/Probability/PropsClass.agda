@@ -66,6 +66,9 @@ record ProbabilityProps : Set where
     negpow2 zro
     ∎
 
+  abs-triangle : (a b c : Q) → abs (a - c) ≤ abs (a - b) + abs (b - c)
+  abs-triangle a b c rewrite sub-triangle a b c = abs-plus-dist (a - b) (b - c)
+
   bounded-diff-refl : (a : Q){ε : Q} → (zro ≤ ε) → bounded-diff a a ε
   bounded-diff-refl a pf rewrite sub-cancelling a | sym (abs-pos (≤-refl zro)) = pf
 
@@ -75,20 +78,7 @@ record ProbabilityProps : Set where
   bounded-diff-trans : {a b c ε₁ ε₂ : Q}
                      → bounded-diff a b ε₁ → bounded-diff b c ε₂
                      → bounded-diff a c (ε₁ + ε₂)
-  bounded-diff-trans {a} {b} {c} bd₁ bd₂ = ≤-trans lem2 (≤-dist-+ bd₁ bd₂)
-    where
-      lem1 : a - c ≡ (a - b) + (b - c)
-      lem1 = adj-plus (
-        a
-          ≡⟨ plus-sub-cancelling a b ⟩
-        (a - b) + b
-          ≡⟨ cong (λ e → (a - b) + e) (plus-sub-cancelling b c) ⟩
-        (a - b) + ((b - c) + c)
-          ≡⟨ +-assoc (a - b) (b - c) c ⟩
-        (a - b) + (b - c) + c
-        ∎)
-      lem2 : abs (a - c) ≤ abs (a - b) + abs (b - c)
-      lem2 rewrite lem1 = abs-plus-dist (a - b) (b - c)
+  bounded-diff-trans {a} {b} {c} bd₁ bd₂ = ≤-trans (abs-triangle a b c) (≤-dist-+ bd₁ bd₂)
 
   negpow2-add : ∀ n → negpow2 n ≡ negpow2 (suc n) + negpow2 (suc n)
   negpow2-add n = *-Inj (embed (pow2 n)) lem-embed-nz (
@@ -118,3 +108,4 @@ record ProbabilityProps : Set where
 
   abs-zero-min : {a : Q} → abs a ≤ zro → zro ≡ abs a
   abs-zero-min {a} pf = ≤-antisym (abs-nonneg a) pf 
+

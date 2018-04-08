@@ -21,4 +21,15 @@ module _ {{SRP : SemiringProps}}{{SP : SubtractiveProps}} where
 
   plus-sub-cancelling : (a b : A) → a ≡ (a - b) + b
   plus-sub-cancelling a b = adj-plus-inv refl
+
+  sub-triangle : (a b c : A) → a - c ≡ (a - b) + (b - c)
+  sub-triangle a b c = adj-plus (
+    a
+      ≡⟨ plus-sub-cancelling a b ⟩
+    (a - b) + b
+      ≡⟨ cong (λ e → (a - b) + e) (plus-sub-cancelling b c) ⟩
+    (a - b) + ((b - c) + c)
+      ≡⟨ +-assoc (a - b) (b - c) c ⟩
+    (a - b) + (b - c) + c
+    ∎)
   

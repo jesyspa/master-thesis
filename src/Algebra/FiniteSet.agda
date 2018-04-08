@@ -25,9 +25,9 @@ record Listable (A : Set) : Set where
 open Listable
 
 instance
-  FiniteSetsListable : ∀{A}{{_ : FiniteSet A}} → Listable A
-  ListEnumeration (FiniteSetsListable {{FS}}) = map (Enumeration FS) (all-bitvecs $ SizeBound FS) 
-  IsComplete      (FiniteSetsListable {{FS}}) a with IsEnumeration FS a
+  FiniteSetListable : ∀{A}{{_ : FiniteSet A}} → Listable A
+  ListEnumeration (FiniteSetListable {{FS}}) = map (Enumeration FS) (all-bitvecs $ SizeBound FS) 
+  IsComplete      (FiniteSetListable {{FS}}) a with IsEnumeration FS a
   ... | v , refl = map-preserves-in (Enumeration FS) v (all-bitvecs $ SizeBound FS) (all-bitvecs-complete v)
 
 decide-equality : ∀{A} → Listable A → (a b : A) → Dec (a ≡ b)
