@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import Distribution.Class using (DistMonad)
 module Distribution.PropsClass (F : Set → Set) {{DF : DistMonad F}} where
 
@@ -59,14 +60,14 @@ record DistMonadProps : Set₂ where
               → (Da ≡D Db)
               → (Da >>= Df) ≡D (Db >>= Df) 
 
-    >>=-D-approx-ext : ∀{A B}{{_ : FiniteSet A}}{{_ : Eq B}}
+    >>=-D-approx-ext : ∀{A B}{{_ : FiniteSet A}}{{_ : FiniteSet B}}
                      → (DA : F A)
                      → (Df Dg : A → F B)
                      → (ε : probability)
                      → (∀ a → bounded-dist-diff (Df a) (Dg a) ε)
                      → bounded-dist-diff (DA >>= Df) (DA >>= Dg) ε
 
-    >>=-D-approx-inv : ∀{A B}{{_ : FiniteSet A}}{{_ : Eq B}}
+    >>=-D-approx-inv : ∀{A B}{{_ : FiniteSet A}}{{_ : FiniteSet B}}
                      → (Da Db : F A)
                      → (Df : A → F B)
                      → (ε : probability)
@@ -74,17 +75,17 @@ record DistMonadProps : Set₂ where
                      → bounded-dist-diff (Da >>= Df) (Db >>= Df) ε
     uniform-not-return : ∀ n v → ¬(0 ≡ n) → ¬(uniform n ≡D return v)
 
-  bounded-dist-0-eq : ∀{A}{{_ : Eq A}}
+  bounded-dist-0-eq : ∀{A}{{_ : FiniteSet A}}
                     → (D₁ D₂ : F A)
                     → bounded-dist-diff D₁ D₂ zro
                     → D₁ ≡D D₂
-  bounded-dist-0-eq D₁ D₂ pf = sample-equiv λ a → abs-zero-eq $ abs-zero-min $ pf a
+  bounded-dist-0-eq D₁ D₂ pf = ?
 
-  bounded-dist-0-eq-inv : ∀{A}{{_ : Eq A}}
+  bounded-dist-0-eq-inv : ∀{A}{{_ : FiniteSet A}}
                         → (D₁ D₂ : F A)
                         → D₁ ≡D D₂
                         → bounded-dist-diff D₁ D₂ zro
-  bounded-dist-0-eq-inv D₁ D₂ pf a rewrite sample-invariant pf a | sub-cancelling (sample D₂ a) | sym $ abs-pos (≤-refl zro) = ≤-refl zro
+  bounded-dist-0-eq-inv D₁ D₂ pf = ?
 
   coin-bijection-invariant : (f : Bool → Bool)
                            → Bijective f

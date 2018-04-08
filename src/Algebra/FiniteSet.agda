@@ -50,6 +50,7 @@ ListableUniqueEnumeration : ∀{A} → Listable A → Listable A
 ListEnumeration (ListableUniqueEnumeration LA)   = uniques {{ListableDecEq LA}} (ListEnumeration LA)
 IsComplete      (ListableUniqueEnumeration LA) a = unique-preserves-elem {{ListableDecEq LA}} _ _ (IsComplete LA a)
 
-ListableUniqueListable : ∀{A} → Listable A → UniqueListable A
-super-Enumeration (ListableUniqueListable LA)     = ListableUniqueEnumeration LA
-IsUnique          (ListableUniqueListable LA) a p = uniques-unique {{ListableDecEq LA}} _ _ (IsComplete LA a) p
+instance
+  ListableUniqueListable : ∀{A} → Listable A → UniqueListable A
+  super-Enumeration (ListableUniqueListable LA)     = ListableUniqueEnumeration LA
+  IsUnique          (ListableUniqueListable LA) a p = uniques-unique {{ListableDecEq LA}} _ _ (IsComplete LA a) p

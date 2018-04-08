@@ -86,23 +86,21 @@ module _ {{PPQ : ProbabilityProps}} where
     sample-LD (xs >>= g) b
     ∎
 
-  >>=-D-approx-ext-LD : ∀{A B}{{_ : FiniteSet A}}{{_ : Eq B}}
+  >>=-D-approx-ext-LD : ∀{A B}{{_ : FiniteSet A}}{{_ : FiniteSet B}}
                       → (Da : ListDist A)
                       → (Df Dg : A → ListDist B)
                       → (ε : Q)
                       → (∀ a → bounded-dist-diff (Df a) (Dg a) ε)
                       → bounded-dist-diff (Da >>= Df) (Da >>= Dg) ε
-  >>=-D-approx-ext-LD Da Df Dg ε pf a
-    rewrite bind-universal-prop Da Df a
-          | bind-universal-prop Da Dg a = {!!}
+  >>=-D-approx-ext-LD Da Df Dg ε pf = {!!}
 
-  >>=-D-approx-inv-LD : ∀{A B}{{_ : FiniteSet A}}{{_ : Eq B}}
+  >>=-D-approx-inv-LD : ∀{A B}{{_ : FiniteSet A}}{{_ : FiniteSet B}}
                       → (Da Db : ListDist A)
                       → (Df : A → ListDist B)
                       → (ε : Q)
                       → bounded-dist-diff Da Db ε
                       → bounded-dist-diff (Da >>= Df) (Db >>= Df) ε
-  >>=-D-approx-inv-LD Da Db Df ε pf a = {!!}
+  >>=-D-approx-inv-LD Da Db Df ε pf = {!!}
 
   return-sample-1-LD : ∀{A}{{_ : Eq A}}(a : A) → one ≡ sample-LD (return a) a
   return-sample-1-LD a rewrite yes-refl a = singleton-sum-id one
@@ -179,6 +177,7 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; is-probability = PPQ
                                ; uniform-is-uniform = uniform-LD-is-uniform
                                ; uniform-bijection-invariant = uniform-LD-bijection-invariant
+                               ; uniform-not-return = uniform-not-return-LD
                                ; injection-invariant = injections-preserve-distributions-LD
                                ; irrelevance = irrelevance-LD
                                ; interchange = interchange-LD
@@ -188,6 +187,5 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; >>=-D-approx-inv = >>=-D-approx-inv-LD
                                ; return-sample-1 = return-sample-1-LD
                                ; return-sample-0 = return-sample-0-LD
-                               ; uniform-not-return = uniform-not-return-LD
                                }
 
