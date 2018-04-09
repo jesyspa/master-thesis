@@ -141,7 +141,7 @@ module _ {{PPQ : ProbabilityProps}} where
     support-normalize-invariant-LD : (xs : ListDist A) → support-LD xs ≡ support-LD (normalize-LD xs)
     support-normalize-invariant-LD xs =
       uniques (map fst xs)
-        ≡⟨ {!uniques-idempotent (map fst xs)!} ⟩
+        ≡⟨ uniques-idempotent (map fst xs) ⟩
       uniques (uniques (map fst xs))
         ≡⟨ cong uniques (map-ext-id (fst ∘′ (λ x → (x , sample-LD xs x))) (λ a → refl) (uniques (map fst xs))) ⟩
       uniques (map (fst ∘′ (λ x → (x , sample-LD xs x))) (uniques (map fst xs)))

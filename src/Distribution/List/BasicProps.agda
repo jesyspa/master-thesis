@@ -111,7 +111,13 @@ module _ {{PPQ : ProbabilityProps}} where
   strong-bind-universal-prop : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
                                (xs : ListDist A)(f : A → ListDist B)(b : B)
                              → sample-LD (xs >>= f) b ≡ sum (map (sample-transposed-LD f xs b) (support-LD xs))
-  strong-bind-universal-prop {A} xs f b = {!!}
+  strong-bind-universal-prop {A} xs f b =
+    sum (filter-vals b (xs >>= f))
+      ≡⟨ {!!} ⟩
+    ?
+      ≡⟨ {!!} ⟩
+    sum (map (sample-transposed-LD f xs b) (support-LD xs))
+    ∎
 
   sample-over-ext : ∀{A B : Set}{{_ : Eq B}}
                     (f g : A → ListDist B)(b : B)

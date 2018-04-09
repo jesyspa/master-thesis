@@ -98,7 +98,7 @@ module _ {{PPQ : ProbabilityProps}} where
                            (support-LD xs)) ⟩
     sum (map (sample-transposed-LD f ys b) (support-LD xs))
       ≡⟨ {!!} ⟩
-    sum (map (sample-transposed-LD f ys b) (support-LD xs))
+    sum (map (sample-transposed-LD f ys b) (disjoint-union (support-LD xs) (support-LD ys)))
       ≡⟨ {!!} ⟩
     sum (map (sample-transposed-LD f ys b) (support-LD ys))
       ≡⟨ strong-bind-universal-prop ys f b ⟩ʳ
