@@ -88,61 +88,53 @@ module _ {{PPQ : ProbabilityProps}} where
     ... | yes refl = ⊥-elim (p (here a′ S))
     ... | no neq = sample-missing-zero a xs (λ pt → p (there′ pt)) sup 
 
-    private
-      -- A helper necessary for the next function.
-      ssid-cmb : (A → Q) → (A × Q) → Q
-      ssid-cmb f (a , q) = q * f a
-
-      ssid-sample-cmb : ListDist A → (A → Q) → A → Q
-      ssid-sample-cmb xs f a = ssid-cmb f (a , sample-LD xs a)
-
     support-sample-invariant-dist : (f : A → Q)(xs : ListDist A){S : List A}
                                     → IsSupport xs S
-                                    → sum (map (ssid-cmb f) xs) ≡ sum (map (ssid-sample-cmb xs f) S)
+                                    → sum (map (cmb-Writer f) xs) ≡ sum (map (sample-with-LD xs f) S)
     support-sample-invariant-dist f .[] {[]} EmptySupport = refl
     support-sample-invariant-dist f ._ {[]} (ConsExistingSupport a q xs .[] () sup)
     support-sample-invariant-dist f .((a , q) ∷ xs) {s ∷ S} (ConsExistingSupport a q xs .(s ∷ S) ix sup) =
-      sum (q * f a ∷ map (ssid-cmb f) xs)
-        ≡⟨ sum-rewrite (q * f a) (map (ssid-cmb f) xs) ⟩ʳ
-      q * f a + sum (map (ssid-cmb f) xs)
+      sum (q * f a ∷ map (cmb-Writer f) xs)
+        ≡⟨ sum-rewrite (q * f a) (map (cmb-Writer f) xs) ⟩ʳ
+      q * f a + sum (map (cmb-Writer f) xs)
         ≡⟨ lem ⟩
-      sample-LD ((a , q) ∷ xs) s * f s + sum (map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
-        ≡⟨ sum-rewrite (sample-LD ((a , q) ∷ xs) s * f s) (map (ssid-sample-cmb ((a , q) ∷ xs) f) S) ⟩
-      sum (sample-LD ((a , q) ∷ xs) s * f s ∷ map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
+      sample-LD ((a , q) ∷ xs) s * f s + sum (map (sample-with-LD ((a , q) ∷ xs) f) S)
+        ≡⟨ sum-rewrite (sample-LD ((a , q) ∷ xs) s * f s) (map (sample-with-LD ((a , q) ∷ xs) f) S) ⟩
+      sum (sample-LD ((a , q) ∷ xs) s * f s ∷ map (sample-with-LD ((a , q) ∷ xs) f) S)
       ∎
       where
-        lem : q * f a + sum (map (ssid-cmb f) xs) ≡ sample-LD ((a , q) ∷ xs) s * f s + sum (map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
+        lem : q * f a + sum (map (cmb-Writer f) xs) ≡ sample-LD ((a , q) ∷ xs) s * f s + sum (map (sample-with-LD ((a , q) ∷ xs) f) S)
         lem with s == a
         ... | yes refl =
-          q * f s + sum (map (ssid-cmb f) xs)
+          q * f s + sum (map (cmb-Writer f) xs)
             ≡⟨ cong (_+_ (q * f a)) {!!} ⟩
-          q * f s + (sample-LD xs s * f s + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S))
+          q * f s + (sample-LD xs s * f s + sum (map (sample-with-LD ((s , q) ∷ xs) f) S))
             ≡⟨ +-assoc (q * f s) (sample-LD xs s * f s) _ ⟩
-          (q * f s + sample-LD xs s * f s) + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S)
-            ≡⟨ cong (λ e → e + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S)) $ +*-right-dist q (sample-LD xs s) (f s) ⟩ʳ
-          (q + sample-LD xs s) * f s + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S)
-            ≡⟨ cong (λ e → e * f s + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S)) $ sum-rewrite q (filter-vals s xs) ⟩
-          sum (q ∷ filter-vals s xs) * f s + sum (map (ssid-sample-cmb ((s , q) ∷ xs) f) S)
+          (q * f s + sample-LD xs s * f s) + sum (map (sample-with-LD ((s , q) ∷ xs) f) S)
+            ≡⟨ cong (λ e → e + sum (map (sample-with-LD ((s , q) ∷ xs) f) S)) $ +*-right-dist q (sample-LD xs s) (f s) ⟩ʳ
+          (q + sample-LD xs s) * f s + sum (map (sample-with-LD ((s , q) ∷ xs) f) S)
+            ≡⟨ cong (λ e → e * f s + sum (map (sample-with-LD ((s , q) ∷ xs) f) S)) $ sum-rewrite q (filter-vals s xs) ⟩
+          sum (q ∷ filter-vals s xs) * f s + sum (map (sample-with-LD ((s , q) ∷ xs) f) S)
           ∎
         ... | no neq = {!!}
     support-sample-invariant-dist f .((a , q) ∷ xs) {a ∷ S} (ConsNewSupport .a q xs .S nix sup) =
-      sum (q * f a ∷ map (ssid-cmb f) xs)
-        ≡⟨ sum-rewrite (q * f a) (map (ssid-cmb f) xs) ⟩ʳ
-      q * f a + sum (map (ssid-cmb f) xs)
-        ≡⟨ cong (λ e → e * f a + sum (map (ssid-cmb f) xs)) (+-unit-right q) ⟩
-      (q + zro) * f a + sum (map (ssid-cmb f) xs)
-        ≡⟨ cong (λ e → (q + e) * f a + sum (map (ssid-cmb f) xs)) (sample-missing-zero a xs nix sup) ⟩
-      (q + sample-LD xs a) * f a + sum (map (ssid-cmb f) xs)
+      sum (q * f a ∷ map (cmb-Writer f) xs)
+        ≡⟨ sum-rewrite (q * f a) (map (cmb-Writer f) xs) ⟩ʳ
+      q * f a + sum (map (cmb-Writer f) xs)
+        ≡⟨ cong (λ e → e * f a + sum (map (cmb-Writer f) xs)) (+-unit-right q) ⟩
+      (q + zro) * f a + sum (map (cmb-Writer f) xs)
+        ≡⟨ cong (λ e → (q + e) * f a + sum (map (cmb-Writer f) xs)) (sample-missing-zero a xs nix sup) ⟩
+      (q + sample-LD xs a) * f a + sum (map (cmb-Writer f) xs)
         ≡⟨ cong (λ e → (q + sample-LD xs a) * f a + e) $
              support-sample-invariant-dist f xs sup  ⟩
-      (q + sample-LD xs a) * f a + sum (map (ssid-sample-cmb xs f) S)
+      (q + sample-LD xs a) * f a + sum (map (sample-with-LD xs f) S)
         ≡⟨ cong (λ e → (q + sample-LD xs a) * f a + sum e) $
-             sample-missing-irrelevant a q xs nix (ssid-cmb f) sup ⟩
-      (q + sample-LD xs a) * f a + sum (map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
-        ≡⟨ cong (λ e → e * f a + sum (map (ssid-sample-cmb ((a , q) ∷ xs) f) S)) $ sample-step a q xs ⟩
-      sample-LD ((a , q) ∷ xs) a * f a + sum (map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
-        ≡⟨ sum-rewrite (sample-LD ((a , q) ∷ xs) a * f a) (map (ssid-sample-cmb ((a , q) ∷ xs) f) S) ⟩
-      sum (sample-LD ((a , q) ∷ xs) a * f a ∷ map (ssid-sample-cmb ((a , q) ∷ xs) f) S)
+             sample-missing-irrelevant a q xs nix (cmb-Writer f) sup ⟩
+      (q + sample-LD xs a) * f a + sum (map (sample-with-LD ((a , q) ∷ xs) f) S)
+        ≡⟨ cong (λ e → e * f a + sum (map (sample-with-LD ((a , q) ∷ xs) f) S)) $ sample-step a q xs ⟩
+      sample-LD ((a , q) ∷ xs) a * f a + sum (map (sample-with-LD ((a , q) ∷ xs) f) S)
+        ≡⟨ sum-rewrite (sample-LD ((a , q) ∷ xs) a * f a) (map (sample-with-LD ((a , q) ∷ xs) f) S) ⟩
+      sum (sample-LD ((a , q) ∷ xs) a * f a ∷ map (sample-with-LD ((a , q) ∷ xs) f) S)
       ∎
 
                                     {-

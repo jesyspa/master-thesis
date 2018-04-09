@@ -11,6 +11,9 @@ Writer A = A × Q
 mul-Writer : ∀{A} → Q → Writer A → Writer A
 mul-Writer q = second (_<>_ q)
 
+cmb-Writer : ∀{A} → (A → Q) → Writer A → Q
+cmb-Writer f (a , q) = q <> f a
+
 instance
   FunctorWriter : Functor Writer
   FunctorWriter = record { fmap = first }

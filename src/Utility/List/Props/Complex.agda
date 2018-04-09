@@ -21,6 +21,15 @@ filter-append-dist p (x ∷ xs) ys with p x
 ... | false = filter-append-dist p xs ys
 ... | true = cong (_∷_ x) (filter-append-dist p xs ys)
 
+filter-concat-swap : ∀{l}{A : Set l}
+                   → (p : A → Bool)
+                   → (xss : List (List A))
+                   → filter p (concat xss) ≡ concat (map (filter p) xss)
+filter-concat-swap p [] = refl
+filter-concat-swap p (xs ∷ xss)
+  rewrite filter-append-dist p xs (concat xss)
+        | filter-concat-swap p xss = refl
+
 {-# DISPLAY foldr _++_ List.[] = concat #-}
 
 concat-append-dist : ∀{l} {A : Set l}
@@ -47,6 +56,16 @@ map-concat-swap : ∀{l} {A B : Set l}
                 → concat (map (concat ∘′ f) xs) ≡ concat (concat (map f xs))
 map-concat-swap f [] = refl
 map-concat-swap f (x ∷ xs) rewrite map-concat-swap f xs | concat-append-dist (f x) (concat (map f xs)) = refl
+
+map-concat-swap′ : ∀{l} {A B : Set l}
+                 → (f : A → B)
+                 → (xss : List (List A))
+                 → map f (concat xss) ≡ concat (map (map f) xss)
+map-concat-swap′ f [] = refl
+map-concat-swap′ f (xs ∷ xss)
+  rewrite map-append-dist f xs (concat xss)
+        | map-concat-swap′ f xss = refl
+
 
 filter-reduction-identity : ∀{l} {A B : Set l} (g : B → A) (f : A → B) (p : A → Bool) (xs : List A)
                           → Retraction g of f

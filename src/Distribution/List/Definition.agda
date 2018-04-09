@@ -62,7 +62,18 @@ support-LD = uniques ∘′ map fst
 normalize-LD : ∀{A} {{_ : Eq A}} → ListDist A → ListDist A
 normalize-LD dist = map (λ x → (x , sample-LD dist x)) (support-LD dist) 
 
+sample-with-LD : ∀{A : Set}{{_ : Eq A}}
+               → ListDist A → (A → Q)
+               → A → Q
+sample-with-LD xs f a = cmb-Writer f (a , sample-LD xs a)
+
+sample-fun-LD : ∀{A B : Set}{{_ : Eq B}}
+                (f : A → ListDist B)(b : B)
+              → A → Q
+sample-fun-LD f b a = sample-LD (f a) b
+
 sample-over-LD : ∀{A B : Set}{{_ : Eq B}}
                  (f : A → ListDist B)(b : B)
                → A × Q → Q
-sample-over-LD f b (a , p) = p * sample-LD (f a) b
+sample-over-LD f b = cmb-Writer (sample-fun-LD f b)
+
