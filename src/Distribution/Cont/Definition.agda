@@ -41,10 +41,3 @@ uniform-CD n = λ p → negpow2 n * sum (map p (all-bitvecs n))
 sample : ∀{A}{{_ : Eq A}} → ContDist A → A → Q
 sample ca a = ca λ a′ → if isYes (a == a′) then one else zro 
 
-data _≡CD_ (A : Set){{_ : Eq A}} : 
-{-
-    uniform : ∀ n → D (BitVec n)
-    sample : ∀{A} → {{_ : Eq A}} → D A → A → probability
-    _≡D_ : ∀{A} → {{_ : Eq A}} → D A → D A → Set
-
--}
