@@ -7,15 +7,21 @@ open import Algebra.Function
 open import Algebra.ExactSize
 open import Algebra.Equality
 
+filter-is : A → List A → List A
+filter-is a = filter (isYes ∘ (_==_ a))
+
+filter-is-not : A → List A → List A
+filter-is-not a = filter (isNo ∘ (_==_ a))
+
 equalFilter-fun : (a : A) (xs : List A)
-                → a ∈ xs → a ∈ filter (isYes ∘ (_==_ a)) xs
-equalFilter-fun a .(a ∷ xs) (here .a xs) rewrite yes-refl a = here a (filter (isYes ∘ (_==_ a)) xs)
+                → a ∈ xs → a ∈ filter-is a xs
+equalFilter-fun a .(a ∷ xs) (here .a xs) rewrite yes-refl a = here a (filter-is a xs)
 equalFilter-fun a .(y ∷ xs) (there .a y xs pf) with a == y
-equalFilter-fun a .(a ∷ xs) (there .a .a xs pf) | yes refl = there a a (filter (isYes ∘ (_==_ a)) xs) (equalFilter-fun a xs pf)
+equalFilter-fun a .(a ∷ xs) (there .a .a xs pf) | yes refl = there a a (filter-is a xs) (equalFilter-fun a xs pf)
 equalFilter-fun a .(y ∷ xs) (there .a y xs pf) | no p = equalFilter-fun a xs pf
 
 equalFilter-inv : (a : A) (xs : List A)
-                → a ∈ filter (isYes ∘ (_==_ a)) xs → a ∈ xs
+                → a ∈ filter-is a xs → a ∈ xs
 equalFilter-inv a [] ()
 equalFilter-inv a (x ∷ xs) p with a == x
 equalFilter-inv a (.a ∷ xs) (here .a ._) | yes refl = here a xs
@@ -41,7 +47,7 @@ filter-preserves-satisfying a .(y ∷ xs) pd pf (there .a y xs p) with pd y
 ... | false = filter-preserves-satisfying a xs pd pf p
 
 filter-not-eq-preserves-elem : (a x : A) (xs : List A)
-                             → ¬ (x ≡ a) → a ∈ xs → a ∈ filter (isNo ∘ (_==_ x)) xs
+                             → ¬ (x ≡ a) → a ∈ xs → a ∈ filter-is-not x xs
 filter-not-eq-preserves-elem a x xs neq = filter-preserves-satisfying a xs (isNo ∘ (_==_ x)) (neq-is-no neq)
 
 filter-removes-unsatisfying : (a : A) (xs : List A) (pd : A → Bool)
@@ -63,9 +69,15 @@ filter-functional-inv a xs f fp pd p with pd a | graphAt pd a
 ... | false | ingraph pig = ⊥-elim (filter-removes-unsatisfying a (f xs) pd (transport IsFalse (sym pig) it) p)
 
 not-in-filter-no : (a : A) (xs : List A)
-                 → ¬ (a ∈ filter (isNo ∘ (_==_ a)) xs)
+                 → ¬ (a ∈ filter-is-not a xs)
 not-in-filter-no a [] ()
 not-in-filter-no a (x ∷ xs) p with a == x
 ... | yes refl = not-in-filter-no a xs p
 not-in-filter-no a (.a ∷ xs) (here .a ._) | no neq = neq refl
 not-in-filter-no a (x ∷ xs) (there .a .x ._ p) | no neq = not-in-filter-no a xs p
+
+permute : (xs : List A){x a : A}
+        → a ∈ xs → x ∈ xs → x ∈ a ∷ filter-is-not a xs
+permute xs {x} {a} p q with a == x
+... | yes refl = here a (filter (isNo ∘ (_==_ a)) xs)
+... | no neq = there x a (filter (isNo ∘ (_==_ a)) xs) (filter-preserves-satisfying x xs (isNo ∘ (_==_ a)) (neq-is-no neq) q)
