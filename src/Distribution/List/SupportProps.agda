@@ -67,12 +67,26 @@ module _ {{PPQ : ProbabilityProps}} where
                               → (cmb : A × Q → Q)
                               → IsSupport xs S
                               → map (λ x → cmb (x , (sample-LD xs x))) S ≡ map (λ x → cmb (x , (sample-LD ((a , q) ∷ xs) x))) S
-    sample-missing-irrelevant a q xs p cmb sup = {!!}
+    sample-missing-irrelevant a q xs {S} p cmb sup = strong-map-ext (λ x → cmb (x , (sample-LD xs x)))
+                                                                    (λ x → cmb (x , (sample-LD ((a , q) ∷ xs) x)))
+                                                                    S
+                                                                    (λ {x} pt → cong (λ e → cmb (x , e)) (lem pt))
+      where
+        lem : ∀{x} → x ∈ S → sample-LD xs x ≡ sample-LD ((a , q) ∷ xs) x 
+        lem {x} pt with x == a
+        ... | yes refl = ⊥-elim (p pt)
+        ... | no neq = refl
 
     sample-missing-zero : ∀(a : A) xs {S} (p : ¬ (a ∈ S))
                         → IsSupport xs S
                         → zro ≡ sample-LD xs a
-    sample-missing-zero a xs p sup = {!!}
+    sample-missing-zero a .[] p EmptySupport = refl
+    sample-missing-zero a .((a′ , q) ∷ xs) p (ConsExistingSupport a′ q xs S ix sup) with a == a′
+    ... | yes refl = ⊥-elim (p ix)
+    ... | no neq = sample-missing-zero a xs p sup
+    sample-missing-zero a .((a′ , q) ∷ xs) p (ConsNewSupport a′ q xs S nix sup) with a == a′
+    ... | yes refl = ⊥-elim (p (here a′ S))
+    ... | no neq = sample-missing-zero a xs (λ pt → p (there′ pt)) sup 
 
     private
       -- A helper necessary for the next function.

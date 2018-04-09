@@ -21,3 +21,10 @@ map-preserves-Sec-helper f pf a (x ∷ xs) .(y ∷ ys) eq (there .(f a) y ys p)
 map-preserves-Sec : ∀(f : A → B) (fp : Injective f) (a : A) (xs : List A)
                   → Section drop-map-lem f fp a xs of map-preserves-in f a xs
 map-preserves-Sec f fp a xs p = map-preserves-Sec-helper f fp a xs (map f xs) refl p
+
+strong-map-ext : ∀(f g : A → B)(xs : List A)(_ : ∀{a} → a ∈ xs → f a ≡ g a)
+               → map f xs ≡ map g xs
+strong-map-ext f g [] pf = refl
+strong-map-ext f g (x ∷ xs) pf
+  rewrite pf (here x _)
+        | strong-map-ext f g xs (λ pt → pf (there′ pt)) = refl
