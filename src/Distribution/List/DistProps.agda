@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import Probability.Class using (Probability)
 module Distribution.List.DistProps (Q : Set) {{PQ : Probability Q}} where
 
@@ -116,6 +117,37 @@ module _ {{PPQ : ProbabilityProps}} where
       ≡⟨ sample-invariant-LD (>>=-D-inv-normal-LD ys f) b ⟩ʳ
     sample-LD (ys >>= f) b
     ∎
+
+  return-certain-LD : ∀{A}{{_ : Eq A}}(a : A) → sample-LD (return a) a ≡ one
+  return-certain-LD a rewrite yes-refl a = sym (singleton-sum-id one)
+
+  uniform-not-return-LD : ∀ n (v : BitVec n) → ¬(n ≡ 0) → ¬(uniform-LD n ≡LD return v)
+  uniform-not-return-LD n v ne p with embed-Inj {suc zero} {pow2 n} (embed-1 ʳ⟨≡⟩ lem2)
+    where
+      lem : negpow2 n ≡ one
+      lem =
+        negpow2 n
+          ≡⟨ uniform-LD-is-uniform n v ⟩
+        sample-LD (uniform-LD n) v
+          ≡⟨ sample-invariant-LD p v ⟩
+        sample-LD (return v) v
+          ≡⟨ return-certain-LD v ⟩
+        one
+        ∎
+      lem2 : one ≡ embed (pow2 n)
+      lem2 =
+        one
+          ≡⟨ pow2-negpow2-cancel n ⟩
+        embed (pow2 n) * negpow2 n
+          ≡⟨ cong (_*_ (embed (pow2 n))) lem ⟩
+        embed (pow2 n) * one
+          ≡⟨ *-unit-right (embed (pow2 n)) ⟩ʳ
+        embed (pow2 n)
+        ∎
+  ... | z = ne lem3
+    where
+      lem3 : n ≡ 0
+      lem3 = {!!}
                
   open import Distribution.PropsClass ListDist
   
@@ -128,9 +160,12 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; uniform-bijection-invariant = uniform-LD-bijection-invariant
                                ; sample-equality = sample-equiv
                                ; sample-invariant = sample-invariant-LD
+                               ; return-certain = return-certain-LD
                                ; injection-invariant = injections-preserve-distributions-LD
                                ; irrelevance = irrelevance-LD
                                ; interchange = interchange-LD
                                ; >>=-D-ext = >>=-D-ext-LD
                                ; >>=-D-inv = >>=-D-inv-LD
+                               ; uniform-not-return = uniform-not-return-LD
                                }
+

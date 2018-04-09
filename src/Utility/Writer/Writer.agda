@@ -9,11 +9,11 @@ Writer : Set l → Set l
 Writer A = A × Q
 
 mul-Writer : ∀{A} → Q → Writer A → Writer A
-mul-Writer q = over-snd (_<>_ q)
+mul-Writer q = second (_<>_ q)
 
 instance
   FunctorWriter : Functor Writer
-  FunctorWriter = record { fmap = over-fst }
+  FunctorWriter = record { fmap = first }
 
 ap-W : ∀{A B : Set l} → Writer (A → B) → Writer A → Writer B
 ap-W (f , v₁) (a , v₂) = f a , v₁ <> v₂

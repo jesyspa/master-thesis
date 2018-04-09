@@ -66,10 +66,10 @@ module _ {{PPQ : ProbabilityProps}} where
         ≡⟨ cong (sum ∘′ map (sample-LD xs)) $ filter-vals-diag (support-LD xs) a ⟩
       sum (map (sample-LD xs) $ filter-vals a $ map diag (support-LD xs))
         ≡⟨ cong sum $ filter-vals-map (sample-LD xs) (map diag (support-LD xs)) a ⟩
-      sum (filter-vals a $ map (over-snd (sample-LD xs)) $ map diag (support-LD xs))
-        ≡⟨ cong (sum ∘′ filter-vals a) $ map-comp (over-snd (sample-LD xs)) diag (support-LD xs) ⟩ʳ
-      sum (filter-vals a $ map (over-snd (sample-LD xs) ∘′ diag) (support-LD xs))
-        ≡⟨ cong (sum ∘′ filter-vals a) $ map-ext (over-snd (sample-LD xs) ∘′ diag)
+      sum (filter-vals a $ map (second (sample-LD xs)) $ map diag (support-LD xs))
+        ≡⟨ cong (sum ∘′ filter-vals a) $ map-comp (second (sample-LD xs)) diag (support-LD xs) ⟩ʳ
+      sum (filter-vals a $ map (second (sample-LD xs) ∘′ diag) (support-LD xs))
+        ≡⟨ cong (sum ∘′ filter-vals a) $ map-ext (second (sample-LD xs) ∘′ diag)
                                                  (λ x → (x , sample-LD xs x))
                                                  (λ x → refl)
                                                  (support-LD xs) ⟩
@@ -84,7 +84,7 @@ module _ {{PPQ : ProbabilityProps}} where
       ≡⟨ mul-sum p (filter-vals a xs)  ⟩
     sum (map (_*_ p) $ filter-vals a xs)
       ≡⟨ (cong sum $ filter-vals-map (_*_ p) xs a) ⟩
-    sum (filter-vals a $ map (over-snd (_*_ p)) xs)
+    sum (filter-vals a $ map (second (_*_ p)) xs)
     ∎
 
   bind-universal-prop : ∀{A B}{{_ : Eq B}}

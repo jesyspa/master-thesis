@@ -4,13 +4,16 @@ open import ThesisPrelude
 open import Algebra.Monoid
 open import Algebra.Preorder
 
--- A probability is a Semiring that is also an Ord and supports negative powers of two.
+-- A probability type is a totally ordered ring of characteristic zero that has negative powers of two.
 
-record Probability (A : Set) : Set₁ where
+record Probability (Q : Set) : Set₁ where
   field
-    overlap {{super-semiring}} : Semiring A
-    overlap {{super-ord}} : Ord A
-    embed : Nat → A
-    negpow2 : Nat → A
+    overlap {{super-semiring}} : Semiring Q
+    overlap {{super-ord}} : Ord Q
+    neg : Q → Q
+    negpow2 : Nat → Q
 
+  embed : Nat → Q
+  embed zero = zro
+  embed (suc n) = embed n + one
 
