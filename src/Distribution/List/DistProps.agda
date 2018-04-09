@@ -19,8 +19,9 @@ open import Utility.Vector.BitVec
 open import Utility.Product
 open import Distribution.List.MonadProps Q
 import Utility.Writer.Transformer Q List as WriterT
-open import Distribution.List.BasicProps Q
+open import Distribution.List.BasicProps Q public
 open import Distribution.List.SlowProps Q public
+open import Distribution.List.SupportProps Q public
 
 open Probability PQ
 
@@ -82,27 +83,6 @@ module _ {{PPQ : ProbabilityProps}} where
     sample-LD (xs >>= g) b
     ∎
 
-  >>=-D-inv-normal2-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
-                       → (xs ys : ListDist A)
-                       → (f : A → ListDist B)
-                       → xs ≡LD ys
-                       → (normalize-LD xs >>= f) ≡LD (normalize-LD ys >>= f)
-  >>=-D-inv-normal2-LD xs ys f eq = sample-equiv λ b →
-    {!!}
-      ≡⟨ {!!} ⟩
-    {!!}
-    ∎
-
-  >>=-D-inv-normal-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
-                      → (xs : ListDist A)
-                      → (f : A → ListDist B)
-                      → (xs >>= f) ≡LD (normalize-LD xs >>= f)
-  >>=-D-inv-normal-LD xs f = sample-equiv λ b →
-    sum (filter-vals b (xs >>= f))
-      ≡⟨ {!!} ⟩
-    sum (filter-vals b (normalize-LD xs >>= f))
-    ∎
-
   >>=-D-inv-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
                → (xs ys : ListDist A)
                → (f : A → ListDist B)
@@ -110,13 +90,22 @@ module _ {{PPQ : ProbabilityProps}} where
                → (xs >>= f) ≡LD (ys >>= f) 
   >>=-D-inv-LD xs ys f eq = sample-equiv λ b →
     sample-LD (xs >>= f) b
-      ≡⟨ sample-invariant-LD (>>=-D-inv-normal-LD xs f) b ⟩
-    sample-LD (normalize-LD xs >>= f) b
-      ≡⟨ sample-invariant-LD (>>=-D-inv-normal2-LD xs ys f eq) b ⟩
-    sample-LD (normalize-LD ys >>= f) b
-      ≡⟨ sample-invariant-LD (>>=-D-inv-normal-LD ys f) b ⟩ʳ
+      ≡⟨ strong-bind-universal-prop xs f b ⟩
+    sum (map (sample-transposed-LD f xs b) (support-LD xs))
+      ≡⟨ cong sum (map-ext _ 
+                           _
+                           (sample-transposed-equiv f xs ys eq b)
+                           (support-LD xs)) ⟩
+    sum (map (sample-transposed-LD f ys b) (support-LD xs))
+      ≡⟨ {!!} ⟩
+    sum (map (sample-transposed-LD f ys b) (support-LD xs))
+      ≡⟨ {!!} ⟩
+    sum (map (sample-transposed-LD f ys b) (support-LD ys))
+      ≡⟨ strong-bind-universal-prop ys f b ⟩ʳ
     sample-LD (ys >>= f) b
     ∎
+    where
+   
 
   return-certain-LD : ∀{A}{{_ : Eq A}}(a : A) → sample-LD (return a) a ≡ one
   return-certain-LD a rewrite yes-refl a = sym (singleton-sum-id one)

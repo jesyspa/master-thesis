@@ -137,6 +137,17 @@ module _ {{PPQ : ProbabilityProps}} where
       sum (sample-LD ((a , q) ∷ xs) a * f a ∷ map (sample-with-LD ((a , q) ∷ xs) f) S)
       ∎
 
+
+    support-normalize-invariant-LD : (xs : ListDist A) → support-LD xs ≡ support-LD (normalize-LD xs)
+    support-normalize-invariant-LD xs =
+      uniques (map fst xs)
+        ≡⟨ {!uniques-idempotent (map fst xs)!} ⟩
+      uniques (uniques (map fst xs))
+        ≡⟨ cong uniques (map-ext-id (fst ∘′ (λ x → (x , sample-LD xs x))) (λ a → refl) (uniques (map fst xs))) ⟩
+      uniques (map (fst ∘′ (λ x → (x , sample-LD xs x))) (uniques (map fst xs)))
+        ≡⟨ cong uniques (map-comp fst (λ x → (x , sample-LD xs x)) (uniques (map fst xs))) ⟩
+      uniques (map fst (map (λ x → (x , sample-LD xs x)) (uniques (map fst xs))))
+      ∎
                                     {-
     support-sample-invariant-dist f a q [] (ConsExistingSupport .a .q .[] S ix sup)
       with support-of-empty-is-empty S sup

@@ -26,6 +26,7 @@ open Probability PQ
 module _ {{PPQ : ProbabilityProps}} where
   open ProbabilityProps PPQ
   open SemiringProps srprops
+  open DistMonad DistMonadListDist
   instance
     private
       MonoidPropsMulQ : MonoidProps Q
@@ -109,46 +110,8 @@ module _ {{PPQ : ProbabilityProps}} where
 
   strong-bind-universal-prop : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
                                (xs : ListDist A)(f : A → ListDist B)(b : B)
-                             → sample-LD (xs >>= f) b ≡ sum (map (sample-over-LD f b) xs)
-  strong-bind-universal-prop {A} xs f b =
-    sum (map snd (filter-eq b (concat (map (WriterT.bind-MW-helper f) xs))))
-      ≡⟨ cong (sum ∘′ map snd) (filter-concat-swap (isYes ∘ (_==_ b) ∘ fst) (map (WriterT.bind-MW-helper f) xs) ) ⟩
-    sum (map snd (concat (map (filter-eq b) (map (WriterT.bind-MW-helper f) xs))))
-      ≡⟨ cong (sum ∘′ map snd ∘′ concat) (map-comp (filter-eq b) (WriterT.bind-MW-helper f) xs) ⟩ʳ
-    sum (map snd (concat (map (filter-eq b ∘′ WriterT.bind-MW-helper f) xs)))
-      ≡⟨ cong sum (map-concat-swap′ snd ((map (filter-eq b ∘′ WriterT.bind-MW-helper f) xs)) ) ⟩
-    sum (concat (map (map snd) (map (filter-eq b ∘′ WriterT.bind-MW-helper f) xs)))
-      ≡⟨ cong (sum ∘′ concat) (map-comp (map snd) (filter-eq b ∘′ WriterT.bind-MW-helper f) xs) ⟩ʳ
-    sum (concat (map (map snd ∘′ filter-eq b ∘′ WriterT.bind-MW-helper f) xs))
-      ≡⟨ cong (sum ∘′ concat) (map-ext (map snd ∘′ filter-eq b ∘′ WriterT.bind-MW-helper f) fun fun-equiv2 xs) ⟩
-    sum (concat (map fun xs))
-      ≡⟨ concat-sum-swap (map fun xs)  ⟩
-    sum (map sum (map fun xs))
-      ≡⟨ cong sum (map-comp sum fun xs) ⟩ʳ
-    sum (map (sum ∘′ fun) xs)
-      ≡⟨ cong sum (map-ext (sum ∘′ fun) (cmb-Writer (sample-fun-LD f b)) fun-equiv xs) ⟩
-    sum (map (cmb-Writer (sample-fun-LD f b)) xs)
-    ∎
-    where
-      fun : A × Q → List Q
-      fun (a , q) = map (_*_ q ∘′ snd) (filter-eq b (f a))
-      fun-equiv : (pr : A × Q) → sum (fun pr) ≡ cmb-Writer (sample-fun-LD f b) pr
-      fun-equiv (a , q) =
-        sum (map (_*_ q ∘′ snd) (filter-eq b (f a)))
-          ≡⟨ cong sum (map-comp (_*_ q) snd (filter-eq b (f a))) ⟩
-        sum (map (_*_ q) (filter-vals b (f a)))
-          ≡⟨ mul-sum q (filter-vals b (f a))  ⟩ʳ
-        q * sum (filter-vals b (f a))
-        ∎
-      fun-equiv2 : (pr : A × Q)
-                 → (map snd ∘′  filter-eq b ∘′ WriterT.bind-MW-helper f) pr ≡ fun pr
-      fun-equiv2 (a , q) =
-        filter-vals b (map (mul-Writer q) (f a))
-          ≡⟨ filter-vals-map (_*_ q) (f a) b ⟩ʳ
-        map (_*_ q) (filter-vals b (f a))
-          ≡⟨ map-comp (_*_ q) snd (filter-eq b (f a)) ⟩ʳ
-        map (_*_ q ∘′ snd) (filter-eq b (f a))
-        ∎
+                             → sample-LD (xs >>= f) b ≡ sum (map (sample-transposed-LD f xs b) (support-LD xs))
+  strong-bind-universal-prop {A} xs f b = {!!}
 
   sample-over-ext : ∀{A B : Set}{{_ : Eq B}}
                     (f g : A → ListDist B)(b : B)
@@ -156,3 +119,10 @@ module _ {{PPQ : ProbabilityProps}} where
                     (aq : A × Q)
                   → sample-over-LD f b aq ≡ sample-over-LD g b aq
   sample-over-ext f g b eq (a , p) = cong (_*_ p) (sample-invariant-LD (eq a) b)
+
+  sample-transposed-equiv : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+                          → (f : A → ListDist B)(xs ys : ListDist A)
+                          → (xs ≡D ys)
+                          → (b : B)(a : A)
+                          → sample-transposed-LD f xs b a ≡ sample-transposed-LD f ys b a
+  sample-transposed-equiv f xs ys eq b a = cong (λ e → e * sample (f a) b) (sample-invariant-LD eq a)

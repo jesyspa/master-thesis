@@ -77,3 +77,7 @@ sample-over-LD : ∀{A B : Set}{{_ : Eq B}}
                → A × Q → Q
 sample-over-LD f b = cmb-Writer (sample-fun-LD f b)
 
+sample-transposed-LD : ∀{A B : Set}{{_ : Eq A}}{{_ : Eq B}}
+                     → (A → ListDist B) → (ListDist A)
+                     → B → A → Q
+sample-transposed-LD f xs b a = sample-LD xs a * sample-LD (f a) b

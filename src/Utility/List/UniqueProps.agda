@@ -42,3 +42,11 @@ uniques-unique (x ∷ xs) (there a .x .xs p)  (there .a .x ._ q) | no ns = cong 
 uniques-gives-singleton : {a : A}(xs : List A)
                         → a ∈ xs → [ a ] ≡ filter (isYes ∘ (_==_ a)) (uniques xs)
 uniques-gives-singleton xs p = singleton-elem _ _ $ size1-lem _ (unique-preserves-elem _ p) (uniques-unique _ p)
+
+uniques-idempotent : (xs : List A) → uniques xs ≡ uniques (uniques xs)
+uniques-idempotent [] = refl
+uniques-idempotent (x ∷ xs) with decide-elem x xs
+uniques-idempotent (x ∷ xs) | yes _ = uniques-idempotent xs
+uniques-idempotent (x ∷ xs) | no nq with decide-elem x (uniques xs)
+uniques-idempotent (x ∷ xs) | no nq | yes q = ⊥-elim (nq (unique-preserves-elem-inv xs q))
+uniques-idempotent (x ∷ xs) | no nq | no nq′ rewrite sym (uniques-idempotent xs) = refl
