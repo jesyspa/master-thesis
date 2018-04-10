@@ -103,6 +103,7 @@ module _ {{PPQ : ProbabilityProps}} where
       sum (sample-LD ((a , q) ∷ xs) s * f s ∷ map (sample-with-LD ((a , q) ∷ xs) f) S)
       ∎
       where
+        -- IIRC, I concluded that this is simply false in general.
         lem : q * f a + sum (map (cmb-Writer f) xs) ≡ sample-LD ((a , q) ∷ xs) s * f s + sum (map (sample-with-LD ((a , q) ∷ xs) f) S)
         lem with s == a
         ... | yes refl =

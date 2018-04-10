@@ -113,10 +113,10 @@ module _ {{PPQ : ProbabilityProps}} where
                              → sample-LD (xs >>= f) b ≡ sum (map (sample-transposed-LD f xs b) (support-LD xs))
   strong-bind-universal-prop {A} xs f b =
     sum (filter-vals b (xs >>= f))
-      ≡⟨ {!!} ⟩
-    ?
-      ≡⟨ {!!} ⟩
-    sum (map (sample-transposed-LD f xs b) (support-LD xs))
+      ≡⟨ bind-universal-prop xs f b ⟩
+    sum (map (sample-over-LD f b) xs)
+      ≡⟨ support-sample-invariant-dist (λ a → sample-LD (f a) b) xs (support-is-support-LD xs) ⟩
+    sum (map (sample-with-LD xs (λ a → sample-LD (f a) b)) (support-LD xs))
     ∎
 
   sample-over-ext : ∀{A B : Set}{{_ : Eq B}}
