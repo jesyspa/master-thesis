@@ -137,6 +137,16 @@ module _ {{PPQ : ProbabilityProps}} where
       sum (sample-LD ((a , q) ∷ xs) a * f a ∷ map (sample-with-LD ((a , q) ∷ xs) f) S)
       ∎
 
+    support-gives-normalize-LD : (f : A → Q)(xs : ListDist A)
+                               → sum (map (cmb-Writer f) xs) ≡ sum (map (cmb-Writer f) (normalize-LD xs))
+    support-gives-normalize-LD f xs =
+      sum (map (cmb-Writer f) xs)
+        ≡⟨ support-sample-invariant-dist f xs (support-is-support-LD xs) ⟩
+      sum (map (sample-with-LD xs f) (support-LD xs))
+        ≡⟨ cong sum (map-comp (cmb-Writer f) (λ x → (x , sample-LD xs x)) (support-LD xs)) ⟩
+      sum (map (cmb-Writer f) (map (λ x → (x , sample-LD xs x)) (support-LD xs)))
+      ∎
+
 
     support-normalize-invariant-LD : (xs : ListDist A) → support-LD xs ≡ support-LD (normalize-LD xs)
     support-normalize-invariant-LD xs =
@@ -148,60 +158,3 @@ module _ {{PPQ : ProbabilityProps}} where
         ≡⟨ cong uniques (map-comp fst (λ x → (x , sample-LD xs x)) (uniques (map fst xs))) ⟩
       uniques (map fst (map (λ x → (x , sample-LD xs x)) (uniques (map fst xs))))
       ∎
-                                    {-
-    support-sample-invariant-dist f a q [] (ConsExistingSupport .a .q .[] S ix sup)
-      with support-of-empty-is-empty S sup
-    support-sample-invariant-dist f a q [] (ConsExistingSupport .a .q .[] .[] () sup) | refl
-    support-sample-invariant-dist f a q [] (ConsNewSupport .a .q .[] S nix sup)
-      rewrite sym (support-of-empty-is-empty S sup)
-            | yes-refl a
-            =
-      q * f a + force (zro + zro * f a) id
-        ≡⟨ (cong (λ e → q * f a + e) $ forceLemma (zro + zro * f a) id) ⟩
-      q * f a + (zro + zro * f a)
-        ≡⟨ cong (λ e → q * f a + e) (+-unit-left (zro * f a)) ⟩ʳ
-      q * f a + (zro * f a)
-        ≡⟨ cong (λ e →  q * f a + e) (zro-left-nil (f a)) ⟩ʳ
-      q * f a + zro
-        ≡⟨ +-unit-right (q * f a) ⟩ʳ
-      q * f a
-        ≡⟨ cong (λ e → e * f a) (+-unit-left q) ⟩
-      (zro + q) * f a
-        ≡⟨ +-unit-left ((zro + q) * f a) ⟩
-      zro + (zro + q) * f a
-        ≡⟨ cong (λ e → zro + e * f a) (forceLemma (zro + q) id) ⟩ʳ
-      zro + force (zro + q) id * f a
-        ≡⟨ forceLemma (zro + force (zro + q) id * f a) id ⟩ʳ
-      force (zro + force (zro + q) id * f a) id
-      ∎
-    support-sample-invariant-dist f a q ((a′ , q′) ∷ xs) (ConsExistingSupport .a .q .((a′ , q′) ∷ xs) S ix sup) =
-      q * f a + sum (map (λ x → sample-LD ((a′ , q′) ∷ xs) x * f x) S)
-        ≡⟨ {!!} ⟩
-      sum (map (λ x → sample-LD ((a , q) ∷ (a′ , q′) ∷ xs) x * f x) S)
-      ∎
-    support-sample-invariant-dist f a q ((a′ , q′) ∷ xs) (ConsNewSupport .a .q .((a′ , q′) ∷ xs) S nix sup) =
-      q * f a + sum (sample-LD ((a′ , q′) ∷ xs) a * f a ∷ map (λ x → sample-LD ((a′ , q′) ∷ xs) x * f x) S)
-        ≡⟨ {!!} ⟩
-      sample-LD dist a * f a + sum (map (λ x → sample-LD dist x * f x) S)
-        ≡⟨ sum-rewrite (sample-LD dist a * f a)
-                       (map (λ x → sample-LD dist x * f x) S) ⟩
-      sum (sample-LD dist a * f a ∷ map (λ x → sample-LD dist x * f x) S)
-      ∎
-      where dist = (a , q) ∷ (a′ , q′) ∷ xs
-      -}
-
-    {-
-    support-sample-invariant-lem : (f : A → Q)(xs : ListDist A){S : List A}
-                                 → IsSupport xs S
-                                 → sum (map (collect-with f) xs) ≡ sum (map (λ x → sample-LD xs x * f x) S)
-    support-sample-invariant-lem f ._ EmptySupport = refl
-    support-sample-invariant-lem f ._ (ConsExistingSupport a q xs S np sup) = {!!}
-    support-sample-invariant-lem f ._ (ConsNewSupport a q xs S np sup) = {!!}
-    support-sample-invariant-lem f xs (PermuteSupport a .xs S np sup) = {!!}
-
-    support-sample-invariant-LD : (f : A → Q)(xs : ListDist A)
-                                → sum (map (collect-with f) xs) ≡ sum (map (λ x → sample-LD xs x * f x) (support-LD xs))
-    support-sample-invariant-LD f xs = {!!}
-                      -}
-
-
