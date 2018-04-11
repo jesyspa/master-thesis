@@ -4,6 +4,7 @@
 \usepackage{amssymb}
 \usepackage{amsfonts}
 \usepackage{amsthm}
+\usepackage{array}
 \usepackage{hyperref}
 \usepackage{todonotes}
 

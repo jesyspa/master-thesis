@@ -279,3 +279,22 @@ The last will continue into July and August, together with bugfixing.
 
 While implementing a proof search algorithm that could use reflection to simplify the arguments would be a useful
 addition to this project, it is unlikely that there will be time for it.
+
+\begin{table}
+    \centering
+    \begin{tabular}[h]{m{1.5cm} || p{9cm}}
+        Month    & \centering\arraybackslash Goal \\
+        \hline
+        December & \\
+        January  & Create a proof-of-concept implementation. \\
+        February & \\
+        March    & \\
+        April    & Finish and submit this research proposal.   Define a notion of $\epsilon$-indistinguishability.\\
+        May      & Show that $\epsilon$-indistinguishability is preserved by basic operations on distributions and
+                   introduce computations involving oracles. \\
+        June     & Formalise existing proofs in the developed system.\\
+        July     & Prepare a final draft of the thesis.\\
+        August   & Finish and present the thesis.
+    \end{tabular}
+    \caption{Timetable Summary}
+\end{table}
