@@ -1,6 +1,24 @@
 \chapter{Introduction}
 \label{chp:introduction}
 
+% Okay, we need to reimagine basically this entire chapter.  What can we do/salvage?
+% We want a presentation that emphasises the goals and existing approaches, and deemphasises the explanation.
+% So I guess the structure we are looking for is:
+% * Very brief overview of the problem, including existing solutions.  Maybe just say that this is about proving
+%   security of cryptographic algorithms, and mention what frameworks already exist?
+% * Describe what goals we consider reasonable to solve.  So that's, uhm, implementing these proofs.  Our primary
+%   contribution is the formalisation of such a system in Agda, which allows us to use dependent types more extensively.
+%   I guess I should be showing how dependent types can be relevant to the problem?
+% * Describe how I hope to approach these goals?  Except this isn't possible without the kind of low-level details I
+%   should apparently not be providing.
+%
+% I guess I should start with a brief introduction of the goals for those who understand the topic, followed by a basic
+% introduction?  Followed by some hints at an implementation?  No, I'm explicitly not supposed to have that last part.
+% So...  Focus on what needs to be done, which I guess I can do by going on about all kinds of things that are not
+% actually realistic in the timeframe, then on how one could do this (which we have no clue about).
+%
+% So, uhm, read existing proposals and mimic what they do.
+
 The goal of the reseach proposed in this document is to create a library for reasoning about cryptographic algorithms,
 in particular to show their security properties.  Such proofs are not new\footnote{TODO: cite something}, and there is a
 commonly used game-based approach~\cite{gameexamples} to formulating them.  In addition, there exist frameworks
