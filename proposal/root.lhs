@@ -39,6 +39,7 @@
     % %include chapters/04-crypto-games.lhs
     %include chapters/sp2-research-plan.lhs
 
+    \nocite{*}
     \bibliography{proposal}
     \bibliographystyle{alpha}
 \end{document}
