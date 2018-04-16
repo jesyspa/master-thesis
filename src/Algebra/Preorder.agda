@@ -1,10 +1,17 @@
-module Algebra.Preorder where
+open import ThesisPrelude using (Ord)
+module Algebra.Preorder (A : Set){{_ : Ord A}} where
 
 open import ThesisPrelude
 
-record PreorderProps (A : Set) {{_ : Ord A}} : Set where
+record PreorderProps : Set where
   field
     ≤-refl  : (a : A)                     → a ≤ a
-    ≤-trans : (a b c : A) → a ≤ b → b ≤ c → a ≤ c
+    ≤-antisym : {a b : A} → a ≤ b → b ≤ a → a ≡ b
+    ≤-trans : {a b c : A} → a ≤ b → b ≤ c → a ≤ c
+    <-norefl : (a : A) → ¬ (a < a)
+    <-trans : {a b c : A} → a < b → b < c → a < c
+    <-transˡ : {a b c : A} → a ≤ b → b < c → a < c
+    <-transʳ : {a b c : A} → a < b → b ≤ c → a < c
+    embed-< : {a b : A} → a < b → a ≤ b
+    neq-< : {a b : A} → a < b → ¬ (a ≡ b)
 
-open PreorderProps {{...}} public

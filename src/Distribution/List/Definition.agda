@@ -40,18 +40,11 @@ uniform-LD n = annotate (negpow2 n) (all-bitvecs n)
 sample-LD : ∀{A} {{_ : Eq A}} → ListDist A → A → Q
 sample-LD dist a = combine-vals sum a dist
 
-infix 4 _≡LD_
-data _≡LD_ {A} {{_ : Eq A}} : ListDist A → ListDist A → Set where
-  sample-equiv : {da db : ListDist A}
-               → ((a : A) → sample-LD da a ≡ sample-LD db a)
-               → da ≡LD db
-
 instance
   DistMonadListDist : DistMonad ListDist
   DistMonadListDist = record { probability = Q
                              ; uniform = uniform-LD
                              ; sample = sample-LD
-                             ; _≡D_ = _≡LD_
                              ; monad-super = MonadListDist
                              ; probability-super = QC
                              }
