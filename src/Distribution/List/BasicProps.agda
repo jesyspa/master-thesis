@@ -10,6 +10,7 @@ open import Algebra.Function
 open import Algebra.Monoid
 open import Algebra.Equality
 open import Algebra.SemiringProps Q
+open import Algebra.FiniteSetInstances
 open import Probability.Class
 open import Probability.PropsClass Q
 open import Probability.SumIs Q
@@ -88,8 +89,9 @@ module _ {{PPQ : ProbabilityProps}} where
 
   bind-universal-prop-lem′ : ∀{A B}{{_ : Eq B}}
                              (xs : ListDist A)(f : A → ListDist B)(b : B)
-                           → SumIs (Elem xs) (sample-over-LD f b) (sample-LD (xs >>= f) b)
-  bind-universal-prop-lem′ = ?  
+                           → ElemSumIs xs (sample-over-LD f b) (sample-LD (xs >>= f) b)
+  bind-universal-prop-lem′ xs f b =
+    SumIs-ext (Elem xs) {!sum ∘′ filter-vals b ∘′ WriterT.bind-MW-helper f ∘′ fst!} (sample-over-LD f b ∘′ fst) {!!} {!!} {!!}
 
   bind-universal-prop : ∀{A B}{{_ : Eq B}}
                         (xs : ListDist A)(f : A → ListDist B)(b : B)

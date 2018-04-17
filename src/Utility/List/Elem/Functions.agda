@@ -5,6 +5,7 @@ open import Algebra.Function
 open import Utility.List.Elem.Definition
 open import Utility.List.Elem.Map
 open import Utility.List.Elem.MapProps
+open import Utility.List.Props
 
 module _ {l}{A : Set l} where
   inject-element : (xs : List A)(x : A) → Elem xs → Elem (x ∷ xs)
@@ -16,6 +17,19 @@ module _ {l}{A : Set l} where
   list-elements : (xs : List A) → List (Elem xs)
   list-elements [] = []
   list-elements (x ∷ xs) = (x , here x _) ∷ map (inject-element xs x) (list-elements xs) 
+
+  list-elements-map : ∀{l′}{B : Set l′}(xs : List A)(f : A → B) → map f xs ≡ map (f ∘′ fst) (list-elements xs)
+  list-elements-map [] f = refl
+  list-elements-map (x ∷ xs) f = cong (_∷_ (f x)) $
+    map f xs
+      ≡⟨ list-elements-map xs f ⟩
+    map (f ∘′ fst) (list-elements xs) 
+      ≡⟨ map-ext (f ∘′ fst) (f ∘′ fst ∘′ inject-element xs x) (λ { (e , p) → refl }) _ ⟩
+    map (f ∘′ fst ∘′ inject-element xs x) (list-elements xs)
+      ≡⟨ map-comp _ _ _ ⟩
+    map (f ∘′ fst) (map (inject-element xs x) (list-elements xs))
+    ∎
+
 
   list-elements-Complete : (xs : List A)(e : Elem xs) → e ∈ list-elements xs 
   list-elements-Complete .(x ∷ xs) (x , here .x xs)      = here (x , here x xs) _
