@@ -1,23 +1,38 @@
 \chapter{Introduction}
 \label{chp:introduction}
 
-% Okay, we need to reimagine basically this entire chapter.  What can we do/salvage?
-% We want a presentation that emphasises the goals and existing approaches, and deemphasises the explanation.
-% So I guess the structure we are looking for is:
-% * Very brief overview of the problem, including existing solutions.  Maybe just say that this is about proving
-%   security of cryptographic algorithms, and mention what frameworks already exist?
-% * Describe what goals we consider reasonable to solve.  So that's, uhm, implementing these proofs.  Our primary
-%   contribution is the formalisation of such a system in Agda, which allows us to use dependent types more extensively.
-%   I guess I should be showing how dependent types can be relevant to the problem?
-% * Describe how I hope to approach these goals?  Except this isn't possible without the kind of low-level details I
-%   should apparently not be providing.
-%
-% I guess I should start with a brief introduction of the goals for those who understand the topic, followed by a basic
-% introduction?  Followed by some hints at an implementation?  No, I'm explicitly not supposed to have that last part.
-% So...  Focus on what needs to be done, which I guess I can do by going on about all kinds of things that are not
-% actually realistic in the timeframe, then on how one could do this (which we have no clue about).
-%
-% So, uhm, read existing proposals and mimic what they do.
+Cryptographic algorithms are ubiqutous in the modern world, and it is thus important that we can be certain they satisfy
+the security guarantees they claim to provide; it is thus of value to be able to automatically verify that such proofs
+are correct.  To facilitate this, we aim to develop a framework in which cryptographic algorithms and proofs about them
+can be expressed.
+
+A number of such frameworks, such as EasyCript\footnote{\url{www.easycrypt.info}} and FCF~\cite{fcf}, already exist.  Our
+approach is novel in that we use the Agda programming language, which allows us to employ the power of dependent types
+in our solution.  In particular, this allows us to express invariants of the algorithm that cannot be expressed in
+simpler languages.
+
+We will focus on cryptographic proofs expressed in a game-based manner~\cite{codebasedgames}.  In this setting, a
+problem is framed as a game between a \emph{challenger} and an \emph{adversary}.  The challenger represents the
+cryptographic algorithm in question, while the adversary represents an attempt to circumvent the security.  An upper
+bound on the probability that any adversary wins the game thus corresponds to a statement about the security of this
+algorithm.  A proof of such an upper bound typically involves making small modifications to the game, bounding the
+difference in victory probability introduced in each, until we arrive at a game where the probability of the adversary
+winning is clear.
+
+In this setting, the game, challenger, and adversary are all non-deterministic computations with access to some basic
+functionality such as random number generation.  Our approach is to syntactically represent these computations in a free
+monad\footnote{Good citation?} and then give these terms a valuation in some monad for stateful non-determinsitic
+computation, in which we can compute the probability of a certain outcome\cite{probfunproghaskell}.  By giving an upper
+bound on how the total probability is affected by modifications of the syntactic description, we can develop set of
+valid rewriting rules.
+
+The syntactic approach we adopt allows us to limit what computations the challenger and adversary can perform: for
+example, we can guarantee that the adversary does not inspect the state of the challenger (or vice-versa) by ruling such
+access out on the type level.\todo{This feels a bit incomplete; say something about not computing the valuation?}
+
+% Something about downsides
+
+% -------
 
 The goal of the reseach proposed in this document is to create a library for reasoning about cryptographic algorithms,
 in particular to show their security properties.  Such proofs are not new\footnote{TODO: cite something}, and there is a
