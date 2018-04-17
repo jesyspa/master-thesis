@@ -22,6 +22,12 @@ map-preserves-Sec : ∀(f : A → B) (fp : Injective f) (a : A) (xs : List A)
                   → Section drop-map-lem f fp a xs of map-preserves-in f a xs
 map-preserves-Sec f fp a xs p = map-preserves-Sec-helper f fp a xs (map f xs) refl p
 
+map-preserves-RAdj : (f : A → B)(fp : Injective f){a : A}{xs : List A}
+                   → {p : f a ∈ map f xs}{q : a ∈ xs}
+                   → drop-map-lem f fp a xs p ≡ q
+                   → p ≡ map-preserves-in f a xs q
+map-preserves-RAdj f fp refl = map-preserves-Sec f fp _ _ _ 
+
 map-preserves-prop : ∀{l′′}(f : A → B)(P : B → Set l′′)
                    → (∀ a → P (f a))
                    → (xs : List A)

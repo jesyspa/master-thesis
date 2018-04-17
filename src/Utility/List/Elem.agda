@@ -6,6 +6,7 @@ open import Utility.List.Elem.Decidable public
 open import Utility.List.Elem.Definition public
 open import Utility.List.Elem.FilterProps public
 open import Utility.List.Elem.Filter public
+open import Utility.List.Elem.Functions public
 open import Utility.List.Elem.HasSize public
 open import Utility.List.Elem.Index public
 open import Utility.List.Elem.MapProps public

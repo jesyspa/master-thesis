@@ -9,6 +9,12 @@ data _∈_ : A → List A → Set where
   here : ∀ x xs → x ∈ (x ∷ xs)
   there : ∀ x y xs → x ∈ xs → x ∈ (y ∷ xs)
 
+Elem : List A → Set l
+Elem xs = Σ A λ a → a ∈ xs
+
+get-element : ∀{x xs} → x ∈ xs → A
+get-element {x} _ = x
+
 there-Inj : ∀{x y : A} {xs : List A} → Injective (there x y xs)
 there-Inj refl = refl
   

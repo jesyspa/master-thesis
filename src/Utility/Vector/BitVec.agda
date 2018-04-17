@@ -4,6 +4,7 @@ open import ThesisPrelude
 open import Algebra.Function
 open import Algebra.Equality
 open import Algebra.ExactSize
+open import Algebra.FiniteSet
 open import Utility.Num
 open import Utility.Product
 open import Utility.Vector.Functions
@@ -161,4 +162,5 @@ module _ {B : Set} where
     filter-vals v (annotate b (all-bitvecs n))
     ∎
 
-
+postulate
+  vec-finite : ∀ n → FiniteSet (BitVec n)

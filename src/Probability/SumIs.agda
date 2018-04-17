@@ -5,8 +5,10 @@ open import ThesisPrelude
 open import Algebra.FiniteSet
 
 
-module _ (I : Set){{ULI : UniqueListable I}} where
+module _ {l}(I : Set l){{ULI : UniqueListable I}} where
   open UniqueListable ULI
   open Listable super-Enumeration
   data SumIs (f : I → Q)(q : Q) : Set where
     SumIs-prf : q ≡ sum (map f ListEnumeration) → SumIs f q
+
+module _ {l}{A : Set l}(xs : List A) where

@@ -12,6 +12,7 @@ open import Algebra.Equality
 open import Algebra.SemiringProps Q
 open import Probability.Class
 open import Probability.PropsClass Q
+open import Probability.SumIs Q
 open import Utility.Num
 open import Utility.List
 open import Utility.List.Arithmetic Q
@@ -84,6 +85,11 @@ module _ {{PPQ : ProbabilityProps}} where
       ≡⟨ (cong sum $ filter-vals-map (_*_ p) xs a) ⟩
     sum (filter-vals a $ map (second (_*_ p)) xs)
     ∎
+
+  bind-universal-prop-lem′ : ∀{A B}{{_ : Eq B}}
+                             (xs : ListDist A)(f : A → ListDist B)(b : B)
+                           → SumIs (Elem xs) (sample-over-LD f b) (sample-LD (xs >>= f) b)
+  bind-universal-prop-lem′ = ?  
 
   bind-universal-prop : ∀{A B}{{_ : Eq B}}
                         (xs : ListDist A)(f : A → ListDist B)(b : B)
