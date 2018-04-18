@@ -1,6 +1,12 @@
 \section{Game-Playing Proofs}
 \label{sec:example}
 
+In this section, we will give a basic introduction to the notion of game-playing proofs, and show how they can be
+employed to show the security of the One-Time Pad encryption scheme against a particular kind of attack.  This material
+is standard~\cite{introtocrypto}; however, since the rest of the development will be in a functional programming
+language, we have chosen to formulate this introduction in Haskell, rather than in an (imperative) pseudocode.
+Fortunately, the use of monads makes the resulting code very similar.
+
 \subsection{Encryption Schemes}
 
 An \emph{encryption scheme} is a tuple $\sigma = (K, M_p, M_c, e, d)$ where $K$ and $M_p$ are finite sets\footnote{The
@@ -75,6 +81,7 @@ following code:
 %{
 %format :: = "::"
 %format forall = "\forall\hspace{-0.25em}"
+%format do = "\K{do}"
 
 %format Int = "\D{Int}"
 
@@ -207,7 +214,7 @@ We now regard the |eav_game| from before specialised for the OTP encryption sche
 parameter |n|.  Our goal is to show that for any adversary |adv|, the following game is indistinguishable from a coin
 flip:
 \begin{code}
-otp_game :: Int -> Adversary as pt ct -> Game as Bool
+otp_game :: Int -> EAV_Adversary as pt ct -> Game as Bool
 otp_game n adv = do
     k                <- generateKeyOTP n
     (m0 comma m1)    <- chooseMessages adv
@@ -244,8 +251,8 @@ otp_game2 n adv = do
 \end{code}
 
 The uniform distribution over bitstrings of length |n| is invariant under XOR with another bitstring of length |n|,
-since the latter is a bijective mapping, so |fmap (\ k -> (xor k m0)) (uniform n)| can be simplified to |uniform n|.
-This gives us the following game:
+since the latter is a bijective mapping, so |fmap (\ k -> (xor k m0)) (uniform n)| gives the same distribution as
+|uniform n|.  This gives us the following game:
 \begin{code}
 otp_game3 :: Int -> EAV_Adversary as pt ct -> Game as Bool
 otp_game3 n adv = do

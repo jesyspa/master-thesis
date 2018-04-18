@@ -70,15 +70,15 @@ rather long: it spans roughly 150 lines and contains many steps such as
                      \ b'  -> return (eq b b'))
                   (  \ k   -> interchangeinterpretation (A2 k) coinexpr
                                (\ b' b -> return (eq b b'))) ⟩
-  (    uniformexpr n      >>= \ k
-   ->  coinexpr           >>= \ b
-   ->  A2 k               >>= \ b'
-   ->  return (eq b b') )
+   lbracket  uniformexpr n      >>= \ k
+   ->        coinexpr           >>= \ b
+   ->        A2 k               >>= \ b'
+   ->        return (eq b b') rbracket
 \end{code}
 
 This step argues that the game at the top is equivalent to the game at the bottom, since it is merely an interchange of
 independent operations.  However, in order to express this, we must almost entirely duplicate each game!  Ideally, we
-would like to condense this to only the essential part, namely that |A₂ k| and |coin-expr| should be interchanged in the
+would like to condense this to only the essential part, namely that |A₂ k| and |coinexpr| should be interchanged in the
 game.  We hope to be able to achieve this with a combination of reflection and proof search.
 
 \subsubsection{Stateful Adversaries}
@@ -211,7 +211,7 @@ security parameter.  Since we have chosen to avoid a deep embedding\todo{Discuss
 will be able to bound the amount of computation, since we cannot inspect how much computation an Agda function performs.
 However, with further research, we may be able to bound the number of oracle queries that the adversary performs.
 
-\subsection{Oracles}
+\subsubsection{Oracles}
 
 As seen in chapter~\ref{chp:games}\todo{Do this}, oracles allow for the introduction of additional actors into our game
 between challenger and adversary.  The challenger sets up a number of oracles, which the adversary can then query for
@@ -237,7 +237,7 @@ queries and giving the previous response if the request has already been made pr
 to in some cases prove some claims externally (e.g. that adversaries can be rewritten in a given form) and then
 postulate their formulations in Agda.
 
-\subsection{Proof Automation}
+\subsubsection{Proof Automation}
 
 As can be seen from the OTP example, expressing even simple proofs in the framework we have is too verbose to be of
 practical use.  For a large part, this is due to every step having to express not only what changes, but also the full

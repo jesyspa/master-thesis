@@ -1,13 +1,22 @@
-\section{Implementation Outline}
+\section{Design Outline}
 \label{sec:work}
 
-% Briefly: what do we want here?
-% What approaches we've already taken and have proven successful.
-% These are: probabilities as rational numbers, distributions using lists, sample equality as equivalence.
-% distributions as monads!
+We will now briefly present the design that we have developed so far.  This development is sufficient to represent games
+featuring only a challenger and an adversary, compute the probability of an adversary winning the game, and reason about
+two games having equal victory probability for the adversary.  These features suffice to represent the proof of the
+One-Time Pad being secure against eavesdropping (as presented in \ref{sec:example}), though they are not enough to prove
+that the One-Time Pad is not vulnerable against a chosen plaintext attack.
 
-In this chapter, we will give a high-level overview of the appoaches we have already found to be successful.  The goal
-is to show that the problem we have set out to solve is reasonably solvable.
+% What issues are still unresolved?
+% - Different notions of security: bounded by a constant, asymptotic, etc.
+% - Oracles
+% - Bounds on computation
+% - Proof automation
+% What do we need to introduce for this?
+% - 
+% Other thoughts:
+% - I could scrap the whole OTP example.  I suppose it's an interesting tidbit but not very useful (?)
+% - 
 
 \subsection{Preliminary Setup}
 
