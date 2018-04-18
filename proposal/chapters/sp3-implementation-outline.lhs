@@ -13,14 +13,25 @@ that the One-Time Pad is not vulnerable against a chosen plaintext attack.
 % - Bounds on computation
 % - Proof automation
 % What do we need to introduce for this?
-% - 
+% - A syntactic monad that represents the computations.
+% - A valuation for this monad.  Perhaps just note that this valuation requires us to be able to reason about
+%   equalities?
+% - A notion of equality of valuations.
 % Other thoughts:
 % - I could scrap the whole OTP example.  I suppose it's an interesting tidbit but not very useful (?)
 % - 
 
-\subsection{Preliminary Setup}
+\subsection{Agda as a Proof Assistant}
 
-We assume that the reader is already familiar with the Agda programming language.\todo{Add a link to a tutorial?}
+We assume that the reader is already familiar with the Agda programming language\todo{Add a link to a tutorial?} and
+with the propositions-as-type approach of encoding proofs.  Briefly, when using this approach we represent a proposition
+by a type, the terms of which are proofs of this proposition.  We say a proposition represented by a type |T| is true if
+we can construct a term |t : T|.  We say a proposition is false if we can construct a term |nt : T ->
+bot|.\todo{Definitely reference a tutorial.}
+
+When introducing game-playing proofs, we used Haskell to represent our games.  
+
+% Combine formalised proofs into this; prune out the stuff about probabilities, include only the bare minimum.
 
 Our focus in this project is on the representation of and reasoning with probability distributions and randomised
 computations.  As such, we use existing libraries for basic type constructions like sums, products, lists, and natural
@@ -40,6 +51,22 @@ A consequence of this choice of requirements on $Q$ is that a formalisation of t
 implementation, as they lack a decidable total order.  We have as of yet not made sufficient use of the order on $Q$ to
 determine whether this is a correctable issue.  However, given the nature of our problem it seems unlikely that
 non-rational probabilities are of interest, and so we consider this not to be a significant handicap.
+
+% TODO: Move this elsewhere
+\subsection{Formalised Proofs}
+
+In the above, have used Haskell to precisely express the programs we were discussing, but reasoned about their
+equivalence only at an informal level.  This is a reasonable approach when the programs in question are so simple, but
+becomes increasingly error-prone as we move to more complicated algorithms, which require considerably more bookkeeping.
+Since cryptographic algorithms are often used in safety-critical\todo{mission-critical? government?} contexts, it is
+worth going the extra distance to verify their correctness formally in a proof-assistant.
+
+We have chosen Agda as the language of formalisation, since it provides extensive support for dependent types, which
+make it possible to express the notions we are working with in natural ways.  In particular, it allows us to use the
+same language to express the games, challengers, adversaries, and properties of the above, all in the same language.
+
+Our work in expressing games is strongly inspired by Peter Hancock's Interaction Structures.\todo{cite}  We will also
+make use of Ulf Norell's \texttt{agda-prelude}\footnote{\url{https://github.com/UlfNorell/agda-prelude}} library.
 
 \subsection{Representation of Distributions}
 

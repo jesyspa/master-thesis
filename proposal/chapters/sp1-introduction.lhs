@@ -40,8 +40,8 @@ We have been able to formalise a proof of the security of the one-time pad encry
 attacks within our system.  However, even the proof of such a short problem is inconveniently long, and we would like to
 research the possibility of using reflection and proof search to reduce the amount of duplication inherent to it.
 
-In the remainder of this proposal, we will introduce cryptographic proofs using games via an informal example
-(Section~\ref{sec:example}), give an overview of the construction performed so far (Section~\ref{sec:work}), and go in
-more detail on what we hope to achieve in the remainder (Section~\ref{sec:plan}).  Finally, we present a timetable for
-the remainder of the work (Section~\ref{sec:timetable}).
+In the remainder of this proposal, we will introduce cryptographic proofs using games (\autoref{sec:proofs}) and give an
+informal example (\autoref{sec:example}), and provide a broad overview of the design choices made so far
+(\autoref{sec:work}).  We will then go in more detail on what we hope to achieve in the remainder (\autoref{sec:plan})
+and present a timetable for the remainder of the work (\autoref{sec:timetable}).
 
