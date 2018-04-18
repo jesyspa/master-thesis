@@ -1,11 +1,11 @@
-\chapter{Research Plan}
-\label{chp:research-plan}
+\section{Research Plan}
+\label{sec:plan}
 
 We have now outlined the results we have obtained from our research so far.  We will conclude the proposal with a
 demonstration of the formalised version of the example presented in the introduction, and with a discussion of the
 issues that we have yet to resolve.
 
-\section{One-Time Pad Revisited}
+\subsection{One-Time Pad Revisited}
 
 In the introduction, we showed an encryption scheme where the key was a random $n$-bit string |k| and the encryption
 operation took the bitwise XOR of |k| and the message to be encrypted.  We showed that this scheme is secure against
@@ -81,7 +81,7 @@ independent operations.  However, in order to express this, we must almost entir
 would like to condense this to only the essential part, namely that |A₂ k| and |coin-expr| should be interchanged in the
 game.  We hope to be able to achieve this with a combination of reflection and proof search.
 
-\subsection{Stateful Adversaries}
+\subsubsection{Stateful Adversaries}
 
 Since the above proof only holds for stateless adversaries, could it be that the result will fail once we introduce
 adversary state?  We consider this unlikely, as the proof is expressed using the combinators that we have introduced in
@@ -111,7 +111,7 @@ using the monad laws to reassociate the game into
 \end{code}
 where we can use irrelevance to eliminate all of the previous steps at once.
 
-\subsection{CPA Example}
+\subsubsection{CPA Example}
 
 In the introduction, we showed that OTP is EAV-secure but not CPA-secure.  We have not been able to reproduce it in Agda
 in its entirety, but the proof techniques we have at the moment are sufficient to demonstrate it.  We will now outline
@@ -186,14 +186,14 @@ problem thus becomes showing that |coin| and |return true| are not indistinguish
 is a required property of distributions earlier.}  It is a fundamental property of distributions that |coin| is
 distinguishable from |return b| for any |b : Bool|, giving the desired result.
 
-\section{Further Work}
+\subsection{Further Work}
 
 Although the system developed so far can already be used to express non-trivial results like the OTP proof above,
 considerable work must still be done in order to be able to prove more complex properties.  There are three points on
 which we will need to focus in particular, namely sub-perfect security, adversaries with oracle access, and proof
 automation.
 
-\subsection{Security Levels}
+\subsubsection{Security Levels}
 
 In practice, many cryptographical algorithms lack perfect security but are nevertheless interesting and practically
 useful.  We can express weaker notions of security by relaxing the requirement of indistinguishability or by requiring
@@ -260,41 +260,8 @@ representation we can apply a given equality.  The first problem relies heavily 
 Agda, while the second is independent, requiring only a representation of quoted terms.  Both are viable additions to
 the project, though we regard the latter as of more theoretical interest.
 
-\subsection{Practical Examples}
+\subsubsection{Practical Examples}
 
 In addition to the general developments described above, we also consider it important to prove the usefulness of this
 system by formalising a number of existing proofs where it is possible, and identify the problems where it is not.
 
-\section{Timetable and Planning}
-
-This project started December 2017 and must be complete by August 2018.  I have spent December and January developing
-the version of the framework presented here, and February and March writing this proposal.
-
-Going forward, I would like to spend the remainder of April working on finding a suitable notion of
-$\epsilon$-indistinguishability, since the rewriting rules we obtain from that will be crucial in determining what
-presentations of games are and aren't viable.  I will spend May figuring out how this notion can be made to work
-together with computations involving oracles, and implementing the features necessary to express proofs in this style.
-June will be spent formalising existing proofs in this style to show that it is in fact workable and writing the thesis.
-The last will continue into July and August, together with bugfixing.
-
-While implementing a proof search algorithm that could use reflection to simplify the arguments would be a useful
-addition to this project, it is unlikely that there will be time for it.
-
-\begin{table}
-    \centering
-    \begin{tabular}[h]{m{1.5cm} || p{9cm}}
-        Month    & \centering\arraybackslash Goal \\
-        \hline
-        December & \\
-        January  & Create a proof-of-concept implementation. \\
-        February & \\
-        March    & \\
-        April    & Finish and submit this research proposal.   Define a notion of $\epsilon$-indistinguishability.\\
-        May      & Show that $\epsilon$-indistinguishability is preserved by basic operations on distributions and
-                   introduce computations involving oracles. \\
-        June     & Formalise existing proofs in the developed system.\\
-        July     & Prepare a final draft of the thesis.\\
-        August   & Finish and present the thesis.
-    \end{tabular}
-    \caption{Timetable Summary}
-\end{table}

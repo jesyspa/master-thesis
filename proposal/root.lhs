@@ -1,4 +1,4 @@
-\documentclass{report}
+\documentclass{article}
 
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -31,14 +31,12 @@
         my thesis, I wish to develop a library for the Agda programming language which would aid in expressing proofs of
         this nature.
     \end{abstract}
-    \tableofcontents
 
-    %include chapters/01-introduction.lhs
-    %include chapters/sp1-implementation-outline.lhs
-    % %include chapters/02-distributions.lhs
-    % %include chapters/03-syntax.lhs
-    % %include chapters/04-crypto-games.lhs
-    %include chapters/sp2-research-plan.lhs
+    %include chapters/sp1-introduction.lhs
+    %include chapters/sp2-proofs.lhs
+    %include chapters/sp3-implementation-outline.lhs
+    %include chapters/sp4-research-plan.lhs
+    %include chapters/sp5-timetable.lhs
 
     \nocite{*}
     \bibliography{proposal}

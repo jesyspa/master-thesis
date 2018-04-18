@@ -1,5 +1,5 @@
-\chapter{Implementation Outline}
-\label{chp:implementation-outline}
+\section{Implementation Outline}
+\label{sec:work}
 
 % Briefly: what do we want here?
 % What approaches we've already taken and have proven successful.
@@ -9,7 +9,7 @@
 In this chapter, we will give a high-level overview of the appoaches we have already found to be successful.  The goal
 is to show that the problem we have set out to solve is reasonably solvable.
 
-\section{Preliminary Setup}
+\subsection{Preliminary Setup}
 
 We assume that the reader is already familiar with the Agda programming language.\todo{Add a link to a tutorial?}
 
@@ -32,7 +32,7 @@ implementation, as they lack a decidable total order.  We have as of yet not mad
 determine whether this is a correctable issue.  However, given the nature of our problem it seems unlikely that
 non-rational probabilities are of interest, and so we consider this not to be a significant handicap.
 
-\section{Representation of Distributions}
+\subsection{Representation of Distributions}
 
 There is considerable prior work done on formalising probability distributions in a functional setting in the
 past.\todo{cite relevant stuff}  For our purposes, the primary interest lies in probability distributions with finite
@@ -65,7 +65,7 @@ Although this implementation of distribution seems to be the most practical for 
 remainder of the construction by the implementation used, allowing a different implementation to be specified if
 desired.
 
-\section{Representation of Games}
+\subsection{Representation of Games}
 
 A game represents a non-deterministic computation.  While we could represent a game directly in the |ListDist| monad,
 this would make it harder to argue about properties of the adversary.  Instead, we provide a monad in which games and
