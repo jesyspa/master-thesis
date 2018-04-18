@@ -1,4 +1,4 @@
-\chapter{Introduction}
+\section{Introduction}
 \label{chp:introduction}
 
 Cryptographic algorithms are ubiqutous in the modern world, and it is thus important that we can be certain they satisfy
@@ -30,29 +30,19 @@ The syntactic approach we adopt allows us to limit what computations the challen
 example, we can guarantee that the adversary does not inspect the state of the challenger (or vice-versa) by ruling such
 access out on the type level.\todo{This feels a bit incomplete; say something about not computing the valuation?}
 
-% Something about downsides
+There are still a number of issues that we must address in the remainder of the research.  While we have already found a
+set of combinators\todo{Better word?} that can be used to show that two games are identical, we have yet to develop a
+comparable system for showing that two games are merely very similar.  Furthermore, many existing games involve the
+adversary having access to some stateful \emph{oracle}, which can be queried for further information.  We do not yet
+know how to represent such oracles within our system, or how to bound the number of times an oracle may be used.
 
-% -------
+We have been able to formalise a proof of the security of the one-time pad encryption scheme against eavesdropper
+attacks within our system.  However, even the proof of such a short problem is inconveniently long, and we would like to
+research the possibility of using reflection and proof search to reduce the amount of duplication inherent to it.
 
-The goal of the reseach proposed in this document is to create a library for reasoning about cryptographic algorithms,
-in particular to show their security properties.  Such proofs are not new\footnote{TODO: cite something}, and there is a
-commonly used game-based approach~\cite{gameexamples} to formulating them.  In addition, there exist frameworks
-of these proofs in special-purpose languages\footnote{E.g. EasyCrypt, \url{www.easycrypt.info}} and Coq\cite{fcf}.  Our
-contribution is to create a comparable framework for the Agda programming language, making use of the more powerful
-type-theoretic features it provides.
-
-The problems we are looking at typically have the following structure: the situation is described as a series of
-interactions between a \emph{challenger} and an \emph{adversary}.  Both parties have access to a source of randomness.
-The computations performed by the challenger are known, while the adversary may perform any computations.  At the end of
-this series of computations, the adversary must give some `answer' which determines whether it wins or loses.  The goal
-of a proof is to bound the probability with which the adversary can win.
-
-% TODO: No longer true, fix this.
-In the remainder of this chapter, we will give an informal introduction to the kind of cryptographic proofs that we are
-interested in, using encryption schemes as a running example.  The next two chapters are dedicated to showing the
-portion of the system which we have so far been able to formalise in Agda.  In the fourth chapter, we will present more
-advanced cryptographic proofs and properties, which our system does not yet support, as motivation for further
-development. In the final chapter we will give a summary of our plans to tackle these problems.
+In the remainder of this proposal, we will introduce cryptographic proofs using games via an informal example
+(Section~\ref{sec:example}), give an overview of the construction performed so far (Section~\ref{sec:work}), and go in
+more detail on what we hope to achieve in the remainder (Section~\ref{sec:plans}).
 
 \section{Encryption Schemes}
 
@@ -86,7 +76,7 @@ It seems that we have not much advanced towards our goal, since we must still ar
 However, by reformulating this problem as an interaction between a \emph{challenger} and an \emph{adversary} we can use
 game-playing techniques~\cite{gameplayingproofs} to more easily reason about the problem.
 
-\section{Games as Security Conditions}
+\subsection{Games as Security Conditions}
 
 We will now define our first game, typically called indistinguishability under eavesdropping, abbreviated IND-EAV, as an
 interaction protocol between two parties, the \emph{challenger} and the \emph{adversary}.  The challenger performs a
