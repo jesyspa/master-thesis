@@ -29,44 +29,26 @@ by a type, the terms of which are proofs of this proposition.  We say a proposit
 we can construct a term |t : T|.  We say a proposition is false if we can construct a term |nt : T ->
 bot|.\todo{Definitely reference a tutorial.}
 
-When introducing game-playing proofs, we used Haskell to represent our games.  
+When introducing game-playing proofs, we used Haskell to represent our games.  A similar construction can be used to
+encode our games in Agda, with the added benefit that we can use the same language to represent properties of games and
+relations between games, and to prove that these properties and relations hold.\todo{Something about advantages?}
 
-% Combine formalised proofs into this; prune out the stuff about probabilities, include only the bare minimum.
+\todo{Something about why Agda?}
 
-Our focus in this project is on the representation of and reasoning with probability distributions and randomised
-computations.  As such, we use existing libraries for basic type constructions like sums, products, lists, and natural
-numbers, as well as for common typeclasses such as functor and monad.  In our implementation, we use Ulf Norell's
-\texttt{agda-prelude} library for this.
+Since our primary focus lies on the representation of games and reasoning about their valuations as probability
+distributions, we will not perform the underlying constructions like lists and natural numbers ourselves, instead
+relying on Ulf Norell's \texttt{agda-prelude}\footnote{\hyperref{https://github.com/UlfNorell/agda-prelude}} library for
+these.  Furthermore, we assume the existence of a type representing probabilities; since the rational numbers satisfy
+all the properties that we will require of this type, we do not consider this problematic.
 
-Additionally, we have for now assumed the existence of a type |Q| suitable for representing probabilities.  It is
-convenient from a programming perspective to not require such a type to contain values exclusively in the $[0, 1]$
-interval; though this would make it easier to quantify over an arbitrary probability, it would mean the type is not
-closed under addition or subtraction, making it considerably harder to express the operations we care about.  As such,
-we require that this type be an ordered ring of characteristic zero with an additional |negpow2 : Nat -> Q| operation
-that maps $n$ to the multiplicative inverse of $2^n$.  Since the rationals constructively satisfy these properties and
-are thus a valid implementation of this type, we consider postulating the existince of an implementation to be
-unproblematic.
+\subsection{Games}
 
-A consequence of this choice of requirements on $Q$ is that a formalisation of the real numbers does \emph{not} a valid
-implementation, as they lack a decidable total order.  We have as of yet not made sufficient use of the order on $Q$ to
-determine whether this is a correctable issue.  However, given the nature of our problem it seems unlikely that
-non-rational probabilities are of interest, and so we consider this not to be a significant handicap.
+% Games are syntactic constructs.  We can represent them using a free monad over the set of valid instructions.
 
-% TODO: Move this elsewhere
-\subsection{Formalised Proofs}
+\subsection{Valuations}
 
-In the above, have used Haskell to precisely express the programs we were discussing, but reasoned about their
-equivalence only at an informal level.  This is a reasonable approach when the programs in question are so simple, but
-becomes increasingly error-prone as we move to more complicated algorithms, which require considerably more bookkeeping.
-Since cryptographic algorithms are often used in safety-critical\todo{mission-critical? government?} contexts, it is
-worth going the extra distance to verify their correctness formally in a proof-assistant.
-
-We have chosen Agda as the language of formalisation, since it provides extensive support for dependent types, which
-make it possible to express the notions we are working with in natural ways.  In particular, it allows us to use the
-same language to express the games, challengers, adversaries, and properties of the above, all in the same language.
-
-Our work in expressing games is strongly inspired by Peter Hancock's Interaction Structures.\todo{cite}  We will also
-make use of Ulf Norell's \texttt{agda-prelude}\footnote{\url{https://github.com/UlfNorell/agda-prelude}} library.
+% Valuations are what we map games into.
+% Essential properties: we can compute the probability of some outcome.
 
 \subsection{Representation of Distributions}
 
