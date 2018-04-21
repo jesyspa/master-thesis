@@ -129,35 +129,6 @@ module _ {{PPQ : ProbabilityProps}} where
     ... | yes refl = ⊥-elim $ niq (here _ _)
     ... | no  neq  = only-support-sample-nonzero sup λ p → niq (there′ p)
 
-    only-support-sample-relevant : ∀{xs S a q}(f : A → Q)
-                                 → IsSupport xs S
-                                 → ¬ (a ∈ S)
-                                 → sum (map (sample-with-LD xs f) S) ≡ sum (map (sample-with-LD ((a , q) ∷ xs) f) S)
-    only-support-sample-relevant f EmptySupport nix = refl
-    only-support-sample-relevant {.((b , p) ∷ xs)} {.S} {a} {q} f (ConsExistingSupport b p xs S ix sup) nix
-      = cong sum (strong-map-ext (sample-with-LD ((b , p) ∷ xs) f)
-                                 (sample-with-LD ((a , q) ∷ (b , p) ∷ xs) f)
-                                 S lem)
-      where
-        lem : ∀{a′} → a′ ∈ S → sample-with-LD ((b , p) ∷ xs) f a′ ≡ sample-with-LD ((a , q) ∷ (b , p) ∷ xs) f a′
-        lem {a′} pt = {!!}
-    only-support-sample-relevant f (ConsNewSupport a q xs S nix₁ sup) nix = {!!}
-
-    only-support-sample-relevant′ : ∀{xs S a q}(f : A → Q)
-                                  → IsSupport ((a , q) ∷ xs) (a ∷ S)
-                                  → IsSupport xs S
-                                  → sum (map (sample-with-LD xs f) S) ≡ sum (map (sample-with-LD ((a , q) ∷ xs) f) S)
-    only-support-sample-relevant′ f (ConsExistingSupport a q xs .(a ∷ _) ix sup) sup′
-      with support-unique sup sup′
-    ... | ()
-    only-support-sample-relevant′ f (ConsNewSupport a q xs S nix sup)            sup′
-      = cong sum (strong-map-ext (sample-with-LD xs f) (sample-with-LD ((a , q) ∷ xs) f) S lem)
-      where
-        lem : ∀{b} → b ∈ S → sample-with-LD xs f b ≡ sample-with-LD ((a , q) ∷ xs) f b
-        lem {b} pt with b == a
-        ... | yes refl = ⊥-elim $ nix pt
-        ... | no   neq = refl
-
     -- This is an essential lemma for showing the strong universal property of bind.
     -- This states that
     --   sum $ map (λ { (a , q) → q * (f a) }) xs
@@ -183,7 +154,6 @@ module _ {{PPQ : ProbabilityProps}} where
       sum (sample-LD ((a , q) ∷ xs) s * f s ∷ map (sample-with-LD ((a , q) ∷ xs) f) S)
       ∎
       where
-        -- IIRC, I concluded that this is simply false in general.
         lem : q * f a + (sample-LD xs s * f s + sum (map (sample-with-LD xs f) S)) ≡ sample-LD ((a , q) ∷ xs) s * f s + sum (map (sample-with-LD ((a , q) ∷ xs) f) S)
         lem with s == a
         ... | yes refl =
