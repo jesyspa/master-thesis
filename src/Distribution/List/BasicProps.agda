@@ -132,3 +132,4 @@ module _ {{PPQ : ProbabilityProps}} where
                           → (b : B)(a : A)
                           → sample-transposed-LD f xs b a ≡ sample-transposed-LD f ys b a
   sample-transposed-equiv f xs ys eq b a = cong (λ e → e * sample (f a) b) (sample-invariant-LD eq a)
+
