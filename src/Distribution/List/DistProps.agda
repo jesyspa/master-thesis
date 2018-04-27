@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import Probability.Class using (Probability)
 module Distribution.List.DistProps (Q : Set) {{PQ : Probability Q}} where
 
@@ -7,8 +8,10 @@ open import Distribution.List.Definition Q
 open import Algebra.Function
 open import Algebra.Monoid
 open import Algebra.Equality
+open import Algebra.FiniteSet
 open import Probability.Class
 open import Algebra.SemiringProps Q
+open import Algebra.SubtractiveProps Q
 open import Probability.PropsClass Q
 open import Utility.Num
 open import Utility.List
@@ -22,10 +25,12 @@ open import Distribution.List.BasicProps Q
 open import Distribution.List.SlowProps Q public
 
 open Probability PQ
+open DistMonad DistMonadListDist
 
 module _ {{PPQ : ProbabilityProps}} where
   open ProbabilityProps PPQ
   open SemiringProps srprops
+  open SubtractiveProps subprops
   instance
     private
       MonoidPropsMulQ : MonoidProps Q
@@ -53,7 +58,7 @@ module _ {{PPQ : ProbabilityProps}} where
   
   uniform-LD-bijection-invariant : ∀ n (f : BitVec n → BitVec n)
                                  → Bijective f 
-                                 → uniform-LD n ≡LD fmap f (uniform-LD n)
+                                 → uniform-LD n ≡D fmap f (uniform-LD n)
   uniform-LD-bijection-invariant n f (fi , pa , pb) = sample-equiv λ v →
     sample-LD (uniform-LD n) v
       ≡⟨ uniform-LD-is-uniform n v  ⟩ʳ
@@ -69,8 +74,8 @@ module _ {{PPQ : ProbabilityProps}} where
   >>=-D-ext-LD : ∀{A B}{{_ : Eq B}}
                → (xs : ListDist A)
                → (f g : A → ListDist B)
-               → (∀ a → f a ≡LD g a)
-               → (xs >>= f) ≡LD (xs >>= g)
+               → (∀ a → f a ≡D g a)
+               → (xs >>= f) ≡D (xs >>= g)
   >>=-D-ext-LD xs f g pf = sample-equiv λ b →
     sample-LD (xs >>= f) b
       ≡⟨ bind-universal-prop xs f b ⟩
@@ -81,94 +86,87 @@ module _ {{PPQ : ProbabilityProps}} where
     sample-LD (xs >>= g) b
     ∎
 
-  interchange-LD : ∀{A B C}{{_ : Eq C}}(xs : ListDist A)(ys : ListDist B)
-                    (f : A → B → ListDist C)
-                  → (xs >>= λ a → ys >>= f a) ≡LD (ys >>= λ b → xs >>= λ a → f a b)
-  interchange-LD {A} {B} {C} xs ys f = sample-equiv lem
+  >>=-D-approx-ext-LD : ∀{A B}{{_ : FiniteSet A}}{{_ : FiniteSet B}}
+                      → (Da : ListDist A)
+                      → (Df Dg : A → ListDist B)
+                      → (ε : Q)
+                      → (∀ a → bounded-dist-diff (Df a) (Dg a) ε)
+                      → bounded-dist-diff (Da >>= Df) (Da >>= Dg) ε
+  >>=-D-approx-ext-LD Da Df Dg ε pf = {!!}
+
+  >>=-D-approx-inv-LD : ∀{A B}{{_ : FiniteSet A}}{{_ : FiniteSet B}}
+                      → (Da Db : ListDist A)
+                      → (Df : A → ListDist B)
+                      → (ε : Q)
+                      → bounded-dist-diff Da Db ε
+                      → bounded-dist-diff (Da >>= Df) (Db >>= Df) ε
+  >>=-D-approx-inv-LD Da Db Df ε pf = {!!}
+
+  return-sample-1-LD : ∀{A}{{_ : Eq A}}(a : A) → one ≡ sample-LD (return a) a
+  return-sample-1-LD a rewrite yes-refl a = singleton-sum-id one
+
+  return-sample-0-LD : ∀{A}{{_ : Eq A}}(a a′ : A) → ¬ (a ≡ a′) → zro ≡ sample-LD (return a) a′
+  return-sample-0-LD a a′ np rewrite no-neq a′ a (np ∘′ sym) = refl
+
+  >>=-D-inv-normal2-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+                       → (xs ys : ListDist A)
+                       → (f : A → ListDist B)
+                       → xs ≡D ys
+                       → (normalize-LD xs >>= f) ≡D (normalize-LD ys >>= f)
+  >>=-D-inv-normal2-LD xs ys f eq = sample-equiv λ b →
+    sum (filter-vals b (normalize-LD xs >>= f))
+      ≡⟨ {!!} ⟩
+    sum (filter-vals b (normalize-LD ys >>= f))
+    ∎
+
+  >>=-D-inv-normal-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+                      → (xs : ListDist A)
+                      → (f : A → ListDist B)
+                      → (xs >>= f) ≡D (normalize-LD xs >>= f)
+  >>=-D-inv-normal-LD xs f = sample-equiv λ b →
+    sum (filter-vals b (xs >>= f))
+      ≡⟨ {!!} ⟩
+    sum (filter-vals b (normalize-LD xs >>= f))
+    ∎
+
+  >>=-D-inv-LD : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+               → (xs ys : ListDist A)
+               → (f : A → ListDist B)
+               → xs ≡D ys
+               → (xs >>= f) ≡D (ys >>= f) 
+  >>=-D-inv-LD xs ys f eq = sample-equiv λ b →
+    sample-LD (xs >>= f) b
+      ≡⟨ sample-invariant (>>=-D-inv-normal-LD xs f) b ⟩
+    sample-LD (normalize-LD xs >>= f) b
+      ≡⟨ sample-invariant (>>=-D-inv-normal2-LD xs ys f eq) b ⟩
+    sample-LD (normalize-LD ys >>= f) b
+      ≡⟨ sample-invariant (>>=-D-inv-normal-LD ys f) b ⟩ʳ
+    sample-LD (ys >>= f) b
+    ∎
+
+  uniform-not-return-LD : ∀ n (v : BitVec n) → ¬(0 ≡ n) → ¬(uniform-LD n ≡D return v)
+  uniform-not-return-LD n v ne p = ne $ pow2-Inj $ embed-Inj {suc zero} {pow2 n} (embed-1 ʳ⟨≡⟩ lem2)
     where
-      lem : (c : C) → sample-LD (xs >>= λ a → ys >>= f a) c ≡ sample-LD (ys >>= λ b → xs >>= λ a → f a b) c
-      lem c =
-        sample-LD (xs >>= λ a → ys >>= f a) c 
-          ≡⟨ bind-universal-prop xs (λ a → ys >>= f a) c ⟩
-        sum (map (sample-over-LD (λ a → ys >>= f a) c) xs)
-          ≡⟨ cong sum $ map-ext (sample-over-LD (λ a → ys >>= f a) c)
-                                (λ a → sum (map (fun-a a) ys))
-                                fun-a-equiv
-                                xs ⟩
-        sum (map (λ a → sum (map (fun-a a) ys)) xs)
-          ≡⟨ cong sum $ map-comp sum (λ a → map (fun-a a) ys) xs ⟩
-        sum (map sum $ map (λ a → map (fun-a a) ys) xs)
-          ≡⟨ concat-sum-swap (map (λ a → map (fun-a a) ys) xs) ⟩ʳ
-        sum (concat $ map (λ a → map (fun-a a) ys) xs)
-          ≡⟨ cong (sum ∘′ concat) $ map-comp (flip map ys) fun-a xs ⟩
-        sum (concat $ map (flip map ys) (map fun-a xs))
-          ≡⟨ flip-sum fun-a xs ys ⟩
-        sum (concat $ map (flip map xs) (map (flip fun-a) ys))
-          ≡⟨ cong (sum ∘′ concat) $ map-comp (flip map xs) (flip fun-a) ys ⟩ʳ
-        sum (concat $ map (λ b → map (flip fun-a b) xs) ys)
-          ≡⟨ cong (sum ∘′ concat) $ map-ext (λ b → map (flip fun-a b) xs)
-                                            (λ b → map (fun-b b) xs)
-                                            (λ b → map-ext (flip fun-a b)
-                                                           (fun-b b)
-                                                           (fun-equiv b)
-                                                           xs)
-                                            ys ⟩
-        sum (concat $ map (λ b → map (fun-b b) xs) ys)
-          ≡⟨ concat-sum-swap (map (λ b → map (fun-b b) xs) ys) ⟩
-        sum (map sum $ map (λ b → map (fun-b b) xs) ys)
-          ≡⟨ cong sum $ map-comp sum (λ b → map (fun-b b) xs) ys ⟩ʳ
-        sum (map (λ b → sum (map (fun-b b) xs)) ys)
-          ≡⟨ (cong sum $ map-ext (λ b → sum (map (fun-b b) xs))
-                                 (sample-over-LD (λ b → xs >>= λ a → f a b) c)
-                                 (sym ∘ fun-b-equiv)
-                                 ys) ⟩
-        sum (map (sample-over-LD (λ b → xs >>= λ a → f a b) c) ys)
-          ≡⟨ bind-universal-prop ys (λ b → xs >>= λ a → f a b) c ⟩ʳ
-        sample-LD (ys >>= λ b → xs >>= λ a → f a b) c
+      lem : negpow2 n ≡ one
+      lem =
+        negpow2 n
+          ≡⟨ uniform-LD-is-uniform n v ⟩
+        sample-LD (uniform-LD n) v
+          ≡⟨ sample-invariant p v ⟩
+        sample-LD (return v) v
+          ≡⟨ return-sample-1-LD v ⟩ʳ
+        one
         ∎
-        where
-          fun-gen : (A′ B′ : Set)(f′ : A′ → B′ → ListDist C) → (A′ × Q) → (B′ × Q) → Q
-          fun-gen _ _ f′ (a , p) (b , q) = p * q * sample-LD (f′ a b) c
-          fun-gen-equiv : (A′ B′ : Set)(f′ : A′ → B′ → ListDist C)(ys′ : ListDist B′)(pa : A′ × Q)
-                        → sample-over-LD (λ a → ys′ >>= f′ a) c pa ≡ sum (map (fun-gen A′ B′ f′ pa) ys′)
-          fun-gen-equiv A′ B′ f′ ys′ (a , p) =
-            p * sum (filter-vals c (concat $ map (WriterT.bind-MW-helper (f′ a)) ys′))
-              ≡⟨ cong (λ e → p * sum e) $ filter-vals-concat (map (WriterT.bind-MW-helper (f′ a)) ys′) c ⟩
-            p * sum (concat $ map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′))
-              ≡⟨ cong (_*_ p) $ concat-sum-swap (map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′)) ⟩
-            p * sum (map sum $ map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′))
-              ≡⟨ mul-sum p (map sum (map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′))) ⟩
-            sum (map (_*_ p) ∘′ map sum $ map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′))
-              ≡⟨ cong sum $ map-comp (_*_ p) sum (map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′)) ⟩ʳ
-            sum (map (_*_ p ∘′ sum) (map (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′)))
-              ≡⟨ cong sum $ map-comp (_*_ p ∘′ sum) (filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′) ⟩ʳ
-            sum (map (_*_ p ∘′ sum ∘′ filter-vals c) (map (WriterT.bind-MW-helper (f′ a)) ys′))
-              ≡⟨ cong sum $ map-comp (_*_ p ∘′ sum ∘′ filter-vals c) (WriterT.bind-MW-helper (f′ a)) ys′ ⟩ʳ
-            sum (map (_*_ p ∘′ sum ∘′ filter-vals c ∘′ WriterT.bind-MW-helper (f′ a)) ys′)
-              ≡⟨ cong sum $ map-ext (_*_ p ∘′ sum ∘′ filter-vals c ∘′ WriterT.bind-MW-helper (f′ a))
-                                    (fun-gen A′ B′ f′ (a , p))
-                                    (λ { (b , q) →
-                                      p * sum (filter-vals c (map (second (_*_ q)) (f′ a b)))
-                                        ≡⟨ cong (λ e → p * sum e) $ filter-vals-map (_*_ q) (f′ a b) c ⟩ʳ
-                                      p * (sum (map (_*_ q) (filter-vals c (f′ a b))))
-                                        ≡⟨ cong (_*_ p) $ mul-sum q (filter-vals c (f′ a b))   ⟩ʳ
-                                      p * (q * sum (filter-vals c (f′ a b)))
-                                        ≡⟨ *-assoc p q (sum (filter-vals c (f′ a b))) ⟩
-                                      p * q * sum (filter-vals c (f′ a b))
-                                      ∎ })
-                                    ys′ ⟩
-            sum (map (fun-gen A′ B′ f′ (a , p)) ys′)
-            ∎
-          fun-a : (A × Q) → (B × Q) → Q
-          fun-a = fun-gen A B f
-          fun-a-equiv : (pa : A × Q) → sample-over-LD (λ a → ys >>= f a) c pa ≡ sum (map (fun-a pa) ys)
-          fun-a-equiv = fun-gen-equiv A B f ys
-          fun-b : (B × Q) → (A × Q) → Q
-          fun-b = fun-gen B A (flip f)
-          fun-b-equiv : (pb : B × Q) → sample-over-LD (λ b → xs >>= flip f b) c pb ≡ sum (map (fun-b pb) xs)
-          fun-b-equiv = fun-gen-equiv B A (flip f) xs
-          fun-equiv : (pb : B × Q)(pa : A × Q) → flip fun-a pb pa ≡ fun-b pb pa
-          fun-equiv (b , q) (a , p) = cong (λ e → e * sample-LD (f a b) c) $ *-comm p q
+      lem2 : one ≡ embed (pow2 n)
+      lem2 =
+        one
+          ≡⟨ pow2-negpow2-cancel n ⟩
+        embed (pow2 n) * negpow2 n
+          ≡⟨ cong (_*_ (embed (pow2 n))) lem ⟩
+        embed (pow2 n) * one
+          ≡⟨ *-unit-right (embed (pow2 n)) ⟩ʳ
+        embed (pow2 n)
+        ∎
                
   open import Distribution.PropsClass ListDist
   
@@ -179,10 +177,15 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; is-probability = PPQ
                                ; uniform-is-uniform = uniform-LD-is-uniform
                                ; uniform-bijection-invariant = uniform-LD-bijection-invariant
-                               ; sample-equality = sample-equiv
-                               ; sample-invariant = sample-invariant-LD
+                               ; uniform-not-return = uniform-not-return-LD
                                ; injection-invariant = injections-preserve-distributions-LD
                                ; irrelevance = irrelevance-LD
                                ; interchange = interchange-LD
                                ; >>=-D-ext = >>=-D-ext-LD
+                               ; >>=-D-inv = >>=-D-inv-LD
+                               ; >>=-D-approx-ext = >>=-D-approx-ext-LD
+                               ; >>=-D-approx-inv = >>=-D-approx-inv-LD
+                               ; return-sample-1 = return-sample-1-LD
+                               ; return-sample-0 = return-sample-0-LD
                                }
+

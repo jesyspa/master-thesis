@@ -1,14 +1,16 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import Probability.Class using (Probability)
 module Distribution.List.BasicProps (Q : Set) {{PQ : Probability Q}} where
 
 open import ThesisPrelude
 open import Distribution.Class
 open import Distribution.List.Definition Q
+open import Distribution.List.SupportProps Q
 open import Algebra.Function
 open import Algebra.Monoid
 open import Algebra.Equality
-open import Probability.Class
 open import Algebra.SemiringProps Q
+open import Probability.Class
 open import Probability.PropsClass Q
 open import Utility.Num
 open import Utility.List
@@ -20,6 +22,7 @@ open import Distribution.List.MonadProps Q
 import Utility.Writer.Transformer Q List as WriterT
 
 open Probability PQ
+open DistMonad DistMonadListDist
 
 module _ {{PPQ : ProbabilityProps}} where
   open ProbabilityProps PPQ
@@ -30,19 +33,7 @@ module _ {{PPQ : ProbabilityProps}} where
       MonoidPropsMulQ = *-is-monoid
 
 
-  module _ {A} {{_ : Eq A }} where
-    support-preserves-elements : (xs : ListDist A) (a : A)
-                               → Index a xs → a ∈ support-LD xs
-                               -- goal: a ∈ uniques (map fst xs)
-    support-preserves-elements xs a = unique-preserves-elem a (map fst xs) ∘′ Index-to-∈ a xs
-
-    support-preserves-elements-inv : (xs : ListDist A) (a : A)
-                                   → a ∈ support-LD xs → Index a xs
-    support-preserves-elements-inv xs a = ∈-to-Index a xs ∘ unique-preserves-elem-inv a (map fst xs) 
-
-    sample-invariant-LD : {xs ys : ListDist A} → xs ≡LD ys → (a : A) → sample-LD xs a ≡ sample-LD ys a
-    sample-invariant-LD (sample-equiv p) a = p a
-
+  module _ {A} {{_ : Eq A}} where
     normalize-correct-lemma : (xs : ListDist A) (a : A)
                             → sample-LD xs a ≡ sum (map (sample-LD xs) $ filter (isYes ∘ (_==_ a)) $ support-LD xs)
     normalize-correct-lemma xs a with decide-Index a xs
@@ -65,7 +56,7 @@ module _ {{PPQ : ProbabilityProps}} where
       map (sample-LD xs) (filter (isYes ∘ (_==_ a)) $ support-LD xs)
       ∎
 
-    normalize-correct-LD : (xs : ListDist A) → xs ≡LD normalize-LD xs
+    normalize-correct-LD : (xs : ListDist A) → xs ≡D normalize-LD xs
     normalize-correct-LD xs = sample-equiv λ a →
       sum (filter-vals a xs)
         ≡⟨ normalize-correct-lemma xs a ⟩
@@ -114,9 +105,22 @@ module _ {{PPQ : ProbabilityProps}} where
     sum (map (sample-over-LD f b) xs)
     ∎
 
+  strong-bind-universal-prop : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+                               (xs : ListDist A)(f : A → ListDist B)(b : B)
+                             → sample-LD (xs >>= f) b ≡ sum (map (λ x → sample-LD xs x * sample-LD (f x) b) (support-LD xs))
+  strong-bind-universal-prop xs f b =
+    sample-LD (xs >>= f) b                             
+      ≡⟨ {!!} ⟩
+    {!!}
+      ≡⟨ {!!} ⟩
+    {!!}
+      ≡⟨ {!!} ⟩
+    sum (map (λ x → sample-LD xs x * sample-LD (f x) b) (support-LD xs))
+    ∎
+
   sample-over-ext : ∀{A B : Set}{{_ : Eq B}}
                     (f g : A → ListDist B)(b : B)
-                    (eq : ∀ a → f a ≡LD g a)
+                    (eq : ∀ a → f a ≡D g a)
                     (aq : A × Q)
                   → sample-over-LD f b aq ≡ sample-over-LD g b aq
-  sample-over-ext f g b eq (a , p) = cong (_*_ p) (sample-invariant-LD (eq a) b)
+  sample-over-ext f g b eq (a , p) = cong (_*_ p) (sample-invariant (eq a) b)
