@@ -33,9 +33,7 @@ record DistMonad (F : Set → Set) : Set₁ where
   sample-diff D₁ D₂ a = abs (sample D₁ a - sample D₂ a)
 
   dist-diff : ∀{A}{{_ : FiniteSet A}} → F A → F A → probability
-  dist-diff D₁ D₂ = sum (map (sample-diff D₁ D₂) ListEnumeration)
-    where open UniqueListable {{...}}
-          open Listable super-Enumeration
+  dist-diff {A} D₁ D₂ = sum (map (sample-diff D₁ D₂) (finite-set-list A))
 
   bounded-dist-diff : ∀{A}{{_ : FiniteSet A}} → F A → F A → probability → Set
   bounded-dist-diff D₁ D₂ ε = dist-diff D₁ D₂ ≤ ε

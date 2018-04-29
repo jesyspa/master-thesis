@@ -1,4 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 open import Distribution.Class using (DistMonad)
 module Distribution.PropsClass (F : Set → Set) {{DF : DistMonad F}} where
 
@@ -90,12 +89,10 @@ record DistMonadProps : Set₂ where
                                → bounded-dist-diff D₁ D₂ ε
                                → (a : A)
                                → bounded-diff (sample D₁ a) (sample D₂ a) ε
-  bounded-dist-bounds-elements D₁ D₂ ε pf a = ≤-trans lem pf
+  bounded-dist-bounds-elements {A} D₁ D₂ ε pf a = ≤-trans lem pf
     where
-      open UniqueListable {{...}}
-      open Listable super-Enumeration
-      lem = sum-bounds-individuals (map-preserves-in (sample-diff D₁ D₂) a ListEnumeration (IsComplete a))
-                                   (map-preserves-prop (sample-diff D₁ D₂) (_≤_ zro) (λ a → abs-nonneg _) ListEnumeration)
+      lem = sum-bounds-individuals (map-preserves-in (sample-diff D₁ D₂) a (finite-set-list A) (finite-set-list-complete A a))
+                                   (map-preserves-prop (sample-diff D₁ D₂) (_≤_ zro) (λ a → abs-nonneg _) (finite-set-list A))
 
   bounded-dist-0-eq : ∀{A}{{_ : FiniteSet A}}
                     → (D₁ D₂ : F A)
@@ -103,21 +100,28 @@ record DistMonadProps : Set₂ where
                     → D₁ ≡D D₂
   bounded-dist-0-eq D₁ D₂ pf = sample-equiv λ a → abs-zero-eq (abs-zero-min (bounded-dist-bounds-elements D₁ D₂ zro pf a))
 
+  dist-0-eq-elem-inv : ∀{A}{{_ : Eq A}}
+                     → (D₁ D₂ : F A)
+                     → D₁ ≡D D₂
+                     → (a : A)
+                     → zro ≡ sample-diff D₁ D₂ a
+  dist-0-eq-elem-inv D₁ D₂ eq a
+    rewrite sample-invariant eq a
+          | sub-cancelling (sample D₂ a) = abs-pos (≤-refl _)
+
   dist-0-eq-inv : ∀{A}{{_ : FiniteSet A}}
                 → (D₁ D₂ : F A)
                 → D₁ ≡D D₂
                 → zro ≡ dist-diff D₁ D₂
-  dist-0-eq-inv D₁ D₂ pf =
+  dist-0-eq-inv {A} D₁ D₂ pf =
     zro
-      ≡⟨ zro-left-nil (embed (length ListEnumeration)) ⟩
-    zro * embed (length ListEnumeration)
-      ≡⟨ sum-const-mul zro ListEnumeration ⟩ʳ
-    sum (map (const zro) ListEnumeration)
-      ≡⟨ cong sum $ map-ext (const zro) (sample-diff D₁ D₂) (λ a → {!!}) ListEnumeration ⟩
-    sum (map (sample-diff D₁ D₂) ListEnumeration)
+      ≡⟨ zro-left-nil (embed (length (finite-set-list A))) ⟩
+    zro * embed (length (finite-set-list A))
+      ≡⟨ sum-const-mul zro (finite-set-list A)⟩ʳ
+    sum (map (const zro) (finite-set-list A))
+      ≡⟨ cong sum $ map-ext (const zro) (sample-diff D₁ D₂) (dist-0-eq-elem-inv D₁ D₂ pf) (finite-set-list A) ⟩
+    sum (map (sample-diff D₁ D₂) (finite-set-list A))
     ∎
-    where open UniqueListable {{...}}
-          open Listable super-Enumeration
 
   bounded-dist-0-eq-inv : ∀{A}{{_ : FiniteSet A}}
                         → (D₁ D₂ : F A)

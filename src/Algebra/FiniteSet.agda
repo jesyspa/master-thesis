@@ -54,3 +54,12 @@ instance
   ListableUniqueListable : ∀{A} → Listable A → UniqueListable A
   super-Enumeration (ListableUniqueListable LA)     = ListableUniqueEnumeration LA
   IsUnique          (ListableUniqueListable LA) a p = uniques-unique {{ListableDecEq LA}} _ _ (IsComplete LA a) p
+
+finite-set-list : ∀ A {{_ : FiniteSet A}} → List A
+finite-set-list A = ListEnumeration (super-Enumeration (ListableUniqueListable it))
+
+finite-set-list-complete : ∀ A {{_ : FiniteSet A}} → (a : A) → a ∈ finite-set-list A
+finite-set-list-complete A = IsComplete (super-Enumeration (ListableUniqueListable it))
+
+finite-set-list-unique : ∀ A {{_ : FiniteSet A}} → (a : A)(p : a ∈ finite-set-list A) → p ≡ finite-set-list-complete A a
+finite-set-list-unique A = IsUnique (ListableUniqueListable it)
