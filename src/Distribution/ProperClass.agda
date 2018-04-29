@@ -5,11 +5,13 @@ open DistMonad DF
 open import ThesisPrelude
 open import Algebra.FiniteSet
 
-module _ {A}{{_ : FiniteSet A}} where
+module _ {A}{{ULA : UniqueListable A}} where
+  open UniqueListable ULA
+  open Listable super-Enumeration
   record ProperDist (D : F A) : Set where
     field
-      non-negative : ∀ a → zro ≤ sample D a 
-      sum-one : one ≡ sum (map (sample D) (finite-set-list A))
+      NonNegative : ∀ a → zro ≤ sample D a 
+      SumOne : one ≡ sum (map (sample D) ListEnumeration)
 
 
 

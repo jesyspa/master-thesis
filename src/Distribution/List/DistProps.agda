@@ -19,6 +19,7 @@ open import Utility.List.Arithmetic Q
 open import Utility.Writer Q
 open import Utility.Vector.BitVec
 open import Utility.Product
+open import Distribution.ProperClass ListDist {{DistMonadListDist}}
 open import Distribution.List.MonadProps Q
 import Utility.Writer.Transformer Q List as WriterT
 open import Distribution.List.BasicProps Q
@@ -26,6 +27,7 @@ open import Distribution.List.SlowProps Q public
 
 open Probability PQ
 open DistMonad DistMonadListDist
+open ProperDist
 
 module _ {{PPQ : ProbabilityProps}} where
   open ProbabilityProps PPQ
@@ -70,6 +72,9 @@ module _ {{PPQ : ProbabilityProps}} where
       ≡⟨ cong (λ e → sample-LD (fmap f (uniform-LD n)) e) (pb v) ⟩ʳ
     sample-LD (fmap f (uniform-LD n)) v
     ∎
+
+  uniform-proper-LD : ∀ n → ProperDist {{VecUniqueListable n}} (uniform-LD n)
+  uniform-proper-LD = {!!}
 
   >>=-D-ext-LD : ∀{A B}{{_ : Eq B}}
                → (xs : ListDist A)
@@ -167,6 +172,12 @@ module _ {{PPQ : ProbabilityProps}} where
           ≡⟨ *-unit-right (embed (pow2 n)) ⟩ʳ
         embed (pow2 n)
         ∎
+
+  return-proper-LD : ∀{A}{{ULA : UniqueListable A}}(a : A) → ProperDist {{ULA}} (return a)
+  NonNegative (return-proper-LD a) a′ with a == a′
+  ... | yes refl rewrite yes-refl a = {!!}
+  ... | no   neq = {!!}
+  SumOne      (return-proper-LD a) = {!!}
                
   open import Distribution.PropsClass ListDist
   
@@ -178,6 +189,7 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; uniform-is-uniform = uniform-LD-is-uniform
                                ; uniform-bijection-invariant = uniform-LD-bijection-invariant
                                ; uniform-not-return = uniform-not-return-LD
+                               ; uniform-proper = uniform-proper-LD
                                ; injection-invariant = injections-preserve-distributions-LD
                                ; irrelevance = irrelevance-LD
                                ; interchange = interchange-LD
@@ -187,5 +199,6 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; >>=-D-approx-inv = >>=-D-approx-inv-LD
                                ; return-sample-1 = return-sample-1-LD
                                ; return-sample-0 = return-sample-0-LD
+                               ; return-proper = return-proper-LD
                                }
 

@@ -50,10 +50,9 @@ ListableUniqueEnumeration : ∀{A} → Listable A → Listable A
 ListEnumeration (ListableUniqueEnumeration LA)   = uniques {{ListableDecEq LA}} (ListEnumeration LA)
 IsComplete      (ListableUniqueEnumeration LA) a = unique-preserves-elem {{ListableDecEq LA}} _ _ (IsComplete LA a)
 
-instance
-  ListableUniqueListable : ∀{A} → Listable A → UniqueListable A
-  super-Enumeration (ListableUniqueListable LA)     = ListableUniqueEnumeration LA
-  IsUnique          (ListableUniqueListable LA) a p = uniques-unique {{ListableDecEq LA}} _ _ (IsComplete LA a) p
+ListableUniqueListable : ∀{A} → Listable A → UniqueListable A
+super-Enumeration (ListableUniqueListable LA)     = ListableUniqueEnumeration LA
+IsUnique          (ListableUniqueListable LA) a p = uniques-unique {{ListableDecEq LA}} _ _ (IsComplete LA a) p
 
 module _ A {{FSA : FiniteSet A}} where
   private
@@ -67,3 +66,12 @@ module _ A {{FSA : FiniteSet A}} where
   
   finite-set-list-unique : (a : A)(p : a ∈ finite-set-list) → p ≡ finite-set-list-complete a
   finite-set-list-unique = IsUnique ULA 
+
+VecListable : ∀ n → Listable (BitVec n)
+ListEnumeration (VecListable n) = all-bitvecs n
+IsComplete      (VecListable n) = all-bitvecs-complete 
+
+VecUniqueListable : ∀ n → UniqueListable (BitVec n)
+super-Enumeration (VecUniqueListable n) = VecListable n
+IsUnique          (VecUniqueListable n) = all-bitvecs-unique 
+

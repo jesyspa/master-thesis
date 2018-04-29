@@ -37,7 +37,7 @@ record DistMonadProps : Set₂ where
     uniform-bijection-invariant : ∀ n (f : BitVec n → BitVec n)
                                 → Bijective f
                                 → uniform n ≡D fmap-F f (uniform n)
-    uniform-proper : ∀ n → ProperDist {{VecFinite n}} (uniform n)
+    uniform-proper : ∀ n → ProperDist {{VecUniqueListable n}} (uniform n)
     injection-invariant : ∀{A B} {{_ : Eq A}} {{_ : Eq B}}
                         → (f : A → B)
                         → Injective f
@@ -51,6 +51,7 @@ record DistMonadProps : Set₂ where
                 → (DA >>= λ a → DB >>= f a) ≡D (DB >>= λ b → DA >>= λ a → f a b)
     return-sample-1 : ∀{A}{{_ : Eq A}}(a : A) → one ≡ sample (return a) a
     return-sample-0 : ∀{A}{{_ : Eq A}}(a a′ : A) → ¬ (a ≡ a′) → zro ≡ sample (return a) a′
+    return-proper : ∀{A}{{ULA : UniqueListable A}}(a : A) → ProperDist {{ULA}} (return a)
 
 
     >>=-D-ext : ∀{A B}{{_ : Eq B}}

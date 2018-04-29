@@ -9,6 +9,7 @@ open import Distribution.List.SupportProps Q
 open import Algebra.Function
 open import Algebra.Monoid
 open import Algebra.Equality
+open import Algebra.FiniteSet
 open import Algebra.SemiringProps Q
 open import Probability.Class
 open import Probability.PropsClass Q
@@ -111,10 +112,6 @@ module _ {{PPQ : ProbabilityProps}} where
   strong-bind-universal-prop xs f b =
     sample-LD (xs >>= f) b                             
       ≡⟨ {!!} ⟩
-    {!!}
-      ≡⟨ {!!} ⟩
-    {!!}
-      ≡⟨ {!!} ⟩
     sum (map (λ x → sample-LD xs x * sample-LD (f x) b) (support-LD xs))
     ∎
 
@@ -124,3 +121,18 @@ module _ {{PPQ : ProbabilityProps}} where
                     (aq : A × Q)
                   → sample-over-LD f b aq ≡ sample-over-LD g b aq
   sample-over-ext f g b eq (a , p) = cong (_*_ p) (sample-invariant (eq a) b)
+
+  module _ {A}{{_ : Eq A}} where
+    nonneg-lemma : (xs : ListDist A)
+                 → (∀{a}{p} → (a , p) ∈ xs → zro ≤ p)
+                 → (a : A) → zro ≤ sample-LD xs a
+    nonneg-lemma xs pf a = nonnegative-sum (filter-vals a xs) λ el → pf (snd (lem el))
+      where
+        lem : ∀{p ys} → p ∈ filter-vals a ys → Σ A λ a′ → (a′ , p) ∈ ys 
+        lem {p} {[]} ()
+        lem {p} {(a′ , q) ∷ ys} el  with a == a′
+        lem {p} {(a′ , q) ∷ ys} el  | yes refl with el
+        lem {.q} {(a′ , q) ∷ ys} el | yes refl | here  .q ._       = a′ , here (a′ , q) ys
+        lem {p}  {(a′ , q) ∷ ys} el | yes refl | there .p .q ._ ek = second (there _ _ _) (lem ek)
+        lem {p} {(a′ , q) ∷ ys} el  | no   neq rewrite no-neq a a′ neq with el
+        lem {p} {(a′ , q) ∷ ys} el  | no   neq | ek = second (there _ _ _) (lem ek)
