@@ -18,6 +18,7 @@ open import Probability.PropsClass probability
 open import Algebra.SubtractiveProps probability
 open import Algebra.Preorder probability
 open import Algebra.SemiringProps probability
+open import Distribution.ProperClass F {{DF}}
 
 record DistMonadProps : Set₂ where
   field
@@ -36,6 +37,7 @@ record DistMonadProps : Set₂ where
     uniform-bijection-invariant : ∀ n (f : BitVec n → BitVec n)
                                 → Bijective f
                                 → uniform n ≡D fmap-F f (uniform n)
+    uniform-proper : ∀ n → ProperDist {{VecFinite n}} (uniform n)
     injection-invariant : ∀{A B} {{_ : Eq A}} {{_ : Eq B}}
                         → (f : A → B)
                         → Injective f

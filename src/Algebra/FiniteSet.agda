@@ -13,10 +13,10 @@ record FiniteSet (A : Set) : Set where
     IsEnumeration : Surjective Enumeration
 open FiniteSet
 
-vec-finite : ∀ n → FiniteSet (BitVec n)
-SizeBound     (vec-finite n) = n
-Enumeration   (vec-finite n) bv = bv
-IsEnumeration (vec-finite n) bv = bv , refl
+VecFinite : ∀ n → FiniteSet (BitVec n)
+SizeBound     (VecFinite n) = n
+Enumeration   (VecFinite n) bv = bv
+IsEnumeration (VecFinite n) bv = bv , refl
 
 record Listable (A : Set) : Set where
   field
@@ -55,11 +55,15 @@ instance
   super-Enumeration (ListableUniqueListable LA)     = ListableUniqueEnumeration LA
   IsUnique          (ListableUniqueListable LA) a p = uniques-unique {{ListableDecEq LA}} _ _ (IsComplete LA a) p
 
-finite-set-list : ∀ A {{_ : FiniteSet A}} → List A
-finite-set-list A = ListEnumeration (super-Enumeration (ListableUniqueListable it))
-
-finite-set-list-complete : ∀ A {{_ : FiniteSet A}} → (a : A) → a ∈ finite-set-list A
-finite-set-list-complete A = IsComplete (super-Enumeration (ListableUniqueListable it))
-
-finite-set-list-unique : ∀ A {{_ : FiniteSet A}} → (a : A)(p : a ∈ finite-set-list A) → p ≡ finite-set-list-complete A a
-finite-set-list-unique A = IsUnique (ListableUniqueListable it)
+module _ A {{FSA : FiniteSet A}} where
+  private
+    ULA : UniqueListable A
+    ULA = ListableUniqueListable FiniteSetListable
+  finite-set-list : List A
+  finite-set-list = ListEnumeration (super-Enumeration ULA)
+  
+  finite-set-list-complete : (a : A) → a ∈ finite-set-list
+  finite-set-list-complete = IsComplete (super-Enumeration ULA)
+  
+  finite-set-list-unique : (a : A)(p : a ∈ finite-set-list) → p ≡ finite-set-list-complete a
+  finite-set-list-unique = IsUnique ULA 
