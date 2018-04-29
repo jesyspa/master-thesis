@@ -37,13 +37,18 @@ relations between games, and to prove that these properties and relations hold.\
 
 Since our primary focus lies on the representation of games and reasoning about their valuations as probability
 distributions, we will not perform the underlying constructions like lists and natural numbers ourselves, instead
-relying on Ulf Norell's \texttt{agda-prelude}\footnote{\hyperref{https://github.com/UlfNorell/agda-prelude}} library for
-these.  Furthermore, we assume the existence of a type representing probabilities; since the rational numbers satisfy
-all the properties that we will require of this type, we do not consider this problematic.
+relying on Ulf Norell's \texttt{agda-prelude}\footnote{\url{https://github.com/UlfNorell/agda-prelude}} library for
+these.  Furthermore, we assume the existence of a type representing probabilities; for example, the rational numbers
+satisfy all the properties that we will require of this type.
 
 \subsection{Games}
 
-% Games are syntactic constructs.  We can represent them using a free monad over the set of valid instructions.
+From the point of view of our implementation, a game is a syntactic description of a stateful, non-deterministic
+computation.  We can represent this using a free monad over the collection of operations that are supported.  Games can
+be parametrised over an encryption scheme and adversary, both of which are also computations in this free monad.
+
+In order to reason about games, we need to give them semantics.  The key difficulty is the representation of probability
+distributions.  Fortunately, there is prior work on the matter both for finite~\cite{probfunproghaskell} and infinite
 
 \subsection{Valuations}
 
