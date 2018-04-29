@@ -1,0 +1,93 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage[margin=2.5cm]{geometry}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{question}{Question}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+\newcommand{\bind}{\mathbin{>\!\!>\!=}}
+\newcommand{\disteq}{\mathbin{=_D}}
+\newcommand{\distsim}[1]{\mathbin{\sim_D^{#1}}}
+\newcommand{\disteps}{\distsim{\epsilon}}
+\DeclareMathOperator{\support}{\mathcal{S}}
+\newcommand{\Dist}{\mathcal{D}}
+
+\title{\vspace{-2cm}Some Assorted Proofs}
+
+\begin{document}
+    \maketitle
+
+    In this document, we will regard distributions on $A$ as non-negative functions $A \to \mathbb{Q}$ with finite
+    support and a sum of 1.  The type of these is denoted $\Dist(A)$.  The support of a distribution $D$ is denoted by
+    $\support(D)$.  Since distributions are simply functions, we can denote sampling by function application.
+
+    Given two distributions $D_1, D_2 : \Dist(A)$, the distance between $D_1$ and $D_2$ is denoted $|D_1 - D_2$ and is
+    given by
+    \[
+        |D_1 - D_2| = \sum_{a : A} |D_1(a) - D_2(a)|.
+    \]
+    We say $D_1$ and $D_2$ are $\epsilon$-indistinguishable, denoted $D_1 \disteps D_2$ if $|D_1 - D_2| \le \epsilon$.
+
+    Given $D : \Dist(A)$ and $f : A \to \Dist(B)$, we define a composed distribution $D \bind f : \Dist(B)$ by
+    \[
+        (D \bind f)(b) = \sum_{a : A} D(a)f(a)(b).
+    \]
+
+    \section{Bind Invariants}
+
+    In this section we show a number of connections between the $\bind$ operation and $\epsilon$-indistinguishability.
+
+    \begin{theorem}
+        Given $D_1, D_2 : \Dist(A)$ and $f : A \to \Dist(B)$, if $D_1 \disteps D_2$ then $D_1 \bind f \disteps D_2 \bind
+        f$.
+    \end{theorem}
+
+    \begin{proof}
+        We wish to upper bound
+        \[
+            \sum_{b : B} \left| \sum_{a : A} D_1(a)f(a)(b) - \sum_{a : A} D_2(a)f(a)(b) \right|.
+        \]
+
+        Since for any $b : B$,
+        \begin{equation*}
+            \left| \sum_{a : A} D_1(a)f(a)(b) - \sum_{a : A} D_2(a)f(a)(b) \right|
+            \le  \sum_{a : A} \left| f(a)(b) \cdot \left( D_1(a) - D_2(a)\right)\right|
+            = \sum_{a : A} f(a)(b) \left|D_1(a) - D_2(a) \right|
+        \end{equation*}
+        it follows that
+        \begin{align*}
+            \sum_{b : B} \left| \sum_{a : A} D_1(a)f(a)(b) - \sum_{a : A} D_2(a)f(a)(b) \right|
+            &\le \sum_{b : B} \sum_{a : A} \left(f(a)(b) \left|D_1(a) - D_2(a) \right|\right)\\
+            &= \sum_{a : A} \left(\left|D_1(a) - D_2(a)\right| \sum_{b : B} f(a)(b)\right)\\
+            &= \sum_{a : A} \left|D_1(a) - D_2(a)\right| \le \epsilon.
+        \end{align*}
+    \end{proof}
+
+    \begin{theorem}
+        Given $D : \Dist(A)$ and $f, g : A \to Dist(B)$, if for every $a : A$, $f(a) \disteps g(a)$ then $D \bind f
+        \disteps D \bind g$.
+    \end{theorem}
+
+    \begin{proof}
+        We wish to show that
+        \[
+            \sum_{b : B} \left| \sum_{a : A} \left(D(a)f(a)(b) - D(a)g(a)(b) \right) \right| \le \epsilon.
+        \]
+
+        By a similar rewrite to the above, we get
+        \begin{align*}
+            \sum_{b : B} \left| \sum_{a : A} \left(D(a)f(a)(b) - D(a)g(a)(b) \right) \right|
+            &\le \sum_{b : B} \sum_{a : A} D(a) \left|f(a)(b) - g(a)(b) \right|\\
+            &= \sum_{a : A}D(a) \sum_{b : B} \left|f(a)(b) - g(a)(b) \right|\\
+            &\le \sum_{a : A}D(a)\epsilon = \epsilon.
+        \end{align*}
+    \end{proof}
+\end{document}
