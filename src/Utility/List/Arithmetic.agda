@@ -120,8 +120,10 @@ module _ {{PPQ : ProbabilityProps}} where
 
   sum-replicate : (n : Nat) (q : Q)
                 → embed n * q ≡ sum (replicate n q)
-  sum-replicate zero q rewrite sym embed-zero = sym (zro-left-nil q)
-  sum-replicate (suc n) q rewrite sym (embed-succ n) =
+  sum-replicate zero q = sym (zro-left-nil q)
+  sum-replicate (suc n) q =
+    (embed n + one) * q
+      ≡⟨ cong (λ e → e * q) (+-comm (embed n) one) ⟩
     (one + embed n) * q
       ≡⟨ +*-right-dist one (embed n) q ⟩
     one * q + embed n * q

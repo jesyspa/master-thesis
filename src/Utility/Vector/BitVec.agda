@@ -54,7 +54,7 @@ all-bitvecs-length (suc n)
         | sym (map-length (Vec._∷_ false) (all-bitvecs n))
         | sym (map-length (Vec._∷_ true) (all-bitvecs n))
         | sym (all-bitvecs-length n)
-        = refl
+        = auto 
 
 all-bitvecs-complete : ∀{n} → (v : BitVec n) → v ∈ all-bitvecs n
 all-bitvecs-complete [] = here [] []

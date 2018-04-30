@@ -59,7 +59,7 @@ module _ {B : Set l} where
   
   
   filter-vals-map : ∀{B′}  (f : B → B′) (xs : SearchList A B)(a : A)
-                  → map f (filter-vals a xs) ≡ filter-vals a (map (over-snd f) xs)
+                  → map f (filter-vals a xs) ≡ filter-vals a (map (second f) xs)
   filter-vals-map f [] a = refl
   filter-vals-map f ((a′ , b) ∷ xs) a with a == a′
   ... | yes refl rewrite sym (filter-vals-map f xs a) = refl
@@ -76,7 +76,7 @@ module _ {B : Set l} where
                                   → Injective f
                                   → (xs : SearchList A B)
                                   → (a : A)
-                                  → filter-vals a xs ≡ filter-vals (f a) (map (over-fst f) xs)
+                                  → filter-vals a xs ≡ filter-vals (f a) (map (first f) xs)
   injections-preserve-filter f pf [] a = refl
   injections-preserve-filter f pf ((x , v) ∷ D) a with a == x
   ... | yes refl rewrite yes-refl (f a) = cong (_∷_ v) (injections-preserve-filter f pf D a)

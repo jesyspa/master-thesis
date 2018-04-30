@@ -12,5 +12,5 @@ sources/
 *.toc
 *.fls
 *.ptb
-proposal/*.pdf
 proposal/proposal.tex
+*.pdf

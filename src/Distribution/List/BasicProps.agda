@@ -1,14 +1,16 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import Probability.Class using (Probability)
 module Distribution.List.BasicProps (Q : Set) {{PQ : Probability Q}} where
 
 open import ThesisPrelude
 open import Distribution.Class
 open import Distribution.List.Definition Q
+open import Distribution.List.SupportProps Q
 open import Algebra.Function
 open import Algebra.Monoid
 open import Algebra.Equality
-open import Probability.Class
 open import Algebra.SemiringProps Q
+open import Probability.Class
 open import Probability.PropsClass Q
 open import Utility.Num
 open import Utility.List
@@ -30,16 +32,7 @@ module _ {{PPQ : ProbabilityProps}} where
       MonoidPropsMulQ = *-is-monoid
 
 
-  module _ {A} {{_ : Eq A }} where
-    support-preserves-elements : (xs : ListDist A) (a : A)
-                               → Index a xs → a ∈ support-LD xs
-                               -- goal: a ∈ uniques (map fst xs)
-    support-preserves-elements xs a = unique-preserves-elem a (map fst xs) ∘′ Index-to-∈ a xs
-
-    support-preserves-elements-inv : (xs : ListDist A) (a : A)
-                                   → a ∈ support-LD xs → Index a xs
-    support-preserves-elements-inv xs a = ∈-to-Index a xs ∘ unique-preserves-elem-inv a (map fst xs) 
-
+  module _ {A} {{_ : Eq A}} where
     sample-invariant-LD : {xs ys : ListDist A} → xs ≡LD ys → (a : A) → sample-LD xs a ≡ sample-LD ys a
     sample-invariant-LD (sample-equiv p) a = p a
 
@@ -73,10 +66,10 @@ module _ {{PPQ : ProbabilityProps}} where
         ≡⟨ cong (sum ∘′ map (sample-LD xs)) $ filter-vals-diag (support-LD xs) a ⟩
       sum (map (sample-LD xs) $ filter-vals a $ map diag (support-LD xs))
         ≡⟨ cong sum $ filter-vals-map (sample-LD xs) (map diag (support-LD xs)) a ⟩
-      sum (filter-vals a $ map (over-snd (sample-LD xs)) $ map diag (support-LD xs))
-        ≡⟨ cong (sum ∘′ filter-vals a) $ map-comp (over-snd (sample-LD xs)) diag (support-LD xs) ⟩ʳ
-      sum (filter-vals a $ map (over-snd (sample-LD xs) ∘′ diag) (support-LD xs))
-        ≡⟨ cong (sum ∘′ filter-vals a) $ map-ext (over-snd (sample-LD xs) ∘′ diag)
+      sum (filter-vals a $ map (second (sample-LD xs)) $ map diag (support-LD xs))
+        ≡⟨ cong (sum ∘′ filter-vals a) $ map-comp (second (sample-LD xs)) diag (support-LD xs) ⟩ʳ
+      sum (filter-vals a $ map (second (sample-LD xs) ∘′ diag) (support-LD xs))
+        ≡⟨ cong (sum ∘′ filter-vals a) $ map-ext (second (sample-LD xs) ∘′ diag)
                                                  (λ x → (x , sample-LD xs x))
                                                  (λ x → refl)
                                                  (support-LD xs) ⟩
@@ -91,7 +84,7 @@ module _ {{PPQ : ProbabilityProps}} where
       ≡⟨ mul-sum p (filter-vals a xs)  ⟩
     sum (map (_*_ p) $ filter-vals a xs)
       ≡⟨ (cong sum $ filter-vals-map (_*_ p) xs a) ⟩
-    sum (filter-vals a $ map (over-snd (_*_ p)) xs)
+    sum (filter-vals a $ map (second (_*_ p)) xs)
     ∎
 
   bind-universal-prop : ∀{A B}{{_ : Eq B}}
@@ -112,6 +105,19 @@ module _ {{PPQ : ProbabilityProps}} where
                             (λ { (a , p) → sym $ sample-map-mul-writer (f a) p b })
                             xs ⟩
     sum (map (sample-over-LD f b) xs)
+    ∎
+
+  strong-bind-universal-prop : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+                               (xs : ListDist A)(f : A → ListDist B)(b : B)
+                             → sample-LD (xs >>= f) b ≡ sum (map (λ x → sample-LD xs x * sample-LD (f x) b) (support-LD xs))
+  strong-bind-universal-prop xs f b =
+    sample-LD (xs >>= f) b                             
+      ≡⟨ {!!} ⟩
+    {!!}
+      ≡⟨ {!!} ⟩
+    {!!}
+      ≡⟨ {!!} ⟩
+    sum (map (λ x → sample-LD xs x * sample-LD (f x) b) (support-LD xs))
     ∎
 
   sample-over-ext : ∀{A B : Set}{{_ : Eq B}}
