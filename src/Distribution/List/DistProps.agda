@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import Probability.Class using (Probability)
 module Distribution.List.DistProps (Q : Set) {{PQ : Probability Q}} where
 
@@ -75,7 +76,8 @@ module _ {{PPQ : ProbabilityProps}} where
     ∎
 
   uniform-proper-LD : ∀ n → ProperDist {{VecUniqueListable n}} (uniform-LD n)
-  uniform-proper-LD = {!!}
+  NonNegative (uniform-proper-LD n) = nonneg-lemma {!uniform-LD n!} {!!}
+  SumOne      (uniform-proper-LD n) = {!!}
 
   >>=-D-ext-LD : ∀{A B}{{_ : Eq B}}
                → (xs : ListDist A)
