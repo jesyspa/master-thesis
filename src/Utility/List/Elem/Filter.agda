@@ -1,32 +1,11 @@
 import ThesisPrelude as TP
-module Utility.List.Elem.Filter {l}{A : Set l}{{_ : TP.Eq A}} where
+module Utility.List.Elem.Filter {l}{A : Set l} where
 
 open import ThesisPrelude
 open import Utility.List.Elem.Definition
 open import Algebra.Function
 open import Algebra.ExactSize
 open import Algebra.Equality
-
-filter-is : A → List A → List A
-filter-is a = filter (isYes ∘ (_==_ a))
-
-filter-is-not : A → List A → List A
-filter-is-not a = filter (isNo ∘ (_==_ a))
-
-equalFilter-fun : (a : A) (xs : List A)
-                → a ∈ xs → a ∈ filter-is a xs
-equalFilter-fun a .(a ∷ xs) (here .a xs) rewrite yes-refl a = here a (filter-is a xs)
-equalFilter-fun a .(y ∷ xs) (there .a y xs pf) with a == y
-equalFilter-fun a .(a ∷ xs) (there .a .a xs pf) | yes refl = there a a (filter-is a xs) (equalFilter-fun a xs pf)
-equalFilter-fun a .(y ∷ xs) (there .a y xs pf) | no p = equalFilter-fun a xs pf
-
-equalFilter-inv : (a : A) (xs : List A)
-                → a ∈ filter-is a xs → a ∈ xs
-equalFilter-inv a [] ()
-equalFilter-inv a (x ∷ xs) p with a == x
-equalFilter-inv a (.a ∷ xs) (here .a ._) | yes refl = here a xs
-equalFilter-inv a (.a ∷ xs) (there .a .a ._ p) | yes refl = there a a xs (equalFilter-inv a xs p)
-equalFilter-inv a (x ∷ xs) p | no pne = there a x xs (equalFilter-inv a xs p) 
 
 filter-does-not-add-elements : (a : A) (xs : List A) (pd : A → Bool)
                              → a ∈ filter pd xs → a ∈ xs
@@ -46,9 +25,45 @@ filter-preserves-satisfying a .(y ∷ xs) pd pf (there .a y xs p) with pd y
 ... | true = there a y (filter pd xs) (filter-preserves-satisfying a xs pd pf p)
 ... | false = filter-preserves-satisfying a xs pd pf p
 
-filter-not-eq-preserves-elem : (a x : A) (xs : List A)
-                             → ¬ (x ≡ a) → a ∈ xs → a ∈ filter-is-not x xs
-filter-not-eq-preserves-elem a x xs neq = filter-preserves-satisfying a xs (isNo ∘ (_==_ x)) (neq-is-no neq)
+module _ {{_ : Eq A}} where
+  filter-is : A → List A → List A
+  filter-is a = filter (isYes ∘ (_==_ a))
+  
+  filter-is-not : A → List A → List A
+  filter-is-not a = filter (isNo ∘ (_==_ a))
+
+  equalFilter-fun : (a : A) (xs : List A)
+                  → a ∈ xs → a ∈ filter-is a xs
+  equalFilter-fun a .(a ∷ xs) (here .a xs) rewrite yes-refl a = here a (filter-is a xs)
+  equalFilter-fun a .(y ∷ xs) (there .a y xs pf) with a == y
+  equalFilter-fun a .(a ∷ xs) (there .a .a xs pf) | yes refl = there a a (filter-is a xs) (equalFilter-fun a xs pf)
+  equalFilter-fun a .(y ∷ xs) (there .a y xs pf) | no p = equalFilter-fun a xs pf
+  
+  equalFilter-inv : (a : A) (xs : List A)
+                  → a ∈ filter-is a xs → a ∈ xs
+  equalFilter-inv a [] ()
+  equalFilter-inv a (x ∷ xs) p with a == x
+  equalFilter-inv a (.a ∷ xs) (here .a ._) | yes refl = here a xs
+  equalFilter-inv a (.a ∷ xs) (there .a .a ._ p) | yes refl = there a a xs (equalFilter-inv a xs p)
+  equalFilter-inv a (x ∷ xs) p | no pne = there a x xs (equalFilter-inv a xs p) 
+
+  filter-not-eq-preserves-elem : (a x : A) (xs : List A)
+                               → ¬ (x ≡ a) → a ∈ xs → a ∈ filter-is-not x xs
+  filter-not-eq-preserves-elem a x xs neq = filter-preserves-satisfying a xs (isNo ∘ (_==_ x)) (neq-is-no neq)
+
+  not-in-filter-no : (a : A) (xs : List A)
+                   → ¬ (a ∈ filter-is-not a xs)
+  not-in-filter-no a [] ()
+  not-in-filter-no a (x ∷ xs) p with a == x
+  ... | yes refl = not-in-filter-no a xs p
+  not-in-filter-no a (.a ∷ xs) (here .a ._) | no neq = neq refl
+  not-in-filter-no a (x ∷ xs) (there .a .x ._ p) | no neq = not-in-filter-no a xs p
+  
+  permute : (xs : List A){x a : A}
+          → a ∈ xs → x ∈ xs → x ∈ a ∷ filter-is-not a xs
+  permute xs {x} {a} p q with a == x
+  ... | yes refl = here a (filter (isNo ∘ (_==_ a)) xs)
+  ... | no neq = there x a (filter (isNo ∘ (_==_ a)) xs) (filter-preserves-satisfying x xs (isNo ∘ (_==_ a)) (neq-is-no neq) q)
 
 filter-removes-unsatisfying : (a : A) (xs : List A) (pd : A → Bool)
                             → IsFalse (pd a)
@@ -68,16 +83,3 @@ filter-functional-inv a xs f fp pd p with pd a | graphAt pd a
                                                        (fp (filter-does-not-add-elements a (f xs) pd p))
 ... | false | ingraph pig = ⊥-elim (filter-removes-unsatisfying a (f xs) pd (transport IsFalse (sym pig) it) p)
 
-not-in-filter-no : (a : A) (xs : List A)
-                 → ¬ (a ∈ filter-is-not a xs)
-not-in-filter-no a [] ()
-not-in-filter-no a (x ∷ xs) p with a == x
-... | yes refl = not-in-filter-no a xs p
-not-in-filter-no a (.a ∷ xs) (here .a ._) | no neq = neq refl
-not-in-filter-no a (x ∷ xs) (there .a .x ._ p) | no neq = not-in-filter-no a xs p
-
-permute : (xs : List A){x a : A}
-        → a ∈ xs → x ∈ xs → x ∈ a ∷ filter-is-not a xs
-permute xs {x} {a} p q with a == x
-... | yes refl = here a (filter (isNo ∘ (_==_ a)) xs)
-... | no neq = there x a (filter (isNo ∘ (_==_ a)) xs) (filter-preserves-satisfying x xs (isNo ∘ (_==_ a)) (neq-is-no neq) q)

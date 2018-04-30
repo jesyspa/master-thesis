@@ -79,6 +79,15 @@ module _ {{PPQ : ProbabilityProps}} where
   NonNegative (uniform-proper-LD n) = nonneg-lemma {!uniform-LD n!} {!!}
   SumOne      (uniform-proper-LD n) = {!!}
 
+  >>=-proper-LD : ∀{A B}{{_ : UniqueListable A}}{{_ : UniqueListable B}}
+                → (Da : ListDist A){{_ : ProperDist Da}}
+                → (Df : A → ListDist B){{_ : ∀ a → ProperDist (Df a)}} 
+                → ProperDist (Da >>= Df)
+  NonNegative (>>=-proper-LD Da Df) a
+    rewrite strong-bind-universal-prop Da Df a = {!!}
+  SumOne      (>>=-proper-LD Da Df) = {!!}
+
+
   >>=-D-ext-LD : ∀{A B}{{_ : Eq B}}
                → (xs : ListDist A)
                → (f g : A → ListDist B)

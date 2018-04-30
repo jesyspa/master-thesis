@@ -22,12 +22,20 @@ map-preserves-Sec : ∀(f : A → B) (fp : Injective f) (a : A) (xs : List A)
                   → Section drop-map-lem f fp a xs of map-preserves-in f a xs
 map-preserves-Sec f fp a xs p = map-preserves-Sec-helper f fp a xs (map f xs) refl p
 
+strong-map-preserves-prop : ∀{l′′}(f : A → B)(P : B → Set l′′)
+                          → (xs : List A)
+                          → (∀{a} → a ∈ xs → P (f a))
+                          → {b : B}
+                          → b ∈ map f xs
+                          → P b
+strong-map-preserves-prop f P [] pf ()
+strong-map-preserves-prop f P (x ∷ xs) pf (here ._ ._) = pf (here x xs)
+strong-map-preserves-prop f P (x ∷ xs) pf (there y ._ ._ el) = strong-map-preserves-prop f P xs (pf ∘ there _ _ _) el
+
 map-preserves-prop : ∀{l′′}(f : A → B)(P : B → Set l′′)
                    → (∀ a → P (f a))
                    → (xs : List A)
                    → {b : B}
                    → b ∈ map f xs
                    → P b
-map-preserves-prop f P pf [] ()
-map-preserves-prop f P pf (a ∷ xs) (here .(f a) .(map f xs)) = pf a
-map-preserves-prop f P pf (a ∷ xs) (there x .(f a) .(map f xs) pt) = map-preserves-prop f P pf xs pt
+map-preserves-prop f P pf xs el = strong-map-preserves-prop f P xs (λ {a} _ → pf a) el

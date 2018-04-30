@@ -122,17 +122,15 @@ module _ {{PPQ : ProbabilityProps}} where
                   → sample-over-LD f b aq ≡ sample-over-LD g b aq
   sample-over-ext f g b eq (a , p) = cong (_*_ p) (sample-invariant (eq a) b)
 
+  nonneg-lemma′ : ∀{A : Set}(xs : List A)(f : A → Q)
+                → (∀{a} → a ∈ xs → zro ≤ f a)
+                → zro ≤ sum (map f xs)
+  nonneg-lemma′ xs f pf = nonnegative-sum (map f xs) (strong-map-preserves-prop f (λ q → zro ≤ q) xs pf)
+
+
   module _ {A}{{_ : Eq A}} where
     nonneg-lemma : (xs : ListDist A)
                  → (∀{a}{p} → (a , p) ∈ xs → zro ≤ p)
                  → (a : A) → zro ≤ sample-LD xs a
-    nonneg-lemma xs pf a = nonnegative-sum (filter-vals a xs) λ el → pf (snd (lem el))
-      where
-        lem : ∀{p ys} → p ∈ filter-vals a ys → Σ A λ a′ → (a′ , p) ∈ ys 
-        lem {p} {[]} ()
-        lem {p} {(a′ , q) ∷ ys} el  with a == a′
-        lem {p} {(a′ , q) ∷ ys} el  | yes refl with el
-        lem {.q} {(a′ , q) ∷ ys} el | yes refl | here  .q ._       = a′ , here (a′ , q) ys
-        lem {p}  {(a′ , q) ∷ ys} el | yes refl | there .p .q ._ ek = second (there _ _ _) (lem ek)
-        lem {p} {(a′ , q) ∷ ys} el  | no   neq rewrite no-neq a a′ neq with el
-        lem {p} {(a′ , q) ∷ ys} el  | no   neq | ek = second (there _ _ _) (lem ek)
+    nonneg-lemma xs pf a = nonneg-lemma′ (filter-eq a xs) snd λ { {a′ , p} el → pf (filter-eq-correct a xs el) }
+

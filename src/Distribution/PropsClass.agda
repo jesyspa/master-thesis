@@ -53,7 +53,11 @@ record DistMonadProps : Set₂ where
     return-sample-0 : ∀{A}{{_ : Eq A}}(a a′ : A) → ¬ (a ≡ a′) → zro ≡ sample (return a) a′
     return-proper : ∀{A}{{ULA : UniqueListable A}}(a : A) → ProperDist {{ULA}} (return a)
 
-
+    instance 
+      >>=-proper : ∀{A B}{{_ : UniqueListable A}}{{_ : UniqueListable B}}
+                 → (Da : F A){{_ : ProperDist Da}}
+                 → (Df : A → F B){{_ : ∀ a → ProperDist (Df a)}} 
+                 → ProperDist (Da >>= Df)
     >>=-D-ext : ∀{A B}{{_ : Eq B}}
               → (Da : F A)
               → (Df Dg : A → F B)
@@ -65,6 +69,7 @@ record DistMonadProps : Set₂ where
               → (Df : A → F B)
               → (Da ≡D Db)
               → (Da >>= Df) ≡D (Db >>= Df) 
+
 
     >>=-D-approx-ext : ∀{A B}{{_ : FiniteSet A}}{{_ : FiniteSet B}}
                      → (DA : F A)

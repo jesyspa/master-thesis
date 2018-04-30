@@ -21,7 +21,11 @@ module _ {B : Set l} where
   filter-eq-singleton : ∀(a : A) (b : B)
                       → [ b ] ≡ filter-vals a [ a , b ]
   filter-eq-singleton a b rewrite yes-refl a = refl
-  
+
+  filter-eq-correct : {p : A × B}(a : A)(xs : SearchList A B) 
+                    → p ∈ filter-eq a xs → p ∈ xs
+  filter-eq-correct a xs = filter-does-not-add-elements _ xs (isYes ∘ (_==_ a) ∘ fst)
+
   comm-annotate : (a : A) (b : B) (xs : List A)
                 → annotate b (filter (isYes ∘ (_==_ a)) xs) ≡ filter-eq a (annotate b xs)
   comm-annotate a b [] = refl
