@@ -27,9 +27,9 @@
     \maketitle
 
     \begin{abstract}
-        Given an encryption scheme, it is desirable to show that it is secure against particular forms of attack.  For
-        my thesis, I wish to develop a library for the Agda programming language which would aid in expressing proofs of
-        this nature.
+        When we use cryptographic algorithms, we rely that they provide the security guarantees they claim.  For my
+        thesis, I wish to develop a framework using the Agda programming language that would allow the user to express
+        and automatically check proofs of such claims.
     \end{abstract}
 
     %include chapters/sp1-introduction.lhs

@@ -10,6 +10,8 @@
 %format ListDist     = "\D{ListDist}"
 %format Writer       = "\D{Writer}"
 %format ProbabilityProps = "\D{ProbabilityProps}"
+%format top          = "\D{$\top$}"
+%format bot          = "\D{$\bot$}"
 
 %% Constructors
 %format encscheme    = "\IC{enc-scheme}"
@@ -42,15 +44,15 @@
 %format uniform = "\F{uniform}"
 
 %% Helper functions
-%format sample                    = "\F{sample}"
-%format interchangeinterpretation = "\F{interchange-interpretation}"
-%format xor a b                   = "{" a "}\mathbin{\F{$\otimes$}}{" b "}"
-%format isYes                     = "\F{isYes}"
-%format fmap                      = "\F{fmap}"
-%format negpow2                   = "\F{negpow2}"
-%format compare                   = "\F{compare}"
-%format embed                     = "\F{embed}"
-%format pow2                      = "\F{pow2}"
+%format sample      = "\F{sample}"
+%format interchange = "\F{interchange}"
+%format xor a b     = "{" a "}\mathbin{\F{$\otimes$}}{" b "}"
+%format isYes       = "\F{isYes}"
+%format fmap        = "\F{fmap}"
+%format negpow2     = "\F{negpow2}"
+%format compare     = "\F{compare}"
+%format embed       = "\F{embed}"
+%format pow2        = "\F{pow2}"
 
 %% Not sure where to put
 %format Injective = "\F{Injective}"
@@ -63,6 +65,8 @@
 %% Punctuation
 %format dot   = "\hspace{-0.3em}.\,"
 %format comma = "\hspace{-0.3em},"
+%format langle = "\langle"
+%format rangle = "\rangle"
 
 %% Misc stuff
 %format (plus (a) (b))  = "{" a "}\mathbin{\RF{+}}{" b "}"

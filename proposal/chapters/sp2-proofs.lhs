@@ -22,13 +22,12 @@ decrypting a ciphertext produced with this scheme than simply selecting a plaint
 correct plaintext with probability $\abs{M_p}^{-1}$.
 
 Showing that an encryption scheme is secure involves reasoning about an arbitrary function $f$, which can be difficult
-and error-prone.  \todo{Explain why this is difficult.} However, note that if $m_0, m_1 \in M_p$ with $m_0 \neq m_1$,
+and error-prone~\cite{codebasedgames}.  However, note that if $m_0, m_1 \in M_p$ with $m_0 \neq m_1$,
 then for every $f : M_c \to M_p$, the probability that $f(e(k, m)) = m$ with $k$ chosen uniformly from $K$ and $m$
 chosen uniformly from $\{m_0, m_1\}$ is $\frac 1 2$.  If this were not so, then $f$ could return a uniformly random $m
 \in M_p$ for inputs other than $e(k, m_0)$ and $e(k, m_1)$ and choose better than random for inputs of that form.  On
 the other hand, if the adversary cannot distinguish between the ciphertexts of any two particular messages, then it
 certainly cannot decode any ciphertext.
-\todo{Comment on why we want this reformulation.}
 
 We thus reformulate the condition as follows: an encryption scheme $\sigma$ is \emph{secure} iff for any probability
 distribution $D$ on $M_p \times M_p$ and any function $f : M_p \times M_p \times M_c \to \{0, 1\}$, the probability that
@@ -37,7 +36,7 @@ uniformly from $\{0, 1\}$ is exactly $\frac 1 2$.
 
 It seems that we have not much advanced towards our goal, since we must still argue about an arbitrary function $f$.
 However, by reformulating this problem as an interaction between a \emph{challenger} and an \emph{adversary} we can use
-game-playing techniques~\cite{gameplayingproofs} to more easily reason about the problem.
+game-playing techniques~\cite{codebasedgames} to more easily reason about it.
 
 \subsection{Games as Security Conditions}
 
@@ -74,10 +73,6 @@ the possible actions of the challenger and the adversary.  Our goal, however, is
 in a proof assistant, which requires a more rigorous definition of each game.  We will now show how these games can be
 defined in Haskell.  This differs somewhat from the representation we will use in Agda, but conveys the general idea.
 
-We regard the game as a computation in some |Game| monad, parametrised by the state used by the adversary and the result
-of the game.  Computations performed by the challenger are known, so they can be directly encoded in the program.
-Computations performed by the encryption scheme and adversary are given as parameters to the program.  We then have the
-following code:
 %{
 %format :: = "::"
 %format forall = "\forall\hspace{-0.25em}"
@@ -109,6 +104,10 @@ following code:
 %format otp_game3 = "\F{otp\_game3}"
 %format otp_game4 = "\F{otp\_game4}"
 
+We regard the game as a computation in some |Game| monad, parametrised by the state used by the adversary and the result
+of the game.  Computations performed by the challenger are known, so they can be directly encoded in the program.
+Computations performed by the encryption scheme and adversary are given as parameters to the program.  We then have the
+following code:
 \begin{code}
 data EncScheme key pt ct = EncScheme
   { forall as dot generateKey  ::               Game as key
@@ -120,7 +119,8 @@ data EAV_Adversary as pt ct = EAV_Adversary
   , chooseOutcome   :: ct ->  Game as Bool
   }
 
-eav_game :: EncScheme key pt ct -> EAV_Adversary as pt ct -> Game as Bool
+eav_game  :: EncScheme key pt ct -> EAV_Adversary as pt ct
+          -> Game as Bool
 eav_game enc adv = do
     k              <- generateKey enc
     (m0 comma m1)  <- chooseMessages adv
@@ -150,12 +150,14 @@ BitVec| that provides a given number of bits of randomness at once.
 
 %format gameA = "\F{gameA}"
 %format gameB = "\F{gameB}"
-\todo{Need a good convention for |as| vs |AS|, etc.}
+%format StateT = "\D{StateT}"
+%format Rnd    = "\D{Rnd}"
+%format Rand   = "\D{Rand}"
+%format StdGen = "\D{StdGen}"
 So far, we have only defined a syntax for the expression of games.  There is a natural valuation for this syntax in the
 |StateT as Rnd| monad transformer, where |Rnd| is some monad with randomness support (e.g. |Rand StdGen| from
-\texttt{MonadRandom}).  \todo{This feels like too little explanation, but more feels like too much.}  Given a game of
-type |Game as A| it is thus possible to execute it and obtain some |a| of type |A| as the result. We will use this
-interpretation in order to define two notions of indistinguishability between games.
+\texttt{MonadRandom}).  Given a game of type |Game as A| it is thus possible to execute it and obtain some |a| of type
+|A| as the result. We will use this interpretation in order to define two notions of indistinguishability between games.
 
 We say that two games |g0| and |g1| of type |Game AS A| (for some |AS| and |A|) are \emph{result-indistinguishable}
 iff for every initial adversary state and every |a| of type |A|, the probability of |g0| resulting in |a|
@@ -170,7 +172,6 @@ adversary's state.  The property of strict indistinguishability is nevertheless 
 indistinguishable terms produces strictly indistinguishable games, while substitution of merely result-indistinguishable
 terms does not necessarily produce result-indistinguishable games.
 
-\todo{I have the feeling this introduction is dragging on and on.}
 We now have two results that are key to the kind of proofs we will be showing.  We assume |AS|, |A|, |B|, and |C| are fixed
 types.
 

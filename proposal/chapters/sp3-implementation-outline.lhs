@@ -4,7 +4,7 @@
 We will now briefly present the design that we have developed so far.  This development is sufficient to represent games
 featuring only a challenger and an adversary, compute the probability of an adversary winning the game, and reason about
 two games having equal victory probability for the adversary.  These features suffice to represent the proof of the
-One-Time Pad being secure against eavesdropping (as presented in \ref{sec:example}), though they are not enough to prove
+One-Time Pad being secure against eavesdropping (as presented in \autoref{sec:example}), though they are not enough to prove
 that the One-Time Pad is not vulnerable against a chosen plaintext attack.
 
 % What issues are still unresolved?
@@ -23,17 +23,18 @@ that the One-Time Pad is not vulnerable against a chosen plaintext attack.
 
 \subsection{Agda as a Proof Assistant}
 
-We assume that the reader is already familiar with the Agda programming language\todo{Add a link to a tutorial?} and
+We assume that the reader is already familiar with the Agda programming language and
 with the propositions-as-type approach of encoding proofs.  Briefly, when using this approach we represent a proposition
 by a type, the terms of which are proofs of this proposition.  We say a proposition represented by a type |T| is true if
-we can construct a term |t : T|.  We say a proposition is false if we can construct a term |nt : T ->
-bot|.\todo{Definitely reference a tutorial.}
+we can construct a term |t : T|.  We say a proposition is false if we can construct a term |nt : T -> bot|.  For the
+unfamiliar reader, the Agda Wiki provides a more in-depth
+introduction\footnote{\url{http://wiki.portal.chalmers.se/agda/pmwiki.php?n=Main.Othertutorials}}, for example
+\cite{agdatut}.
 
 When introducing game-playing proofs, we used Haskell to represent our games.  A similar construction can be used to
 encode our games in Agda, with the added benefit that we can use the same language to represent properties of games and
-relations between games, and to prove that these properties and relations hold.\todo{Something about advantages?}
-
-\todo{Something about why Agda?}
+relations between games, and to prove that these properties and relations hold.  In particular, we can express and prove
+an upper bound on the advantage an adversary can have, without necessarily computing this value.
 
 Since our primary focus lies on the representation of games and reasoning about their valuations as probability
 distributions, we will not perform the underlying constructions like lists and natural numbers ourselves, instead
@@ -43,59 +44,99 @@ satisfy all the properties that we will require of this type.
 
 \subsection{Games}
 
-From the point of view of our implementation, a game is a syntactic description of a stateful, non-deterministic
-computation.  We can represent this using a free monad over the collection of operations that are supported.  Games can
-be parametrised over an encryption scheme and adversary, both of which are also computations in this free monad.
+From the point of view of our implementation, a game is a syntactic description of the computations that will be
+performed by the players.  There are a number of primitive operations provided to the players (e.g. generating a
+uniformly random bitstring), and they may additionally perform any pure computations.  We can represent this kind of
+structure using the free monad construction~\cite{freemonads}\cite{dtalacarte}: primitive operations are monadic
+functions, sequencing of computations is done using bind, and pure computations can be included using |return|.  The
+syntax for this monad is practically identical to the monad presented in \autoref{sec:proofs}.
 
-In order to reason about games, we need to give them semantics.  The key difficulty is the representation of probability
-distributions.  Fortunately, there is prior work on the matter both for finite~\cite{probfunproghaskell} and infinite
+This representation of games is easy to manipulate on, but it does not give us an immediate way to express the
+probability of a game having a particular outcome.  We resolve this by defining a valuation that maps syntactic games to
+a concrete monad that allows us to compute probabilities explicitly.  It is sufficient to implement this map for all the
+primitive operations, and it will lift uniquely to all other terms by the universal property of the free monad.
 
-\subsection{Valuations}
+Given a type |Q| for representing probabilities, probability distributions can be implemented as a list of pairs of
+objects and their probabilities~\cite{probfunproghaskell} |List (A times Q)| or as a probability
+measure~\cite{stochasticlambdacalculus} |(A -> Q) -> Q|.  Both approaches give rise to a monad: |return a| is the Dirac
+distribution with value |a| and given a distribution |X| over |A| and a distribution-valued function |f : A -> B|, the
+composite distribution |X >>= f| is the distribution obtained by sampling |x| from |X| and then sampling from |f x| to
+obtain the result.\footnote{In fact, the first can be seen as the Writer monad transformer applied to the list monad,
+while the second is a special case of the continuation monad.}
 
-% Valuations are what we map games into.
-% Essential properties: we can compute the probability of some outcome.
+At the moment, picking a uniformly random bitstring is the only primitive operation games support, and thus the above is
+sufficient to give us a valuation.  If we want further operations such as mutable state, we can implement these by
+applying further monad transformers to our probability monad.  This gives us an extensible framework for formulating
+more complicated games.
 
-\subsection{Representation of Distributions}
+\subsection{One-Time Pad Revisited}
 
-There is considerable prior work done on formalising probability distributions in a functional setting in the
-past.\todo{cite relevant stuff}  For our purposes, the primary interest lies in probability distributions with finite
-support.  The most fitting representation for a distribution in this setting is a list of pairs, each pair containing an
-outcome and its probability.  Duplicates are allowed, in which case the probability of the outcome is the sum of the
-probabilities it is paired with.
+The system we have presented above is sufficient to express the One-Time Pad encryption scheme and show that it is
+secure against an eavesdropper attack.  We will present how this formalisation can be performed in the system we
+currently have and point out some limitations.
 
-In other words, given a type |A| we construct a type |ListDist A| isomorphic to |List (A * Q)|.  This is easily seen to
-be the |Writer| monad transformer applied to the |List| monad, with multiplication on |Q| as the monoidal operation.
-The monadic structure expresses the following: given a distribution |D : ListDist A| and a family of distributions |f :
-A -> ListDist B|, the combined distribution |D >>= f| represents picking an |a : A| according to |D| and then a |b : B|
-according to |f a|.
+The following code defines types for the encryption scheme and the adversary, and specifies the game that is played.
+|CryptoExpr| is our syntactic monad described in the previous section.
+\begin{code}
+record EncScheme : Set1 where
+  constructor encscheme
+  field
+    Key PT CT : Set
 
-The monadic structure also gives rise to a way of constructing distributions: given |a : A|, |return a : ListDist A| is
-the distribution that always yields |a|.  We also require that the uniform distribution over bitstrings of length |n|
-exist for every |n : Nat|; that is, we require a function |uniform : (n : Nat) -> ListDist (BitVec n)| which gives
-probability |negpow2 n| to each outcome.
+    keygen : CryptoExpr Key
+    enc : Key -> PT -> CryptoExpr CT
 
-%{
-%format D1 = "D_1"
-%format D2 = "D_2"
-Finally, we require that if the type |A| has decidable equality, then we can compute the probability of sampling an |a :
-A| from a |D : ListDist A|; that is, that there exists a function |sample : {{Eq A}} -> ListDist A -> A -> Q|.  This
-gives rise to a notion of indistinguishibility of distributions |==D|, where |D1 ==D D2| is a type that is inhabited iff
-for every |a : A|, |sample D1 a == sample D2 a|.  We will generally be interested in distributions up to this
-equivalence relation.
-%}
+record SimpleEavAdv (E : EncScheme) : Set1 where
+  constructor simpleeavadv
+  open EncScheme E
+  field 
+    A1 : CryptoExpr (PT * PT)
+    A2 : CT -> CryptoExpr Bool
 
-Although this implementation of distribution seems to be the most practical for our purposes, we parametrise the
-remainder of the construction by the implementation used, allowing a different implementation to be specified if
-desired.
+simpleINDEAV : (E : EncScheme)(A : SimpleEavAdv E) -> CryptoExpr Bool
+simpleINDEAV E A
+  =  keygen                              >>= \ k 
+  -> A1                                  >>= \ m
+  -> coinexpr                            >>= \ b
+  -> enc k (if b then fst m else snd m)  >>= \ ct
+  -> A2 ct                               >>= \ b' 
+  -> return (eq b b') 
+  where
+    open EncScheme E
+    open SimpleEavAdv A
+\end{code}
 
-\subsection{Representation of Games}
+We can now define the One-Time Pad encryption scheme |OTP : Nat -> Scheme| and prove that it is secure by constructing a
+term of the type |forall {n}(A : SimpleEavAdv (OTP n)) -> coin ==D (VAL (simpleINDEAV (OTP n) A))|.  The relation |==D|
+signifies that sampling any value from the uniform distribution |coin| is equivalent to sampling it from the
+distribution |VAL (simpleINDEAV (OTP n) A)|.  Since we universally quantify over the security parameter |n| and the
+adversary |A : SimpleEavAdv (OTP n)|, this shows that this encryption scheme is perfectly secure.
 
-A game represents a non-deterministic computation.  While we could represent a game directly in the |ListDist| monad,
-this would make it harder to argue about properties of the adversary.  Instead, we provide a monad in which games and
-adversaries can be described syntactically and provide a valuation function from this monad into the distribution monad.
+A considerable issue with the proof is that it is inpractically long.  A step of the proof consists of specifying the
+next game in the sequence and giving a proof that the two games are equivalent.  Unfortunately, these proofs often
+themselves contain portions of the game, leading to a significant amount of duplication.  The following is an example of
+such a step, where we argue that if the call to the adversary does not depend on the result of a coin flip, we can
+postpone flipping the coin to after we call the adversary.
+\begin{code}
+   lbracket  uniformexpr n  >>= \ k 
+   ->        A2 k           >>= \ b'
+   ->        coinexpr       >>= \ b
+   ->        return (eq b b') rbracket
+    ==D langle congbind  (uniformexpr n)
+                         (  \ k   -> A2 k      >>=
+                            \ b'  -> coinexpr  >>=
+                            \ b   -> return (eq b b'))
+                         (  \ k   -> coinexpr  >>=
+                            \ b   -> A₂ k      >>=
+                            \ b'  -> return (eq b b'))
+                         (  \ k   -> interchange  (A2 k) coinexpr
+                                                  (\ b' b -> return (eq b b'))) rangle
+   lbracket  uniformexpr n      >>= \ k
+   ->        coinexpr           >>= \ b
+   ->        A2 k               >>= \ b'
+   ->        return (eq b b') rbracket
+\end{code}
 
-This syntactic monad is the free monad over the signature of operations that players have access to.  Due to the limited
-scope of what has been implemented so far, this is only the |uniform| operation that takes an |n : Nat| and returns a
-|BitVec n| uniformly at random.
-
-\todo{Say something more?}
+Another issue is that this proof only holds for adversaries that do not maintain state.  However, this is a limitation
+in the current implementation of the framework, rather than any conceptual shortcoming of the proof.  Once stateful
+games are implemented, this proof should go through mostly unchanged.
