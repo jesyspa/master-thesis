@@ -34,6 +34,7 @@ record ProbabilityProps : Set where
     abs-zero-eq         : {a b : Q} → zro ≡ abs (a - b) → a ≡ b
     ≤-dist-+            : {a b c d : Q} → a ≤ c → b ≤ d → a + b ≤ c + d
     <-dist-+            : {a b c d : Q} → a < c → b < d → a + b < c + d
+    zro<one             : zro {A = Q} < one
 
   embed-1 : one ≡ embed 1
   embed-1 = +-unit-left one

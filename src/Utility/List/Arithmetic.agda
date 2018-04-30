@@ -9,6 +9,7 @@ open import Algebra.Preorder Q
 open import Probability.Class
 open import Probability.PropsClass Q
 open import Utility.List.Lookup
+open import Utility.List.Functions
 open import Utility.List.Props
 open import Utility.List.Elem
 open import Utility.List.SlowArithmetic Q public
@@ -71,3 +72,16 @@ module _ {{PPQ : ProbabilityProps}} where
                                           (≤-dist-+ (nn (here y _))
                                                     (sum-bounds-individuals pt λ pt′ → nn (there _ _ _ pt′)))
                          
+
+  module _ {l}{A : Set l}{{_ : Eq A}} where
+    delta : (a b : A) → Q
+    delta a b with a == b
+    ... | yes _ = one
+    ... | no  _ = zro
+
+    sum-delta-is-count : ∀(xs : List A)(a : A)
+                       → embed (count xs a) ≡ sum (map (delta a) xs)
+    sum-delta-is-count [] a = refl
+    sum-delta-is-count (x ∷ xs) a with a == x
+    ... | yes refl rewrite sum-rewrite′ one (map (delta a) xs) | sym (sum-delta-is-count xs a) = +-comm _ _
+    ... | no  neq  rewrite sum-rewrite′ zro (map (delta a) xs) | sym (sum-delta-is-count xs a) = +-unit-left _

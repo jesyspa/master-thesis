@@ -3,6 +3,7 @@ module Algebra.FiniteSet where
 open import ThesisPrelude
 open import Utility.Vector
 open import Algebra.Function
+open import Algebra.Equality
 open import Utility.List
 open import Utility.Num
 
@@ -44,6 +45,8 @@ record UniqueListable (A : Set) : Set where
   field
     overlap {{super-Enumeration}} : Listable A
     IsUnique        : (a : A)(p : a ∈ ListEnumeration super-Enumeration) → p ≡ IsComplete super-Enumeration a 
+  UniqueListEnumeration : List A
+  UniqueListEnumeration = ListEnumeration super-Enumeration
 open UniqueListable
 
 ListableUniqueEnumeration : ∀{A} → Listable A → Listable A
@@ -53,6 +56,28 @@ IsComplete      (ListableUniqueEnumeration LA) a = unique-preserves-elem {{Lista
 ListableUniqueListable : ∀{A} → Listable A → UniqueListable A
 super-Enumeration (ListableUniqueListable LA)     = ListableUniqueEnumeration LA
 IsUnique          (ListableUniqueListable LA) a p = uniques-unique {{ListableDecEq LA}} _ _ (IsComplete LA a) p
+
+private
+  unique-list-lem : ∀{l}{A : Set l}{{_ : Eq A}}(xs : List A)(a : A)
+                  → (pt : a ∈ xs)
+                  → (∀ pt′ → pt′ ≡ pt)
+                  → one ≡ count xs a
+  unique-list-lem [] a () pf
+  unique-list-lem (x ∷ xs) .x (here .x .xs) pf with x == x
+  ... | yes refl = cong suc lem
+    where lem : 0 ≡ count xs x
+          lem with decide-elem x xs
+          lem | yes pt′ with pf (there _ _ _ pt′)
+          lem | yes pt′ | ()
+          lem | no  npt = count-not-in xs x npt
+  ... | no neq = ⊥-elim (neq refl)
+  unique-list-lem (x ∷ xs) a  (there .a .x .xs pt) pf with a == x
+  unique-list-lem (x ∷ xs) a  (there .a .x .xs pt) pf | yes refl with pf (here _ _)
+  ... | ()
+  unique-list-lem (x ∷ xs) a  (there .a .x .xs pt) pf | no  neq  = unique-list-lem xs a pt (there-Inj ∘ pf ∘ there _ _ _)
+
+unique-list-gives-count-one : ∀{A}{{ULA : UniqueListable A}} a → one ≡ count (UniqueListEnumeration ULA) a
+unique-list-gives-count-one {{ULA}} a = unique-list-lem (UniqueListEnumeration ULA) a (IsComplete (super-Enumeration ULA) a) (IsUnique ULA a)
 
 module _ A {{FSA : FiniteSet A}} where
   private

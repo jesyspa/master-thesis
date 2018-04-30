@@ -1,4 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 open import Probability.Class using (Probability)
 module Distribution.List.DistProps (Q : Set) {{PQ : Probability Q}} where
 
@@ -8,6 +7,7 @@ open import Distribution.List.Definition Q
 open import Algebra.Function
 open import Algebra.Monoid
 open import Algebra.Equality
+open import Algebra.Preorder Q
 open import Algebra.FiniteSet
 open import Probability.Class
 open import Algebra.SemiringProps Q
@@ -33,6 +33,7 @@ module _ {{PPQ : ProbabilityProps}} where
   open ProbabilityProps PPQ
   open SemiringProps srprops
   open SubtractiveProps subprops
+  open PreorderProps poprops
   instance
     private
       MonoidPropsMulQ : MonoidProps Q
@@ -173,11 +174,29 @@ module _ {{PPQ : ProbabilityProps}} where
         embed (pow2 n)
         ∎
 
+  delta-sample-equiv : ∀{A}{{_ : Eq A}}(a a′ : A) → delta a a′ ≡ sample (return {{monad-super}} a) a′
+  delta-sample-equiv a a′ with a == a′
+  ... | yes refl rewrite yes-refl a′ | sym (singleton-sum-id one) = refl
+  ... | no   neq rewrite no-neq a′ a (neq ∘′ sym) = refl
+
   return-proper-LD : ∀{A}{{ULA : UniqueListable A}}(a : A) → ProperDist {{ULA}} (return a)
-  NonNegative (return-proper-LD a) a′ with a == a′
-  ... | yes refl rewrite yes-refl a = {!!}
-  ... | no   neq = {!!}
-  SumOne      (return-proper-LD a) = {!!}
+  NonNegative (return-proper-LD a) = nonneg-lemma (return a) lem 
+    where lem : ∀{a′ p} → ((a′ , p) ∈ return {{monad-super}} a) → zro ≤ p
+          lem (here .(_ , one) .[]) = embed-< zro<one 
+          lem (there .(_ , _) .(_ , one) .[] ())
+  SumOne      (return-proper-LD {A} {{ULA}} a) =
+    one
+      ≡⟨ embed-1 ⟩
+    embed 1
+      ≡⟨ cong embed (unique-list-gives-count-one a) ⟩
+    embed (count UniqueListEnumeration a)
+      ≡⟨ sum-delta-is-count UniqueListEnumeration a ⟩
+    sum (map (delta a) UniqueListEnumeration)
+      ≡⟨ cong sum (map-ext _ _ (delta-sample-equiv a) UniqueListEnumeration) ⟩
+    sum (map (sample (return a)) UniqueListEnumeration)
+    ∎
+    where
+      open UniqueListable ULA
                
   open import Distribution.PropsClass ListDist
   
