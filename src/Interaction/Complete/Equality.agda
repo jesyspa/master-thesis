@@ -1,5 +1,5 @@
 open import Distribution.Class
-module Interaction.Complete.Probability (D : Set → Set){{DMD : DistMonad D}} where
+module Interaction.Complete.Equality (D : Set → Set){{DMD : DistMonad D}} where
 
 open import ThesisPrelude
 open import Algebra.FiniteSet
@@ -12,6 +12,3 @@ open DistMonad DMD
 
 crypto-impl : Implementation CryptoExprIS D
 crypto-impl (uniform-CE n) = uniform n
-
-⟦_⟧ : ∀{A} → FreeMonad CryptoExprIS A → D A
-⟦_⟧ = lift-Impl crypto-impl
