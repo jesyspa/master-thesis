@@ -10,6 +10,12 @@ open InteractionStructure
 Implementation : (IS : InteractionStructure)(M : Set → Set) → Set
 Implementation IS M = (c : Command IS) → M (Response IS c)
 
+lift-Impl : ∀{A IS}{M : Set → Set}{{_ : Monad M}}
+          → Implementation IS M
+          → FreeMonad IS A → M A
+lift-Impl impl (Return-FM a) = return a
+lift-Impl impl (Invoke-FM c cont) = impl c >>= λ x → lift-Impl impl (cont x)
+
 record ImplMorphism (IS₁ : InteractionStructure)(M₁ : Set → Set)(IS₂ : InteractionStructure)(M₂ : Set → Set) : Set₁ where
   field
     UnderlyingISM   : ISMorphism IS₁ IS₂

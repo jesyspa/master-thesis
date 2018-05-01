@@ -7,52 +7,43 @@ open import Interaction.Complete.FreeMonad
 open import Interaction.Complete.Combine 
 open import Interaction.Complete.Implementation 
 open import Interaction.Complete.SyntacticImplementation 
+open import Interaction.Complete.CryptoExpr 
 open import Utility.Vector
 
 open InteractionStructure
 open ISMorphism
 
-data CommandCE : Set where
-  uniform : Nat → CommandCE
-
-CE : InteractionStructure
-Command  CE = CommandCE
-Response CE (uniform n) = BitVec n
-  
-challengerInfc : InteractionStructure
-Command  challengerInfc = ⊤
-Response challengerInfc tt = Bool
-
 module _ (K PT CT : Set) where
-  data CommandGame : Set where
-    keygen : CommandGame
-    enc    : K → PT → CommandGame
+  data ChallengerCmd : Set where
+    keygen : ChallengerCmd
+    enc    : K → PT → ChallengerCmd
 
-  encSchemeInfc : InteractionStructure
-  Command  encSchemeInfc  = CommandGame
-  Response encSchemeInfc keygen     = K
-  Response encSchemeInfc (enc k pt) = CT
+  challengerInfc : InteractionStructure
+  Command  challengerInfc  = ChallengerCmd
+  Response challengerInfc keygen     = K
+  Response challengerInfc (enc k pt) = CT
 
-  data CommandAdv : Set where
-    generate-msgs : CommandAdv
-    guess-which   : CT → CommandAdv
+  data AdversaryCmd : Set where
+    generate-msgs : AdversaryCmd
+    guess-which   : CT → AdversaryCmd
 
   adversaryInfc : InteractionStructure
-  Command  adversaryInfc = CommandAdv
+  Command  adversaryInfc = AdversaryCmd
   Response adversaryInfc generate-msgs   = PT × PT
   Response adversaryInfc (guess-which _) = Bool
 
-  challengerImpl : SynImpl challengerInfc (Extend*-IS CE (encSchemeInfc ∷ adversaryInfc ∷ []))
-  challengerImpl tt =
+  gameImpl : SynImpl (GameIS Bool) (Extend*-IS CryptoExprIS (challengerInfc ∷ adversaryInfc ∷ []))
+  gameImpl tt =
     Invoke-FM (true , false , keygen)                λ k →
     Invoke-FM (true , true , false , generate-msgs)  λ m →
-    Invoke-FM (false , uniform 1)                    λ bv →
+    Invoke-FM (false , uniform-CE 1)                 λ bv →
     Invoke-FM (true , false , enc k (if head bv
                                      then fst m
                                      else snd m))    λ ct →
     Invoke-FM (true , true , false , guess-which ct) λ b →
     Return-FM (isYes (head bv == b))
 
+{-
   encSchemeImplType : Set
   encSchemeImplType = SynImpl encSchemeInfc (Extend*-IS CE [])
 
@@ -68,3 +59,5 @@ module _ (K PT CT : Set) where
 
   game′ : encSchemeImplType → adversaryImplType → SynImpl challengerInfc CE
   game′ scheme adv = free-SynImpl (BinMatch-IS _ _ id-IS Coproduct-RightUnit-IS) ∘′-SI CombineSyn* (game scheme adv) ∘′-SI free-SynImpl (InclL-IS _ _)
+
+-}

@@ -26,8 +26,7 @@ module _ (M : Set → Set){{_ : Functor M}} {IS₁ IS₂}where
 
 module _ {IS₁ IS₂} where
   fmap-SynImpl-FM : ∀{A} → SynImpl IS₁ IS₂ → FreeMonad IS₁ A → FreeMonad IS₂ A
-  fmap-SynImpl-FM si (Return-FM a) = Return-FM a
-  fmap-SynImpl-FM si (Invoke-FM c cont) = bind-FM (si c) λ r → fmap-SynImpl-FM si (cont r)
+  fmap-SynImpl-FM = lift-Impl
 
 id-SynI : ∀{IS} → SynImpl IS IS 
 id-SynI c = Invoke-FM c Return-FM
@@ -42,6 +41,10 @@ _∘′-SI_ = flip comp-SynI
 module _ {A IS}{ISf : A → InteractionStructure} where
   Match-SynI : (sif : ∀ a → SynImpl (ISf a) IS) → SynImpl (Σ-IS ISf) IS
   Match-SynI = Match-Impl (FreeMonad IS)
+
+module _ {IS} where
+  Init-SynI : SynImpl Zero-IS IS
+  Init-SynI = free-SynImpl init-IS
 
 module _ {IS₁ IS₂ IS₃} where
   BinMatch-SynI : SynImpl IS₁ IS₃ → SynImpl IS₂ IS₃ → SynImpl (IS₁ ⊎-IS IS₂) IS₃
