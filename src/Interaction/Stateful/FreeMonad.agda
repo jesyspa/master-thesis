@@ -8,8 +8,11 @@ open import Interaction.Stateful.InteractionStructure
 open InteractionStructure
 open ISMorphism
 
-data Atkey {l l′}{S : Set l}(x : Set l′): S → S → Set l′ where
-  V : ∀{s} → x → Atkey x s s
+data Atkey {l l′}{S : Set l}(A : Set l′): S → S → Set l′ where
+  V : ∀{s} → A → Atkey A s s
+
+data DepAtkey {l l′}{S : Set l}(A : Set l′)(f : A → S) : S → Set l′ where
+  DepV : (a : A) → DepAtkey A f (f a)
 
 data FreeMonad (IS : InteractionStructure) : (State IS → Set) → (State IS → Set) where
   Return-FM : ∀{A s} → A s → FreeMonad IS A s 

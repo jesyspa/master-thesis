@@ -7,9 +7,10 @@ open import Interaction.Stateful.FreeMonad
 
 open InteractionStructure
 
-module _ {l}(IS : InteractionStructure){S : Set l} where
-  record Implementation (M : (S → Set) → S → Set) : Set l where
+module _ (IS : InteractionStructure){S : Set} where
+  record Implementation (M : (S → Set) → S → Set) : Set where
     field 
       StateI : S → State IS
-      ImplI  : (s : S)(c : Command IS (StateI s)) → M (Atkey (Response IS c) s) s
+      -- Aaaaaa why do I do this to myself
+      ImplI  : (s : S)(c : Command IS (StateI s)) → M (DepAtkey (Response IS c) {!StateI ∘ next IS!}) {!!}
 
