@@ -59,5 +59,5 @@ module _ {IS₁ IS₂}(m : ISMorphism IS₁ IS₂) where
   StateI fmap-IS-SynImpl = StateF 
   ImplI  fmap-IS-SynImpl c = Invoke-FM (CommandF c) λ r → Return-FM (MagicV (ResponseF r) (sym $ nextF r))
 
-  fmap-IS-FM : IxMonadMorphism (FreeMonad IS₁) (FreeMonad IS₂)
+  fmap-IS-FM : FMMorphism IS₁ IS₂
   fmap-IS-FM = fmap-SynImpl-FM fmap-IS-SynImpl
