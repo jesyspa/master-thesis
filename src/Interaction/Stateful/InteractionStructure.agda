@@ -5,6 +5,7 @@ open import ThesisPrelude
 open import Algebra.Proposition
 open import Algebra.Equality
 open import Algebra.FunExt
+open import Algebra.BinaryRelation
 
 record InteractionStructure : Set₁ where
   field
@@ -14,15 +15,18 @@ record InteractionStructure : Set₁ where
     next        : {s : State}{c : Command s}(r : Response c) → State
 open InteractionStructure
 
-record ISMorphism (IS₁ IS₂ : InteractionStructure) : Set where
+record ISMorphism (IS₁ IS₂ : InteractionStructure) : Set₁ where
   field
-    StateF    : State IS₂ → State IS₁
-    CommandF  : ∀{s} → Command IS₁ (StateF s) → Command IS₂ s
-    ResponseF : ∀{s}{c : Command IS₁ (StateF s)} → Response IS₂ (CommandF c) → Response IS₁ c
-    nextF     : ∀{s}{c : Command IS₁ (StateF s)}(r : Response IS₂ (CommandF c))
-              → StateF (next IS₂ r) ≡ next IS₁ (ResponseF r)
+    StateF    : BinaryRelation (State IS₁) (State IS₂)
+  open BinaryRelation StateF
+  field
+    CommandF  : ∀{s s′} → (pf : Relation-BR s s′) → Command IS₁ s → Command IS₂ s′
+    ResponseF : ∀{s s′} → (pf : Relation-BR s s′) → {c : Command IS₁ s} → Response IS₂ (CommandF pf c) → Response IS₁ c
+    nextF     : ∀{s s′} → (pf : Relation-BR s s′) → {c : Command IS₁ s}(r : Response IS₂ (CommandF pf c))
+              → Relation-BR (next IS₁ (ResponseF pf r)) (next IS₂ r) 
 open ISMorphism
 
+{-
 id-IS : ∀{IS} → ISMorphism IS IS
 StateF    id-IS = id
 CommandF  id-IS = id
@@ -111,3 +115,5 @@ module _ {IS₁ IS₂ JS₁ JS₂} where
   ResponseF (bimap-IS m₁ m₂) {s} {true  , c} r = ResponseF m₂ r
   nextF     (bimap-IS m₁ m₂) {s} {false , c} r = dep-fun-ext _ _ λ { false → nextF m₁ r ; true → refl       }
   nextF     (bimap-IS m₁ m₂) {s} {true  , c} r = dep-fun-ext _ _ λ { false → refl       ; true → nextF m₂ r }
+
+-}
