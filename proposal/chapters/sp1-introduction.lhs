@@ -1,7 +1,7 @@
 \section{Introduction}
 \label{sec:introduction}
 
-Cryptographic algorithms are ubiqutous in the modern world, and it is thus important that we can be certain they satisfy
+Cryptographic algorithms are ubiquitous in the modern world, and it is thus important that we can be certain they satisfy
 the security guarantees they claim to provide.  In particular, being able to automatically verify that claims of such
 proofs are correct is important.  To facilitate this, we aim to develop a framework in which cryptographic algorithms
 and proofs of their properties can be expressed.
