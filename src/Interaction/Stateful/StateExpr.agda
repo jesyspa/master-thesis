@@ -30,16 +30,14 @@ Command  StateExprIS = StateExprCommand
 Response StateExprIS (modify-SE S′ _) = eval-SE S′
 next     StateExprIS {S} {modify-SE S′ _} r = S′
 
-{-
-joinable-CE-IS : ISMorphism (CryptoExprIS ⊕-IS CryptoExprIS) CryptoExprIS
-StateF    joinable-CE-IS  tt   false        = tt
-StateF    joinable-CE-IS  tt   true         = tt
-CommandF  joinable-CE-IS {tt} (false , c)   = c
-CommandF  joinable-CE-IS {tt} (true  , c)   = c
-ResponseF joinable-CE-IS {tt} {false , c} r = r
-ResponseF joinable-CE-IS {tt} {true  , c} r = r
-nextF     joinable-CE-IS {tt} {_     , c} r = dep-fun-ext _ _ λ { false → refl ; true → refl }
+joinable-CE-IS : ISMorphism (StateExprIS ⊕-IS StateExprIS) StateExprIS
+StateF    joinable-CE-IS s false = {!!}
+StateF    joinable-CE-IS s true  = {!!}
+CommandF  joinable-CE-IS = {!!}
+ResponseF joinable-CE-IS = {!!}
+nextF     joinable-CE-IS = {!!}
 
+{-
 module _ {S : Set}(M : Set → Set){{DMM : DistMonad M}} where
   open Implementation
   open DistMonad DMM

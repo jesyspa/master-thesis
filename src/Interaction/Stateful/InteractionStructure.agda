@@ -86,17 +86,28 @@ module _ {A : Set}{{_ : Eq A}}{ISf : A → InteractionStructure} where
   ... | no   neq = ⊥-elim (neq refl)
 
 private
-  bincase : (IS₁ IS₂ : InteractionStructure) → Bool → InteractionStructure
-  bincase IS₁ IS₂ false = IS₁
-  bincase IS₁ IS₂ true  = IS₂
+  bincase : ∀{l}{A : Set l}(a₁ a₂ : A) → Bool → A
+  bincase a₁ a₂ false = a₁
+  bincase a₁ a₂ true  = a₂
 
-module _ (IS₁ IS₂ : InteractionStructure) where
+module _ IS₁ IS₂ where
   infixr 3 _⊕-IS_ 
   _⊕-IS_ : InteractionStructure
   _⊕-IS_ = Tensor-IS (bincase IS₁ IS₂)
 
-module _ {IS₁ IS₂ : InteractionStructure} where
+module _ {IS₁ IS₂}  where
   InjL-IS : ISMorphism IS₁ (IS₁ ⊕-IS IS₂)
   InjL-IS = Inj-IS {ISf = bincase IS₁ IS₂} {false}
   InjR-IS : ISMorphism IS₂ (IS₁ ⊕-IS IS₂)
   InjR-IS = Inj-IS {ISf = bincase IS₁ IS₂} {true}
+
+module _ {IS₁ IS₂ JS₁ JS₂} where
+  bimap-IS : ISMorphism IS₁ JS₁ → ISMorphism IS₂ JS₂ → ISMorphism (IS₁ ⊕-IS IS₂) (JS₁ ⊕-IS JS₂)
+  StateF    (bimap-IS m₁ m₂)  s   false = StateF m₁ (s false)
+  StateF    (bimap-IS m₁ m₂)  s   true  = StateF m₂ (s true)
+  CommandF  (bimap-IS m₁ m₂) {s} (false , c) = false , CommandF m₁ c
+  CommandF  (bimap-IS m₁ m₂) {s} (true  , c) = true  , CommandF m₂ c
+  ResponseF (bimap-IS m₁ m₂) {s} {false , c} r = ResponseF m₁ r
+  ResponseF (bimap-IS m₁ m₂) {s} {true  , c} r = ResponseF m₂ r
+  nextF     (bimap-IS m₁ m₂) {s} {false , c} r = dep-fun-ext _ _ λ { false → nextF m₁ r ; true → refl       }
+  nextF     (bimap-IS m₁ m₂) {s} {true  , c} r = dep-fun-ext _ _ λ { false → refl       ; true → nextF m₂ r }
