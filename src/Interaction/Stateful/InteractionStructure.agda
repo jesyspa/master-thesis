@@ -88,10 +88,6 @@ private
   bincase a₁ a₂ false = a₁
   bincase a₁ a₂ true  = a₂
 
-  dep-bincase : ∀{l}{A₁ A₂ : Set l}(a₁ : A₁)(a₂ : A₂) → (b : Bool) → bincase A₁ A₂ b
-  dep-bincase a₁ a₂ false = a₁
-  dep-bincase a₁ a₂ true  = a₂
-
 module _ IS₁ IS₂ where
   infixr 3 _⊕-IS_ 
   _⊕-IS_ : InteractionStructure
@@ -105,4 +101,4 @@ module _ {IS₁ IS₂}  where
 
 module _ {IS₁ IS₂ JS₁ JS₂} where
   bimap-IS : ISMorphism IS₁ JS₁ → ISMorphism IS₂ JS₂ → ISMorphism (IS₁ ⊕-IS IS₂) (JS₁ ⊕-IS JS₂)
-  bimap-IS m₁ m₂ = tensormap-IS λ { false → m₁ ; true → {!m₂!} }
+  bimap-IS m₁ m₂ = tensormap-IS λ { false → m₁ ; true → m₂ }
