@@ -1,14 +1,18 @@
 open import ThesisPrelude using (Monad)
 open import Algebra.Indexed.Monad 
-module Utility.State.Indexed.Transformer {l}(M : (Set l → Set l) → (Set l → Set l)){{IMM : IxMonad M}} where
+module Utility.State.Indexed.Transformer {l}{T : Set l}(M : (T → Set l) → (T → Set l)){{IMM : IxMonad M}} where
 
 open import ThesisPrelude
 
 open IxMonad IMM
 
-IxStateT : (Set l → Set l) → (Set l → Set l)
-IxStateT A S = S → M (λ S′ → A S′ × S′) S 
+IxStateT : (Set l × T → Set l) → (Set l × T → Set l)
+IxStateT A (S , s) = S → M {!!} {!!}
 
+modify : ∀{S S′ s s′} → (S → S′) → IxStateT {!!} (S , s)
+modify = {!!}
+
+{-
 fmapⁱ-ST : ∀{S A B} → (∀{S′} → A S′ → B S′) → IxStateT A S → IxStateT B S
 fmapⁱ-ST f st s = fmapⁱ (first f) (st s)
 
@@ -22,3 +26,5 @@ instance
   IxMonadStateT : IxMonad IxStateT
   IxMonadStateT = record { returnⁱ = returnⁱ-ST ; _>>=ⁱ_ = bindⁱ-ST ; fmapⁱ = fmapⁱ-ST }
 
+
+-}

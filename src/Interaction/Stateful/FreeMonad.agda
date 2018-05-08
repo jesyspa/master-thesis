@@ -9,15 +9,6 @@ open import Algebra.Indexed.MonadMorphism
 open InteractionStructure
 open ISMorphism
 
-data Atkey {l l′}{S : Set l}(A : Set l′): S → S → Set l′ where
-  V : ∀{s} → A → Atkey A s s
-
-data DepAtkey {l l′}{S : Set l}(A : Set l′)(f : A → S) : S → Set l′ where
-  DepV : (a : A) → DepAtkey A f (f a)
-
-data MagicAtkey {l l′}{S S′ : Set l}(A : Set l′)(st : S → S′)(f : A → S′) : S → Set (l′ ⊔ l) where
-  MagicV : ∀{s} → (a : A) → f a ≡ st s → MagicAtkey A st f s
-
 data FreeMonad (IS : InteractionStructure) : (State IS → Set) → (State IS → Set) where
   Return-FM : ∀{A s} → A s → FreeMonad IS A s 
   Invoke-FM : ∀{A s} → (c : Command IS s) → ((r : Response IS c) → FreeMonad IS A (next IS r)) → FreeMonad IS A s
