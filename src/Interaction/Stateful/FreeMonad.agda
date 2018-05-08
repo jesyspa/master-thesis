@@ -37,6 +37,7 @@ module _ {IS : InteractionStructure} where
     FreeIxMonad : IxMonad (FreeMonad IS)
     returnⁱ FreeIxMonad = Return-FM
     _>>=ⁱ_ FreeIxMonad  = bind-FM
+    fmapⁱ FreeIxMonad   = fmap-FM
     
 FMMorphism : (IS₁ IS₂ : InteractionStructure) → Set₁
 FMMorphism IS₁ IS₂ = IxMonadMorphism (FreeMonad IS₁) (FreeMonad IS₂)

@@ -39,6 +39,7 @@ module _ {IS₁ IS₂ IS₃} where
   _∘′-IS_ : ISMorphism IS₂ IS₃ → ISMorphism IS₁ IS₂ → ISMorphism IS₁ IS₃
   _∘′-IS_ = flip comp-IS
 
+{-
 module _ {A : Set}{{_ : Eq A}}(ISf : A → InteractionStructure) where
   Tensor-IS : InteractionStructure
   State    Tensor-IS = ∀ a → State (ISf a)
@@ -62,7 +63,6 @@ module _ {A : Set}{{_ : Eq A}}{ISf : A → InteractionStructure} where
     where lem : (a : A) → StateF (Inj-IS f) {!!} a ≡ next (Tensor-IS ISf) {StateF (Inj-IS f) s} {a₀ , {!!}} {!!} a
           lem = {!!}
 
-{-
 module _ {A : Set}{{_ : Eq A}}{ISf ISg : A → InteractionStructure} where
   tensormap-IS : (∀ a → ISMorphism (ISf a) (ISg a)) → ISMorphism (Tensor-IS ISf) (Tensor-IS ISg)
   StateF    (tensormap-IS mf) sf sg        = ∀ a → StateF (mf a) (sf a) (sg a)
@@ -93,3 +93,38 @@ module _ {IS₁ IS₂ JS₁ JS₂} where
   bimap-IS m₁ m₂ = tensormap-IS λ { false → m₁ ; true → m₂ }
 
 -}
+module _ IS₁ IS₂ where
+  BinTensor-IS : InteractionStructure
+  State        BinTensor-IS = State IS₁ × State IS₂
+  Command      BinTensor-IS (s₁ , s₂) = Command IS₁ s₁ ⊎ Command IS₂ s₂
+  Response     BinTensor-IS {s₁ , s₂} (left  c) = Response IS₁ c
+  Response     BinTensor-IS {s₁ , s₂} (right c) = Response IS₂ c
+  next         BinTensor-IS {s₁ , s₂} {left  c} r = next IS₁ r , s₂
+  next         BinTensor-IS {s₁ , s₂} {right c} r = s₁ , next IS₂ r
+
+  infixr 3 _⊕-IS_ 
+  _⊕-IS_ : InteractionStructure
+  _⊕-IS_ = BinTensor-IS
+
+module _ {IS₁ IS₂} where
+  IncL-IS : State IS₂ → ISMorphism IS₁ (BinTensor-IS IS₁ IS₂)
+  StateF     (IncL-IS s₂) s₁ = s₁ , s₂
+  CommandF   (IncL-IS s₂) c = left c
+  ResponseF  (IncL-IS s₂) r = r
+  nextF      (IncL-IS s₂) r = refl
+
+  IncR-IS : State IS₁ → ISMorphism IS₂ (BinTensor-IS IS₁ IS₂)
+  StateF     (IncR-IS s₁) s₂ = s₁ , s₂
+  CommandF   (IncR-IS s₁) c = right c
+  ResponseF  (IncR-IS s₁) r = r
+  nextF      (IncR-IS s₁) r = refl
+
+module _ {IS₁ IS₂ JS₁ JS₂} where
+  binmap-IS : ISMorphism IS₁ JS₁ → ISMorphism IS₂ JS₂ → ISMorphism (IS₁ ⊕-IS IS₂) (JS₁ ⊕-IS JS₂)
+  StateF    (binmap-IS m₁ m₂) (s₁ , s₂) = StateF m₁ s₁ , StateF m₂ s₂
+  CommandF  (binmap-IS m₁ m₂) {s₁ , s₂} (left  c) = left  $ CommandF m₁ c
+  CommandF  (binmap-IS m₁ m₂) {s₁ , s₂} (right c) = right $ CommandF m₂ c
+  ResponseF (binmap-IS m₁ m₂) {s₁ , s₂} {left  c} r = ResponseF m₁ r
+  ResponseF (binmap-IS m₁ m₂) {s₁ , s₂} {right c} r = ResponseF m₂ r
+  nextF     (binmap-IS m₁ m₂) {s₁ , s₂} {left  c} r rewrite nextF m₁ r = refl
+  nextF     (binmap-IS m₁ m₂) {s₁ , s₂} {right c} r rewrite nextF m₂ r = refl

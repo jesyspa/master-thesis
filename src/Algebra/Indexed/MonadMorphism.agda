@@ -5,7 +5,7 @@ module Algebra.Indexed.MonadMorphism {l₁ l₂ l′}{S₁ : Set l₁}{S₂ : Se
 
 open import Algebra.Function
 
-record IxMonadMorphism {l} : Set (lsuc l ⊔ lsuc l₁ ⊔ lsuc l₂ ⊔ lsuc l′) where
+record IxMonadMorphism : Set (lsuc l₁ ⊔ lsuc l₂ ⊔ lsuc l′) where
   field
     StateM : S₁ → S₂
     -- This is kind of terrible.
