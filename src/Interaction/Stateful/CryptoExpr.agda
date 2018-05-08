@@ -23,17 +23,18 @@ Response CryptoExprIS (uniform-CE n) = BitVec n
 next     CryptoExprIS _ = tt
 
 joinable-CE-IS : ISMorphism (CryptoExprIS ⊕-IS CryptoExprIS) CryptoExprIS
-StateF    joinable-CE-IS  tt   false        = tt
-StateF    joinable-CE-IS  tt   true         = tt
-CommandF  joinable-CE-IS {tt} (false , c)   = c
-CommandF  joinable-CE-IS {tt} (true  , c)   = c
-ResponseF joinable-CE-IS {tt} {false , c} r = r
-ResponseF joinable-CE-IS {tt} {true  , c} r = r
-nextF     joinable-CE-IS {tt} {_     , c} r = dep-fun-ext _ _ λ { false → refl ; true → refl }
+StateF    joinable-CE-IS (tt , tt) = tt
+CommandF  joinable-CE-IS {tt , tt} (left  c) = c
+CommandF  joinable-CE-IS {tt , tt} (right c) = c
+ResponseF joinable-CE-IS {tt , tt} {left  c} r = r
+ResponseF joinable-CE-IS {tt , tt} {right c} r = r
+nextF     joinable-CE-IS {tt , tt} {left  c} r = refl
+nextF     joinable-CE-IS {tt , tt} {right c} r = refl
 
-module _ {S : Set}(M : Set → Set){{DMM : DistMonad M}} where
+module _ {S : Set}(M : Set → Set)(s : S){{DMM : DistMonad M}} where
   open Implementation
   open DistMonad DMM
-  implementation-CE-IS : Implementation CryptoExprIS {S} (LiftM M)
-  StateI  implementation-CE-IS _ = tt
-  ImplI   implementation-CE-IS (uniform-CE n) = fmap (λ v → MagicV v refl) (uniform n) 
+  implementation-CE-IS : Implementation CryptoExprIS (LiftM M)
+  StateI  implementation-CE-IS  tt = s
+  ImplI   implementation-CE-IS {tt} (uniform-CE n) = fmap DepV (uniform n)
+

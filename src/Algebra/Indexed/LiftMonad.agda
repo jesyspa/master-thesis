@@ -12,4 +12,5 @@ module _ {l′}{S : Set l′} where
     IxMonadLiftM : IxMonad
     returnⁱ IxMonadLiftM a = return a
     _>>=ⁱ_  IxMonadLiftM m f = m >>= f
+    fmapⁱ   IxMonadLiftM f m = fmap f m
 

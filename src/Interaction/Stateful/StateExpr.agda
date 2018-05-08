@@ -31,17 +31,19 @@ Response StateExprIS (modify-SE S′ _) = eval-SE S′
 next     StateExprIS {S} {modify-SE S′ _} r = S′
 
 joinable-CE-IS : ISMorphism (StateExprIS ⊕-IS StateExprIS) StateExprIS
-StateF    joinable-CE-IS s false = {!!}
-StateF    joinable-CE-IS s true  = {!!}
-CommandF  joinable-CE-IS = {!!}
-ResponseF joinable-CE-IS = {!!}
-nextF     joinable-CE-IS = {!!}
+StateF    joinable-CE-IS (s₁ , s₂) = product-SE s₁ s₂
+CommandF  joinable-CE-IS {s₁ , s₂} (left  (modify-SE s₁′ f)) = modify-SE (product-SE s₁′ s₂) (first  f)
+CommandF  joinable-CE-IS {s₁ , s₂} (right (modify-SE s₂′ f)) = modify-SE (product-SE s₁ s₂′) (second f)
+ResponseF joinable-CE-IS {s₁ , s₂} {left  (modify-SE s₁′ f)} r = fst r
+ResponseF joinable-CE-IS {s₁ , s₂} {right (modify-SE s₂′ f)} r = snd r
+nextF     joinable-CE-IS {s₁ , s₂} {left  (modify-SE s₁′ f)} r = refl
+nextF     joinable-CE-IS {s₁ , s₂} {right (modify-SE s₁′ f)} r = refl
 
 {-
-module _ {S : Set}(M : Set → Set){{DMM : DistMonad M}} where
+module _  where
   open Implementation
-  open DistMonad DMM
-  implementation-CE-IS : Implementation CryptoExprIS {S} (LiftM M)
-  StateI  implementation-CE-IS _ = tt
-  ImplI   implementation-CE-IS (uniform-CE n) = fmap (λ v → MagicV v refl) (uniform n) 
-  -}
+  implementation-SE-IS : Implementation StateExprIS {!!}
+  StateI  implementation-SE-IS = {!!}
+  ImplI   implementation-SE-IS = {!!}
+
+-}
