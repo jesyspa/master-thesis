@@ -16,45 +16,28 @@ open InteractionStructure
 
 record ISMorphism (IS₁ IS₂ : InteractionStructure) : Set₁ where
   field
-    StateF    : State IS₁ → State IS₂ → Set
-    CommandF  : ∀{s s′} → (pf : StateF s s′) → Command IS₁ s → Command IS₂ s′
-    ResponseF : ∀{s s′} → (pf : StateF s s′) → {c : Command IS₁ s} → Response IS₂ (CommandF pf c) → Response IS₁ c
-    nextF     : ∀{s s′} → (pf : StateF s s′) → {c : Command IS₁ s}(r : Response IS₂ (CommandF pf c))
-              → StateF (next IS₁ (ResponseF pf r)) (next IS₂ r) 
+    StateF    : State IS₁ → State IS₂
+    CommandF  : ∀{s} → Command IS₁ s → Command IS₂ (StateF s)
+    ResponseF : ∀{s} → {c : Command IS₁ s} → Response IS₂ (CommandF c) → Response IS₁ c
+    nextF     : ∀{s} → {c : Command IS₁ s}(r : Response IS₂ (CommandF c)) → StateF (next IS₁ (ResponseF r)) ≡ (next IS₂ r) 
 open ISMorphism
 
 id-IS : ∀{IS} → ISMorphism IS IS
-StateF    id-IS = _≡_
-CommandF  id-IS refl = id
-ResponseF id-IS refl = id
-nextF     id-IS refl r = refl
+StateF    id-IS = id
+CommandF  id-IS = id
+ResponseF id-IS = id
+nextF     id-IS r = refl
 
 module _ {IS₁ IS₂ IS₃} where
   comp-IS : ISMorphism IS₁ IS₂ → ISMorphism IS₂ IS₃ → ISMorphism IS₁ IS₃
-  StateF    (comp-IS m₁ m₂) s₁ s₃ = Σ (State IS₂) λ s₂ → StateF m₁ s₁ s₂ × StateF m₂ s₂ s₃
-  CommandF  (comp-IS m₁ m₂) (s₂ , p₁ , p₂) = CommandF m₂ p₂ ∘′ CommandF m₁ p₁
-  ResponseF (comp-IS m₁ m₂) (s₂ , p₁ , p₂) = ResponseF m₁ p₁ ∘′ ResponseF m₂ p₂
-  nextF     (comp-IS m₁ m₂) (s₂ , p₁ , p₂) r = next IS₂ (ResponseF m₂ p₂ r) , nextF m₁ p₁ (ResponseF m₂ p₂ r) , nextF m₂ p₂ r
+  StateF    (comp-IS m₁ m₂) = StateF m₂ ∘′ StateF m₁
+  CommandF  (comp-IS m₁ m₂) = CommandF m₂ ∘′ CommandF m₁
+  ResponseF (comp-IS m₁ m₂) = ResponseF m₁ ∘′ ResponseF m₂
+  nextF     (comp-IS m₁ m₂) r rewrite nextF m₁ (ResponseF m₂ r) | nextF m₂ r  = refl 
 
   infixr 9 _∘′-IS_
   _∘′-IS_ : ISMorphism IS₂ IS₃ → ISMorphism IS₁ IS₂ → ISMorphism IS₁ IS₃
   _∘′-IS_ = flip comp-IS
-
-Zero-IS : InteractionStructure
-State    Zero-IS = ⊤
-Command  Zero-IS tt = ⊥
-Response Zero-IS ()
-next     Zero-IS {tt} {()}
-
-⊥-IS = Zero-IS
-
-init-IS : ∀{IS} → ISMorphism Zero-IS IS
-StateF    init-IS tt s = ⊥
-CommandF  init-IS ()
-ResponseF init-IS ()
-nextF     init-IS ()
-
--- Unit is probably definable, but we don't need it right now.
 
 module _ {A : Set}{{_ : Eq A}}(ISf : A → InteractionStructure) where
   Tensor-IS : InteractionStructure
@@ -66,14 +49,20 @@ module _ {A : Set}{{_ : Eq A}}(ISf : A → InteractionStructure) where
   ... | no   neq = sf a′
 
 module _ {A : Set}{{_ : Eq A}}{ISf : A → InteractionStructure} where
-  Inj-IS : ∀{a} → ISMorphism (ISf a) (Tensor-IS ISf)
-  StateF    (Inj-IS {a}) sa sf = sa ≡ sf a
-  CommandF  (Inj-IS {a}) refl c = a , c
-  ResponseF (Inj-IS {a}) refl r = r
-  nextF     (Inj-IS {a}) refl r with a == a
-  ... | yes refl = refl
-  ... | no   neq = ⊥-elim (neq refl)
+  Inj-IS : ∀{a₀} → (∀{a} → ¬ (a₀ ≡ a) → State (ISf a)) → ISMorphism (ISf a₀) (Tensor-IS ISf)
+  StateF    (Inj-IS {a₀} f) sa₀ a with a₀ == a
+  ... | yes refl = sa₀
+  ... | no   neq = f neq
+  CommandF  (Inj-IS {a₀} f) c = a₀ , lem
+    where lem : Command (ISf a₀) (StateF (Inj-IS f) _ a₀)
+          lem rewrite yes-refl′ a₀ = c
+  ResponseF (Inj-IS {a₀} f) r rewrite yes-refl′ a₀ = r
+  nextF     (Inj-IS {a₀} f) {s} {c} r = dep-fun-ext _ _ {!!}
+    -- I need to force reduction in the argument to StateF, but how?
+    where lem : (a : A) → StateF (Inj-IS f) {!!} a ≡ next (Tensor-IS ISf) {StateF (Inj-IS f) s} {a₀ , {!!}} {!!} a
+          lem = {!!}
 
+{-
 module _ {A : Set}{{_ : Eq A}}{ISf ISg : A → InteractionStructure} where
   tensormap-IS : (∀ a → ISMorphism (ISf a) (ISg a)) → ISMorphism (Tensor-IS ISf) (Tensor-IS ISg)
   StateF    (tensormap-IS mf) sf sg        = ∀ a → StateF (mf a) (sf a) (sg a)
@@ -102,3 +91,5 @@ module _ {IS₁ IS₂}  where
 module _ {IS₁ IS₂ JS₁ JS₂} where
   bimap-IS : ISMorphism IS₁ JS₁ → ISMorphism IS₂ JS₂ → ISMorphism (IS₁ ⊕-IS IS₂) (JS₁ ⊕-IS JS₂)
   bimap-IS m₁ m₂ = tensormap-IS λ { false → m₁ ; true → m₂ }
+
+-}

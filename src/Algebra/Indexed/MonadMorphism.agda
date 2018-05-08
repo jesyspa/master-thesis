@@ -7,7 +7,7 @@ open import Algebra.Function
 
 record IxMonadMorphism {l} : Set (lsuc l ⊔ lsuc l₁ ⊔ lsuc l₂ ⊔ lsuc l′) where
   field
-    StateM : S₁ → S₂ → Set (l ⊔ l₁ ⊔ l₂)
+    StateM : S₁ → S₂
     -- This is kind of terrible.
-    TermM  : ∀{A A′ s s′} → (∀{t t′} → StateM t t′ → A t ↔ A′ t′) → StateM s s′ → M₁ A s → M₂ A′ s′
+    TermM  : ∀{A s} → M₁ (A ∘′ StateM) s → M₂ A (StateM s)
 

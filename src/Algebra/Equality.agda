@@ -7,6 +7,11 @@ yes-refl a with a == a
 ... | yes eq = refl
 ... | no neq = ⊥-elim (neq refl)
 
+yes-refl′ : ∀{l} {A : Set l} {{_ : Eq A}} (a : A) → (a == a) ≡ yes refl 
+yes-refl′ a with a == a
+... | yes refl = refl
+... | no neq   = ⊥-elim (neq refl)
+
 no-neq : ∀{l} {A : Set l} {{_ : Eq A}} (a a′ : A) → ¬ (a ≡ a′) → isYes (a == a′) ≡ false
 no-neq a a′ p with a == a′
 ... | yes eq = ⊥-elim (p eq)
