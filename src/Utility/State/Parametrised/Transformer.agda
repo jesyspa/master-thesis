@@ -1,6 +1,6 @@
 open import ThesisPrelude using (Monad)
 open import Algebra.Parametrised.Monad 
-module Utility.State.Transformer {l}(M : Set l → Set l → Set l → Set l){{_ : ParMonad (Set l) M}} where
+module Utility.State.Parametrised.Transformer {l}(M : Set l → Set l → Set l → Set l){{_ : ParMonad (Set l) M}} where
 
 open import ThesisPrelude
 
