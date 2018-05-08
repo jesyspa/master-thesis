@@ -10,14 +10,14 @@ open import Interaction.Stateful.FreeMonad
 open InteractionStructure
 open IxMonad {{...}}
 
-module _ (IS : InteractionStructure){S : Set} where
-  record Implementation (M : (S → Set) → S → Set) : Set where
+module _ {l}(IS : InteractionStructure){S : Set l} where
+  record Implementation (M : (S → Set) → S → Set) : Set l where
     field 
       StateI : State IS → S
       ImplI  : {s : State IS}(c : Command IS s) → M (DepAtkey (Response IS c) (StateI ∘′ next IS)) (StateI s)
 open Implementation
 
-module _ {IS S}{M : (S → Set) → S → Set}{{_ : IxMonad M}} where
+module _ {l}{IS}{S : Set l}{M : (S → Set) → S → Set}{{_ : IxMonad M}} where
   open IxMonadMorphism
   {-# TERMINATING #-}
   uprop-Impl : Implementation IS M → IxMonadMorphism (FreeMonad IS) M

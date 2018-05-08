@@ -6,6 +6,7 @@ open import Algebra.FunExt
 open import Algebra.Indexed.LiftMonad
 open import Distribution.Class
 open import Utility.Vector
+open import Utility.State
 open import Interaction.Stateful.InteractionStructure 
 open import Interaction.Stateful.FreeMonad 
 open import Interaction.Stateful.Implementation 
@@ -39,11 +40,9 @@ ResponseF joinable-CE-IS {s₁ , s₂} {right (modify-SE s₂′ f)} r = snd r
 nextF     joinable-CE-IS {s₁ , s₂} {left  (modify-SE s₁′ f)} r = refl
 nextF     joinable-CE-IS {s₁ , s₂} {right (modify-SE s₁′ f)} r = refl
 
-{-
-module _  where
+module _ {IS S}{M : (S → Set) → (S → Set)}(Impl : Implementation IS M) where
   open Implementation
-  implementation-SE-IS : Implementation StateExprIS {!!}
+  implementation-SE-IS : Implementation (StateExprIS ⊕-IS IS) {!StateT !}
   StateI  implementation-SE-IS = {!!}
   ImplI   implementation-SE-IS = {!!}
 
--}

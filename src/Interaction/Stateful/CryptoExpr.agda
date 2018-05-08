@@ -31,7 +31,7 @@ ResponseF joinable-CE-IS {tt , tt} {right c} r = r
 nextF     joinable-CE-IS {tt , tt} {left  c} r = refl
 nextF     joinable-CE-IS {tt , tt} {right c} r = refl
 
-module _ {S : Set}(M : Set → Set)(s : S){{DMM : DistMonad M}} where
+module _ {l}{S : Set l}(M : Set → Set)(s : S){{DMM : DistMonad M}} where
   open Implementation
   open DistMonad DMM
   implementation-CE-IS : Implementation CryptoExprIS (LiftM M)
