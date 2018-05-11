@@ -3,6 +3,7 @@ module Interaction.Stateful.Implementation where
 open import ThesisPrelude
 open import Algebra.Proposition
 open import Algebra.Indexed.Monad
+open import Algebra.Indexed.Atkey
 open import Algebra.Indexed.MonadMorphism
 open import Interaction.Stateful.InteractionStructure 
 open import Interaction.Stateful.FreeMonad 
