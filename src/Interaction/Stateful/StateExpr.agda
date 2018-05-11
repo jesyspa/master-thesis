@@ -3,10 +3,11 @@ module Interaction.Stateful.StateExpr where
 open import ThesisPrelude
 open import Algebra.Proposition
 open import Algebra.FunExt
+open import Algebra.Indexed.Monad
 open import Algebra.Indexed.LiftMonad
+open import Algebra.Indexed.Atkey
 open import Distribution.Class
 open import Utility.Vector
-open import Utility.State
 open import Interaction.Stateful.InteractionStructure 
 open import Interaction.Stateful.FreeMonad 
 open import Interaction.Stateful.Implementation 
@@ -40,9 +41,19 @@ ResponseF joinable-CE-IS {s₁ , s₂} {right (modify-SE s₂′ f)} r = snd r
 nextF     joinable-CE-IS {s₁ , s₂} {left  (modify-SE s₁′ f)} r = refl
 nextF     joinable-CE-IS {s₁ , s₂} {right (modify-SE s₁′ f)} r = refl
 
-module _ {IS S}{M : (S → Set) → (S → Set)}(Impl : Implementation IS M) where
+module _ {IS}{T : Set}{M : (T → Set) → (T → Set)}(Impl : Implementation IS M){{IMM : IxMonad M}} where
+  open import Utility.State.Indexed.Reindexing eval-SE M
   open Implementation
-  implementation-SE-IS : Implementation (StateExprIS ⊕-IS IS) {!StateT !}
-  StateI  implementation-SE-IS = {!!}
-  ImplI   implementation-SE-IS = {!!}
-
+  open IxMonad {{...}}
+  implementation-SE-IS : Implementation (StateExprIS ⊕-IS IS) IxStateTᵣ 
+  StateI implementation-SE-IS (s , t) = s , StateI Impl t 
+  ImplI  implementation-SE-IS {s , t} (left (modify-SE s′ f)) = fmapⁱ-STᵣ DepV (modify-STᵣ f) 
+  ImplI  implementation-SE-IS {s , t} (right c) = {!!}
+  {- This looks correct to me, but I still get a lot of yellow.
+  ImplI  implementation-SE-IS {s , t} (right c) = fmapⁱ fun goal
+    where goal : IxStateTᵣ (DepAtkey (Response IS c) (StateI Impl ∘′ next IS) ∘′ snd) (s , StateI Impl t)
+          goal = lift-STᵣ (ImplI Impl c)
+          fun : ∀{S′} → DepAtkey (Response IS c) (StateI Impl ∘′ next IS) (snd S′)
+              → DepAtkey (Response IS c) (StateI implementation-SE-IS ∘′ next (StateExprIS ⊕-IS IS)) S′
+          fun {s′ , t′} (DepV x) = DepV x
+  -}
