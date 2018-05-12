@@ -45,11 +45,12 @@ module _ {IS}{T : Set}{M : (T → Set) → (T → Set)}(Impl : Implementation IS
   open import Utility.State.Indexed.Reindexing eval-SE M
   open Implementation
   open IxMonad {{...}}
-  implementation-SE-IS : Implementation (StateExprIS ⊕-IS IS) IxStateTᵣ 
+  postulate
+    implementation-SE-IS : Implementation (StateExprIS ⊕-IS IS) IxStateTᵣ 
+  {-
   StateI implementation-SE-IS (s , t) = s , StateI Impl t 
   ImplI  implementation-SE-IS {s , t} (left (modify-SE s′ f)) = fmapⁱ-STᵣ DepV (modify-STᵣ f) 
-  ImplI  implementation-SE-IS {s , t} (right c) = {!!}
-  {- This looks correct to me, but I still get a lot of yellow.
+  -- This looks correct to me, but I still get a lot of yellow.
   ImplI  implementation-SE-IS {s , t} (right c) = fmapⁱ fun goal
     where goal : IxStateTᵣ (DepAtkey (Response IS c) (StateI Impl ∘′ next IS) ∘′ snd) (s , StateI Impl t)
           goal = lift-STᵣ (ImplI Impl c)

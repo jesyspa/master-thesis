@@ -10,6 +10,7 @@ open import Interaction.Stateful.FreeMonad
 
 open InteractionStructure
 open IxMonad {{...}}
+open IxMonadMorphism
 
 module _ {l}(IS : InteractionStructure){S : Set l} where
   record Implementation (M : (S → Set) → S → Set) : Set l where
@@ -47,6 +48,10 @@ module _ {IS₁ IS₂ IS₃ : InteractionStructure} where
   StateI (comp-SI si sj) = StateI sj ∘′ StateI si
   ImplI  (comp-SI si sj) = TermM (fmap-SynImpl-FM sj) ∘ fmapⁱ (λ { (DepV r) → DepV r }) ∘ ImplI si
 
+  infixr 9 _∘′-SI_
+  _∘′-SI_ : SynImpl IS₁ IS₂ → SynImpl IS₂ IS₃ → SynImpl IS₁ IS₃
+  _∘′-SI_ = comp-SI
+
 module _ {IS₁ IS₂}(m : ISMorphism IS₁ IS₂) where
   open ISMorphism m
   fmap-IS-SynImpl : SynImpl IS₁ IS₂
@@ -58,3 +63,9 @@ module _ {IS₁ IS₂}(m : ISMorphism IS₁ IS₂) where
 
   fmap-IS-FM : FMMorphism IS₁ IS₂
   fmap-IS-FM = fmap-SynImpl-FM fmap-IS-SynImpl
+
+module _{IS₁ JS₁ IS₂ JS₂} where
+  binmap-SI : SynImpl IS₁ IS₂ → SynImpl JS₁ JS₂ → SynImpl (BinTensor-IS IS₁ JS₁) (BinTensor-IS IS₂ JS₂)
+  StateI (binmap-SI si sj) (s , t) = StateI si s , StateI sj t
+  ImplI  (binmap-SI si sj) {s , t} (left  c) = TermM (fmap-IS-FM $ IncL-IS (StateI sj t)) $ fmapⁱ (λ { (DepV x) → DepV x }) $ ImplI si c
+  ImplI  (binmap-SI si sj) {s , t} (right c) = TermM (fmap-IS-FM $ IncR-IS (StateI si s)) $ fmapⁱ (λ { (DepV x) → DepV x }) $ ImplI sj c

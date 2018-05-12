@@ -1,12 +1,12 @@
-module Interaction.Complete.Example where
+module Interaction.Stateful.Example where
 
 open import ThesisPrelude
 open import Algebra.Proposition
-open import Interaction.Complete.InteractionStructure 
-open import Interaction.Complete.FreeMonad 
-open import Interaction.Complete.Combine 
-open import Interaction.Complete.Implementation 
-open import Interaction.Complete.SyntacticImplementation 
+open import Interaction.Stateful.InteractionStructure 
+open import Interaction.Stateful.FreeMonad 
+open import Interaction.Stateful.Implementation 
+open import Interaction.Stateful.CryptoExpr 
+open import Interaction.Stateful.StateExpr 
 open import Utility.Vector
 
 open InteractionStructure

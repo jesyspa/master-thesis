@@ -4,6 +4,7 @@ open import ThesisPrelude
 open import Algebra.Proposition
 open import Algebra.FunExt
 open import Algebra.Indexed.LiftMonad
+open import Algebra.Indexed.Atkey
 open import Distribution.Class
 open import Utility.Vector
 open import Interaction.Stateful.InteractionStructure 
