@@ -1,13 +1,13 @@
 open import Algebra.Function
-module Algebra.KanExtension {S S′ : Set}(f : S′ → S){{If : Injective f}} where
+module Algebra.KanExtension {l l′}{S : Set l}{S′ : Set l′}(f : S′ → S){{If : Injective f}} where
 
 open import ThesisPrelude
 open import Algebra.NaturalTransformation
 
-Lan : (S′ → Set) → S → Set
+Lan : (S′ → Set (l ⊔ l′)) → S → Set (l ⊔ l′)
 Lan φ s = Σ S′ λ s′ → (f s′ ≡ s) × φ s′
 
-Lan* : {φ φ′ : S′ → Set}
+Lan* : {φ φ′ : S′ → Set (l ⊔ l′)}
      → φ ⇒ φ′
      → Lan φ ⇒ Lan φ′
 Lan* mf (s′ , eq , v) = s′ , eq , mf v

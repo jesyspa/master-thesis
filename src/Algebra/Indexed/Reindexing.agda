@@ -1,7 +1,9 @@
 open import ThesisPrelude
 open import Algebra.Function
 open import Algebra.Indexed.Monad
-module Algebra.Indexed.Reindexing {S S′ : Set}(reindex : S′ → S){{If : Injective reindex}}(M : (S → Set) → S → Set){{IMM : IxMonad M}} where
+module Algebra.Indexed.Reindexing {l l′}{S : Set l}{S′ : Set l′}
+                                  (reindex : S′ → S){{If : Injective reindex}}
+                                  (M : (S → Set (l ⊔ l′)) → S → Set (l ⊔ l′)){{IMM : IxMonad M}} where
 
 open import Algebra.KanExtension reindex {{If}}
 
@@ -11,7 +13,7 @@ fmapⁱ-M   = fmapⁱ IMM
 returnⁱ-M = returnⁱ IMM
 _>>=ⁱ-M_  = _>>=ⁱ_ IMM
 
-Reindexed : (S′ → Set) → (S′ → Set)
+Reindexed : (S′ → Set (l ⊔ l′)) → (S′ → Set (l ⊔ l′))
 Reindexed A s′ = M (Lan A) (reindex s′)
 
 returnⁱ-RM : ∀{A s} → A s → Reindexed A s
@@ -29,5 +31,3 @@ open IxMonadMorphism
 EmbedReindexed : IxMonadMorphism
 StateM  EmbedReindexed = reindex
 TermM   EmbedReindexed rm = fmapⁱ-M (λ { (s′ , refl , a) → a }) rm
-
-
