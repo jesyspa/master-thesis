@@ -1,9 +1,33 @@
 open import ThesisPrelude
-module Algebra.Indexed.Reindexing {l l′}{S S′ : Set l}(reindex : S → S′)(M : (S → Set l′) → S → Set l′) where
+open import Algebra.Function
+open import Algebra.Indexed.Monad
+module Algebra.Indexed.Reindexing {S S′ : Set}(reindex : S′ → S){{If : Injective reindex}}(M : (S → Set) → S → Set){{IMM : IxMonad M}} where
 
--- I think this is simply impossible.
-Reindexed : (S′ → Set l′) → (S′ → Set l′)
-Reindexed A s′ = M (A ∘′ reindex) {!!}
+open import Algebra.KanExtension reindex {{If}}
 
+open IxMonad
+
+fmapⁱ-M   = fmapⁱ IMM
+returnⁱ-M = returnⁱ IMM
+_>>=ⁱ-M_  = _>>=ⁱ_ IMM
+
+Reindexed : (S′ → Set) → (S′ → Set)
+Reindexed A s′ = M (Lan A) (reindex s′)
+
+returnⁱ-RM : ∀{A s} → A s → Reindexed A s
+returnⁱ-RM a = returnⁱ-M (_ , refl , a)
+
+bindⁱ-RM : ∀{A B s} → Reindexed A s → (∀{s′} → A s′ → Reindexed B s′) → Reindexed B s
+bindⁱ-RM rm f = rm >>=ⁱ-M λ { (s′ , refl , a) → f a }
+
+fmapⁱ-RM : ∀{A B s} → (∀{s′} → A s′ → B s′) → Reindexed A s → Reindexed B s
+fmapⁱ-RM f rm = fmapⁱ-M (λ { (s′ , eq , a) → s′ , eq , f a }) rm
+
+open import Algebra.Indexed.MonadMorphism Reindexed M
+open IxMonadMorphism
+
+EmbedReindexed : IxMonadMorphism
+StateM  EmbedReindexed = reindex
+TermM   EmbedReindexed rm = fmapⁱ-M (λ { (s′ , refl , a) → a }) rm
 
 
