@@ -40,7 +40,7 @@ module _ (K PT CT : Set) where
   challengerImpl tt =
     Invoke-FM (true , false , keygen)                λ k →
     Invoke-FM (true , true , false , generate-msgs)  λ m →
-    Invoke-FM (false , uniform 1)                    λ bv →
+    Invoke-FM (false , uniform-CE 1)                 λ bv →
     Invoke-FM (true , false , enc k (if head bv
                                      then fst m
                                      else snd m))    λ ct →

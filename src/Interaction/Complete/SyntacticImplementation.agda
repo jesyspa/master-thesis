@@ -26,14 +26,17 @@ module _ (M : Set → Set){{_ : Functor M}} {IS₁ IS₂}where
 
 module _ {IS₁ IS₂} where
   fmap-SynImpl-FM : ∀{A} → SynImpl IS₁ IS₂ → FreeMonad IS₁ A → FreeMonad IS₂ A
-  fmap-SynImpl-FM si (Return-FM a) = Return-FM a
-  fmap-SynImpl-FM si (Invoke-FM c cont) = bind-FM (si c) λ r → fmap-SynImpl-FM si (cont r)
+  fmap-SynImpl-FM = lift-Impl-FM
 
 id-SynI : ∀{IS} → SynImpl IS IS 
 id-SynI c = Invoke-FM c Return-FM
 
+module _ {IS₁ IS₂}{M : Set → Set}{{_ : Monad M}} where
+  comp-SynI-Impl : SynImpl IS₁ IS₂ → Implementation IS₂ M → Implementation IS₁ M
+  comp-SynI-Impl si impl c = lift-Impl-FM impl (si c)
+
 comp-SynI : ∀{IS₁ IS₂ IS₃} → SynImpl IS₁ IS₂ → SynImpl IS₂ IS₃ → SynImpl IS₁ IS₃ 
-comp-SynI si₁ si₂ c = fmap-SynImpl-FM si₂ (si₁ c)
+comp-SynI = comp-SynI-Impl
 
 infixr 9 _∘′-SI_
 _∘′-SI_ : ∀{IS₁ IS₂ IS₃} → SynImpl IS₂ IS₃ → SynImpl IS₁ IS₂ → SynImpl IS₁ IS₃ 
@@ -58,3 +61,4 @@ module _ {ISA₁ ISB₁ ISA₂ ISB₂} where
 module _ {ISA ISB ISBs} where
   Weaken-SynI : ∀{ISB′} → SynImpl ISA (Extend*-IS ISB ISBs) → SynImpl ISA (Extend*-IS ISB (ISB′ ∷ ISBs))
   Weaken-SynI I = comp-SynI I (BinJoin-SynI id-SynI (free-SynImpl (InclR-IS _ _)))
+

@@ -144,28 +144,16 @@ Commute-Coproduct-IS = BinMatch-IS _ _ (InclR-IS _ _) (InclL-IS _ _)
 Coproduct-RightUnit-IS : ∀{IS} → ISMorphism (IS ⊎-IS ⊥-IS) IS
 Coproduct-RightUnit-IS = BinMatch-IS _ _ id-IS init-IS
 
-{-
-ListCoproduct-IS : List InteractionStructure → InteractionStructure
-ListCoproduct-IS xs = Coproduct-IS (getElem {lzero} ?) 
+Coproduct*-Collapse-IS : ∀{IS} n → ISMorphism (BinCoproduct*-IS (replicate n IS)) IS
+Coproduct*-Collapse-IS zero    = init-IS
+Coproduct*-Collapse-IS (suc n) = BinMatch-IS _ _ id-IS (Coproduct*-Collapse-IS n)
 
-embedListCoproduct-IS : ∀{x xs} → ISMorphism (ListCoproduct-IS xs) (ListCoproduct-IS (x ∷ xs))
-CommandF  embedListCoproduct-IS (p , c) = that p , c
-ResponseF embedListCoproduct-IS {p , c} r = r
+module _ {l}{A : Set l}(f : A → InteractionStructure)
+         (cmb : A → A → A)(e : A)
+         (iscmb : ∀ a₁ a₂ → ISMorphism (BinCoproduct-IS (f a₁) (f a₂)) (f (cmb a₁ a₂)))
+         (ise : ISMorphism ⊥-IS (f e)) where
+  Coproduct*-MonoidCollapse-IS : ∀ xs → ISMorphism (BinCoproduct*-IS (map f xs)) (f (foldr cmb e xs))
+  Coproduct*-MonoidCollapse-IS [] = ise
+  Coproduct*-MonoidCollapse-IS (x ∷ xs) = iscmb x (foldr cmb e xs) ∘′-IS BinJoin-IS id-IS (Coproduct*-MonoidCollapse-IS xs) 
 
-Bin*2List-IS : ∀{xs} → ISMorphism (BinCoproduct*-IS xs) (ListCoproduct-IS xs)
-CommandF  (Bin*2List-IS {[]})     ()
-CommandF  (Bin*2List-IS {x ∷ xs}) (false , c) = this x , c
-CommandF  (Bin*2List-IS {x ∷ xs}) (true  , c) = CommandF (comp-IS Bin*2List-IS embedListCoproduct-IS) c 
-ResponseF (Bin*2List-IS {[]})     {()}
-ResponseF (Bin*2List-IS {x ∷ xs}) {false , c} r = r
-ResponseF (Bin*2List-IS {x ∷ xs}) {true  , c} r = ResponseF (comp-IS (Bin*2List-IS {xs}) embedListCoproduct-IS) r 
 
-List2Bin*-IS : ∀{xs} → ISMorphism (ListCoproduct-IS xs) (BinCoproduct*-IS xs)
-CommandF  (List2Bin*-IS {[]})     (() , _)
-CommandF  (List2Bin*-IS {x ∷ xs}) (this .x , c) = CommandF (InclL-IS _ _) c
-CommandF  (List2Bin*-IS {x ∷ xs}) (that p  , c) = CommandF (comp-IS {!!} List2Bin*-IS) c
-ResponseF (List2Bin*-IS {[]})     {() , _}
-ResponseF (List2Bin*-IS {x ∷ xs}) {this .x , c} r = {!!}
-ResponseF (List2Bin*-IS {x ∷ xs}) {that p  , c} r = {!!}
-
--}
