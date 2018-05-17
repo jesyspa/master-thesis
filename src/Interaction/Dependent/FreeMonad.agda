@@ -4,6 +4,7 @@ open import ThesisPrelude
 open import Algebra.Proposition
 open import Interaction.Dependent.InteractionStructure 
 open import Algebra.Parametrised.Monad
+open import Algebra.Parametrised.MonadMorphism
 
 open InteractionStructure
 open ISMorphism
@@ -31,8 +32,5 @@ module _ {IS : InteractionStructure} where
     returnᵖ FreeParMonadMonad = Return-FM
     _>>=ᵖ_  FreeParMonadMonad = bind-FM
     
-{-
 FMMorphism : (IS₁ IS₂ : InteractionStructure) → Set₁
 FMMorphism IS₁ IS₂ = ParMonadMorphism (FreeMonad IS₁) (FreeMonad IS₂)
-
--}
