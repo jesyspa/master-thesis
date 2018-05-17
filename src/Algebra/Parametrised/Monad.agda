@@ -2,7 +2,7 @@ module Algebra.Parametrised.Monad where
 
 open import ThesisPrelude
 
-record ParMonad {l l′}(𝑺 : Set l′)(M : 𝑺 → 𝑺 → Set l → Set l) : Set (lsuc l ⊔ l′) where
+record ParMonad {l l′}{𝑺 : Set l′}(M : 𝑺 → 𝑺 → Set l → Set l) : Set (lsuc l ⊔ l′) where
   infixl 1 _>>=ᵖ_
   field
     returnᵖ : ∀{S A} → A → M S S A

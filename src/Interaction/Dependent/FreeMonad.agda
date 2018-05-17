@@ -9,15 +9,15 @@ open InteractionStructure
 open ISMorphism
 
 data FreeMonad (IS : InteractionStructure) : State IS → State IS → Set → Set where
-  Return-FM : ∀{A s} → A → FreeMonad IS s s A 
-  Invoke-FM : ∀{A s₁ s₂} → (c : Command IS s₁) → (Response IS c → FreeMonad IS (next IS c) s₂ A) → FreeMonad IS s₁ s₂ A
+  Return-FM : ∀{s A} → A → FreeMonad IS s s A 
+  Invoke-FM : ∀{s₁ s₂ A} → (c : Command IS s₁) → (Response IS c → FreeMonad IS (next IS c) s₂ A) → FreeMonad IS s₁ s₂ A
 
 module _ {IS : InteractionStructure} where
-  fmap-FM : ∀{A B s₁ s₂} → (A → B) → FreeMonad IS s₁ s₂ A → FreeMonad IS s₁ s₂ B
+  fmap-FM : ∀{s₁ s₂ A B} → (A → B) → FreeMonad IS s₁ s₂ A → FreeMonad IS s₁ s₂ B
   fmap-FM f (Return-FM a) = Return-FM (f a)
   fmap-FM f (Invoke-FM c cont) = Invoke-FM c (λ r → fmap-FM f (cont r))
 
-  bind-FM : ∀{A B s₁ s₂ s₃} → FreeMonad IS s₁ s₂ A → (A → FreeMonad IS s₂ s₃ B) → FreeMonad IS s₁ s₃ B
+  bind-FM : ∀{s₁ s₂ s₃ A B} → FreeMonad IS s₁ s₂ A → (A → FreeMonad IS s₂ s₃ B) → FreeMonad IS s₁ s₃ B
   bind-FM (Return-FM a) fun = fun a
   bind-FM (Invoke-FM c cont) fun = Invoke-FM c λ r → bind-FM (cont r) fun
 
@@ -27,7 +27,7 @@ module _ {IS : InteractionStructure} where
     FreeParMonadFunctor : ∀{s₁ s₂} → Functor (FreeMonad IS s₁ s₂)
     FreeParMonadFunctor = record { fmap = fmap-FM }
 
-    FreeParMonadMonad : ParMonad (State IS) (FreeMonad IS)
+    FreeParMonadMonad : ParMonad (FreeMonad IS)
     returnᵖ FreeParMonadMonad = Return-FM
     _>>=ᵖ_  FreeParMonadMonad = bind-FM
     
