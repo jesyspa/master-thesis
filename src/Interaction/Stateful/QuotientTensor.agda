@@ -26,3 +26,12 @@ module _ {IS JS}(emb : ISEmbedding IS JS) where
   next      QuotientTensor-IS {s} {left  c} r = next IS r
   next      QuotientTensor-IS {s} {right c} r = nextE emb r
 
+module _ {IS JS}{emb : ISEmbedding IS JS} where
+  QMatch-IS : ∀{KS} → ISMorphism IS KS → ISMorphism JS KS → ISMorphism (QuotientTensor-IS emb) KS
+  StateF    (QMatch-IS mi mj) s = StateF mi s
+  CommandF  (QMatch-IS mi mj) {s} (left  c) = CommandF mi c
+  -- uhoh.  I need a relation between IS -> KS and JS -> KS, in particular that the former factorises
+  -- through the latter when it comes to states.
+  CommandF  (QMatch-IS mi mj) {s} (right c) = {!CommandF mj c!}
+  ResponseF (QMatch-IS mi mj) = {!!}
+  nextF     (QMatch-IS mi mj) = {!!}
