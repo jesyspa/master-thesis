@@ -8,12 +8,21 @@ open InteractionStructure
 open ISMorphism
 open Implementation
 
-module _ {IS JS}(impl : SynImpl IS JS) where
-  ModuleTensor-IS : InteractionStructure
-  State     ModuleTensor-IS    = State IS
-  Command   ModuleTensor-IS  s = Command IS s ⊎ Command JS (StateI impl s)
-  Response  ModuleTensor-IS {s} (left  c) = Response IS c
-  Response  ModuleTensor-IS {s} (right c) = Response JS c
-  next      ModuleTensor-IS {s} {left  c} r = next IS r
-  -- Oh yeah, this *is* a problem.
-  next      ModuleTensor-IS {s} {right c} r = {!!}
+module _ IS JS where
+  record ISEmbedding : Set where
+    field
+      StateE    : State IS → State JS
+      nextE     : ∀{s}{c : Command JS (StateE s)}(r : Response JS c) → State IS
+      nextECong : ∀{s}{c : Command JS (StateE s)}(r : Response JS c) → StateE (nextE r) ≡ next JS r
+
+open ISEmbedding
+
+module _ {IS JS}(emb : ISEmbedding IS JS) where
+  QuotientTensor-IS : InteractionStructure
+  State     QuotientTensor-IS    = State IS
+  Command   QuotientTensor-IS  s = Command IS s ⊎ Command JS (StateE emb s)
+  Response  QuotientTensor-IS {s} (left  c) = Response IS c
+  Response  QuotientTensor-IS {s} (right c) = Response JS c
+  next      QuotientTensor-IS {s} {left  c} r = next IS r
+  next      QuotientTensor-IS {s} {right c} r = nextE emb r
+
