@@ -1,37 +1,37 @@
-module Interaction.Stateful.QuotientTensor where
+module Interaction.Indexed.QuotientTensor where
 
 open import ThesisPrelude
-open import Interaction.Stateful.InteractionStructure 
-open import Interaction.Stateful.Implementation 
+open import Interaction.Indexed.InteractionStructure 
+open import Interaction.Indexed.Implementation 
 
 open InteractionStructure
 open ISMorphism
-open Implementation
 
-module _ IS JS where
+module _ {S₁ S₂}(IS : IStruct S₁)(JS : IStruct S₂)(StateF : S₁ → S₂) where
   record ISEmbedding : Set where
     field
-      StateE    : State IS → State JS
-      nextE     : ∀{s}{c : Command JS (StateE s)}(r : Response JS c) → State IS
-      nextECong : ∀{s}{c : Command JS (StateE s)}(r : Response JS c) → StateE (nextE r) ≡ next JS r
+      nextE     : ∀{s}{c : Command JS (StateF s)}(r : Response JS c) → S₁
+      nextECong : ∀{s}{c : Command JS (StateF s)}(r : Response JS c) → StateF (nextE r) ≡ next JS r
 
 open ISEmbedding
 
-module _ {IS JS}(emb : ISEmbedding IS JS) where
-  QuotientTensor-IS : InteractionStructure
-  State     QuotientTensor-IS    = State IS
-  Command   QuotientTensor-IS  s = Command IS s ⊎ Command JS (StateE emb s)
+module _ {S₁ S₂}{IS : IStruct S₁}{JS : IStruct S₂}{StateF : S₁ → S₂}(emb : ISEmbedding IS JS StateF) where
+  QuotientTensor-IS : InteractionStructure S₁
+  Command   QuotientTensor-IS  s = Command IS s ⊎ Command JS (StateF s)
   Response  QuotientTensor-IS {s} (left  c) = Response IS c
   Response  QuotientTensor-IS {s} (right c) = Response JS c
   next      QuotientTensor-IS {s} {left  c} r = next IS r
   next      QuotientTensor-IS {s} {right c} r = nextE emb r
 
-module _ {IS JS}{emb : ISEmbedding IS JS} where
-  QMatch-IS : ∀{KS} → ISMorphism IS KS → ISMorphism JS KS → ISMorphism (QuotientTensor-IS emb) KS
-  StateF    (QMatch-IS mi mj) s = StateF mi s
+module _ {S₁ S₂}{IS : IStruct S₁}{JS : IStruct S₂}{StateF : S₁ → S₂}{emb : ISEmbedding IS JS StateF} where
+  QMatch-IS : ∀{S₃}{KS : IStruct S₃}{StateG}
+            → ISMorphism IS KS (StateG ∘′ StateF)
+            → ISMorphism JS KS StateG
+            → ISMorphism (QuotientTensor-IS emb) KS (StateG ∘′ StateF)
   CommandF  (QMatch-IS mi mj) {s} (left  c) = CommandF mi c
-  -- uhoh.  I need a relation between IS -> KS and JS -> KS, in particular that the former factorises
-  -- through the latter when it comes to states.
-  CommandF  (QMatch-IS mi mj) {s} (right c) = {!CommandF mj c!}
-  ResponseF (QMatch-IS mi mj) = {!!}
-  nextF     (QMatch-IS mi mj) = {!!}
+  CommandF  (QMatch-IS mi mj) {s} (right c) = CommandF mj c
+  ResponseF (QMatch-IS mi mj) {s} {left  c} r = ResponseF mi r
+  ResponseF (QMatch-IS mi mj) {s} {right c} r = ResponseF mj r
+  nextF     (QMatch-IS mi mj) {s} {left  c} r rewrite nextF mi r = refl
+  nextF     (QMatch-IS mi mj) {s} {right c} r rewrite nextECong emb (ResponseF mj r) | nextF mj r = refl
+
