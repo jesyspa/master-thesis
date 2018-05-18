@@ -3,11 +3,15 @@ module Interaction.Indexed.Telescope where
 open import ThesisPrelude
 open import Algebra.Indexed.Monad
 open import Algebra.Indexed.MonadMorphism
+open import Algebra.Indexed.Atkey
 open import Interaction.Indexed.InteractionStructure
 open import Interaction.Indexed.Implementation
 open import Interaction.Indexed.FreeMonad
 open import Interaction.Indexed.QuotientTensor
 
+open InteractionStructure
+open ISMorphism
+open ISEmbedding
 open IxMonad {{...}}
 open IxMonadMorphism
 
@@ -63,4 +67,12 @@ combine-tele : ∀{Ss Ts}{ISs : InfcTelescope Ss}{JSs : ISTelescope Ts}
              → SynImpl (Tele-QT ISs) (ISTele-T JSs) (combine-state tele)
 combine-tele ImplEmpty ()
 combine-tele (ImplCons emb si tele) (left  c) = {!!}
-combine-tele (ImplCons emb si tele) (right c) = TermM (fmap-IS-FM (IncL-IS _)) {!combine-tele ? ?!} 
+combine-tele (ImplCons {IS = IS} {JS} {ISs} {JSs} {f = f} {g} emb si tele) {s} (right c) = TermM (fmap-IS-FM (IncR-IS _)) goal
+  where lem : FreeMonad (ISTele-T JSs) (DepAtkey (Response (Tele-QT ISs) c) (combine-state tele ∘′ next (Tele-QT ISs))) (combine-state tele (f s))
+        lem = combine-tele tele c
+        rewrap : ∀{s′}
+               → DepAtkey (Response (Tele-QT ISs) c) (combine-state tele ∘′ next (Tele-QT ISs)) s′
+               → DepAtkey (Response (Tele-QT ISs) c) ((g &&& combine-state tele ∘′ f) ∘′ nextE emb) (g s , s′)
+        rewrap (DepV r) = {!!}
+        goal : FreeMonad (ISTele-T JSs) (DepAtkey (Response (Tele-QT ISs) c) ((g &&& combine-state tele ∘′ f) ∘′ nextE emb) ∘′ λ s₂ → g s , s₂) (combine-state tele (f s))
+        goal = fmapⁱ rewrap lem
