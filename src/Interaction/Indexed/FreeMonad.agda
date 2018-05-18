@@ -27,8 +27,8 @@ module _ {S}{IS : IStruct S} where
   instance
     FreeIxMonad : IxMonad (FreeMonad IS)
     returnⁱ FreeIxMonad = Return-FM
-    _>>=ⁱ_ FreeIxMonad  = bind-FM
-    fmapⁱ FreeIxMonad   = fmap-FM
+    _>>=ⁱ_  FreeIxMonad = bind-FM
+    fmapⁱ   FreeIxMonad = fmap-FM
     
 module _ {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂) where
   FMMorphism : Set₁

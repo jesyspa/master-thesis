@@ -73,16 +73,9 @@ module _ {S₁ S₂ T₁ T₂}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{JS₁
   nextF     (binmap-IS m₁ m₂) {s₁ , s₂} {left  c} r rewrite nextF m₁ r = refl
   nextF     (binmap-IS m₁ m₂) {s₁ , s₂} {right c} r rewrite nextF m₂ r = refl
 
-
 postulate
   LeftCancel-IS    : ∀{S}{IS : IStruct S} → ISMorphism (BinTensor-IS TensorUnit-IS IS) IS snd 
   RightCancel-IS   : ∀{S}{IS : IStruct S} → ISMorphism (BinTensor-IS IS TensorUnit-IS) IS fst
   LeftUncancel-IS  : ∀{S}{IS : IStruct S} → ISMorphism IS (BinTensor-IS TensorUnit-IS IS) (λ s → tt , s)
   RightUncancel-IS : ∀{S}{IS : IStruct S} → ISMorphism IS (BinTensor-IS IS TensorUnit-IS) (λ s → s , tt)
 
-{-
-BinTensor*-IS : List InteractionStructure → InteractionStructure
-BinTensor*-IS = foldr BinTensor-IS TensorUnit-IS
-
-
--}
