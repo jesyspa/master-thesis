@@ -67,12 +67,31 @@ combine-tele : ∀{Ss Ts}{ISs : InfcTelescope Ss}{JSs : ISTelescope Ts}
              → SynImpl (Tele-QT ISs) (ISTele-T JSs) (combine-state tele)
 combine-tele ImplEmpty ()
 combine-tele (ImplCons emb si tele) (left  c) = {!!}
-combine-tele (ImplCons {IS = IS} {JS} {ISs} {JSs} {f = f} {g} emb si tele) {s} (right c) = TermM (fmap-IS-FM (IncR-IS _)) goal
+combine-tele (ImplCons {IS = IS} {JS} {ISs} {JSs} {f = f} {g} emb si tele) {s} (right c) = TermM (fmap-IS-FM (IncR-IS (g s))) goal
   where lem : FreeMonad (ISTele-T JSs) (DepAtkey (Response (Tele-QT ISs) c) (combine-state tele ∘′ next (Tele-QT ISs))) (combine-state tele (f s))
         lem = combine-tele tele c
         rewrap : ∀{s′}
                → DepAtkey (Response (Tele-QT ISs) c) (combine-state tele ∘′ next (Tele-QT ISs)) s′
                → DepAtkey (Response (Tele-QT ISs) c) ((g &&& combine-state tele ∘′ f) ∘′ nextE emb) (g s , s′)
-        rewrap (DepV r) = {!!}
+        rewrap (DepV r) rewrite sym (nextECong emb r) = {!!}
         goal : FreeMonad (ISTele-T JSs) (DepAtkey (Response (Tele-QT ISs) c) ((g &&& combine-state tele ∘′ f) ∘′ nextE emb) ∘′ λ s₂ → g s , s₂) (combine-state tele (f s))
         goal = fmapⁱ rewrap lem
+
+module _ {S₁ S₂ T₁ T₂}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{JS₁ : IStruct T₁}{JS₂ : IStruct T₂}
+         (f : S₁ → S₂)(g₁ : S₁ → T₁)(g₂ : S₂ → T₂)
+         (emb : ISEmbedding IS₁ IS₂ f)(si₁ : SynImpl IS₁ (JS₁ ⊕-IS IS₂) (g₁ &&& f))(si₂ : SynImpl IS₂ JS₂ g₂) where
+  combine-bin : SynImpl (QuotientTensor-IS emb) (JS₁ ⊕-IS JS₂) (g₁ &&& (g₂ ∘′ f))
+  combine-bin {s} (left  c) = lem c
+    where lem : SynImpl IS₁ (JS₁ ⊕-IS JS₂) (g₁ &&& (g₂ ∘′ f))
+          lem = binmap-SI {StateF₁ = id} {StateF₂ = g₂} id-SI si₂ ∘′-SI si₁
+  combine-bin {s} (right c) = TermM (fmap-IS-FM (IncR-IS (g₁ s))) goal
+    where
+      lem : FreeMonad JS₂ (DepAtkey (Response IS₂ c) (g₂ ∘′ next IS₂)) (g₂ (f s))
+      lem = si₂ c
+      rewrap : ∀{s′}
+             → DepAtkey (Response IS₂ c) (g₂ ∘′ next IS₂) s′ 
+             → DepAtkey (Response IS₂ c) ((g₁ &&& (g₂ ∘′ f)) ∘′ nextE emb) (g₁ s , s′)
+      rewrap (DepV r) = {!!}
+      goal : FreeMonad JS₂ (DepAtkey (Response IS₂ c) ((g₁ &&& (g₂ ∘′ f)) ∘′ nextE emb) ∘′ λ s′ → g₁ s , s′) (g₂ (f s))
+      goal = fmapⁱ {!!} lem
+  
