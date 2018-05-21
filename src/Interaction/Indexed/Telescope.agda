@@ -81,9 +81,10 @@ module _ {S₁ S₂ T₁ T₂}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{JS₁
          (f : S₁ → S₂)(g₁ : S₁ → T₁)(g₂ : S₂ → T₂)
          (emb : ISEmbedding IS₁ IS₂ f)(si₁ : SynImpl IS₁ (JS₁ ⊕-IS IS₂) (g₁ &&& f))(si₂ : SynImpl IS₂ JS₂ g₂) where
   combine-bin : SynImpl (QuotientTensor-IS emb) (JS₁ ⊕-IS JS₂) (g₁ &&& (g₂ ∘′ f))
-  combine-bin {s} (left  c) = lem c
-    where lem : SynImpl IS₁ (JS₁ ⊕-IS JS₂) (g₁ &&& (g₂ ∘′ f))
-          lem = binmap-SI {StateF₁ = id} {StateF₂ = g₂} id-SI si₂ ∘′-SI si₁
+  combine-bin {sᵢ} (left  c)
+      = let sj = binmap-SI {S₁ = T₁} {StateF₁ = id} {StateF₂ = g₂} (id-SI {S = T₁} {IS = JS₁}) si₂ 
+         in TermM (fmap-SynImpl-FM {IS₁ = JS₁ ⊕-IS IS₂} {IS₂ = JS₁ ⊕-IS JS₂} (λ {s} → sj {s})) 
+                  (fmapⁱ (λ { (DepV r) → DepV r}) (si₁ c))
   combine-bin {s} (right c) = TermM (fmap-IS-FM (IncR-IS (g₁ s))) goal
     where
       lem : FreeMonad JS₂ (DepAtkey (Response IS₂ c) (g₂ ∘′ next IS₂)) (g₂ (f s))
@@ -91,7 +92,6 @@ module _ {S₁ S₂ T₁ T₂}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{JS₁
       rewrap : ∀{s′}
              → DepAtkey (Response IS₂ c) (g₂ ∘′ next IS₂) s′ 
              → DepAtkey (Response IS₂ c) ((g₁ &&& (g₂ ∘′ f)) ∘′ nextE emb) (g₁ s , s′)
-      rewrap (DepV r) = {!!}
+      rewrap (DepV r) rewrite sym (nextECong emb r) = {!!}
       goal : FreeMonad JS₂ (DepAtkey (Response IS₂ c) ((g₁ &&& (g₂ ∘′ f)) ∘′ nextE emb) ∘′ λ s′ → g₁ s , s′) (g₂ (f s))
-      goal = fmapⁱ {!!} lem
-  
+      goal = fmapⁱ rewrap lem

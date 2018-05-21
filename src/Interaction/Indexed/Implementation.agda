@@ -42,7 +42,7 @@ module _ {S₁ S₂ S₃}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{IS₃ : IS
   open IxMonadMorphism
   {-# TERMINATING #-}
   comp-SI : SynImpl IS₁ IS₂ f → SynImpl IS₂ IS₃ g → SynImpl IS₁ IS₃ (g ∘′ f)
-  comp-SI si sj = TermM (fmap-SynImpl-FM sj) ∘ fmapⁱ (λ { (DepV r) → DepV r }) ∘ si
+  comp-SI si sj x = TermM (fmap-SynImpl-FM sj) (fmapⁱ (λ { (DepV r) → DepV r }) (si x))
 
   infixr 9 _∘′-SI_
   _∘′-SI_ : SynImpl IS₂ IS₃ g → SynImpl IS₁ IS₂ f → SynImpl IS₁ IS₃ (g ∘′ f)
