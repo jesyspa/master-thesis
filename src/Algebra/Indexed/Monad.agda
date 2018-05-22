@@ -8,3 +8,5 @@ record IxMonad : Set (lsuc l′ ⊔ l) where
     returnⁱ : ∀{A s} → A s → M A s
     _>>=ⁱ_ : ∀{A B s} → M A s → (∀{s′} → A s′ → M B s′) → M B s
 
+  joinⁱ : ∀{A s} → M (M A) s → M A s
+  joinⁱ m = m >>=ⁱ id
