@@ -14,6 +14,12 @@
 \theoremstyle{definition}
 \newtheorem{definition}[theorem]{Definition}
 
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\iss}[1]{\mathcal{#1}_S}
+\newcommand{\isc}[1]{\mathcal{#1}_C}
+\newcommand{\isr}[1]{\mathcal{#1}_R}
+\newcommand{\ist}[1]{\mathcal{#1}_t}
+
 \DeclareMathOperator{\Fam}{Fam}
 
 \title{\vspace{-2cm}Interaction Structures}
@@ -27,7 +33,7 @@
     formalisable in Agda in a straightforward manner.
 
     When talking of a family of types $B$ indexed over $A$, we will use $B$ to refer both to the family and to the
-    coproduct $\sum_{a \in A} B_a$.  Essentially, this corresponds to the view that an indexed family is a type $B$
+    coproduct $\sum_{a \in A} B[a]$.  Essentially, this corresponds to the view that an indexed family is a type $B$
     together with a projection $B \to A$.
 
     \section{Interaction Structures}
@@ -37,7 +43,8 @@
         types, $R$ is a $C$-indexed family of types, and $t$ is a transition function $R \to S$.
     \end{definition}
 
-    Note that $R$ has an implicit dependency on $S$ (corresponding to the composition of the projections).
+    Note that $R$ has an implicit dependency on $S$ (corresponding to the composition of the projections).  Given an
+    interaction structure $\mc I$, we denote the components by $\iss I, \isc I$, and so forth.
 
     According to Hancock, an equivalent presentation exists as follows: let $\Fam(X)$ be the type of functions into $X$,
     indexed by their domain. An interaction structure $(S, C, R, t)$ corresponds to a function $S \to \Fam^2(S)$.
@@ -48,7 +55,7 @@
 
     The transformation is given as follows:
     \[
-        (S, \lambda s.\, (C_s, \lambda c.\, (R_c, \lambda r.\, t(r)))).
+        (S, \lambda s.\, (C[s], \lambda c.\, (R[c], \lambda r.\, t(r)))).
     \]
     We thus see that an interaction structure is a coalgebra on the functor $\Fam^2$.
 
@@ -74,24 +81,26 @@
 
     \subsection{Interaction Structure Morphisms}
 
-    Given interaction structures $\mathcal{I} = (S, C, R, t)$ and $\mathcal{J} = (S', C', R', t')$ a morphism $\alpha :
-    \mathcal{I} \to \mathcal{J}$ represents the ability to simulate the interactions provided by $\mathcal{I}$ by
-    interactions provided by $\mathcal{J}$.  In other words, every command $c : C$ must have a corresponding command
-    $\alpha(c) : C'$, and every response of $r : R'_{\alpha(c)}$ must have a corresponding response $\alpha(r) : R_c$.
+    Given interaction structures $\mc I$ and $\mc J$ a morphism $\alpha : \mc I \to \mc J$ represents the ability to
+    simulate the interactions provided by $\mathcal{I}$ by interactions provided by $\mc J$.  In other words, every
+    command $c : \isc I$ must have a corresponding command $\alpha(c) : \isc J$, and every response of $r : \isr
+    J[\alpha(c)]$ must have a corresponding response $\alpha(r) : \isr I [c]$.
 
-    The interesting question is how the state types $S$ and $S'$ must relate to each other.  We present two possible
-    approaches: when we require a function $S \to S'$ and when we require a relation between $S$ and $S'$.
+    The interesting question is how the state types $\iss I$ and $\iss J$ must relate to each other.  We present two
+    possible approaches: when we require a function $\iss I \to \iss J$ and when we require a relation between $\iss I$
+    and $\iss J$.
 
     \subsubsection{Functional Morphisms}
 
     \begin{definition}
-        A \emph{functional morphism} $\mathcal{I} \to \mathcal{J}$ is a tuple $(\alpha_S, \alpha_C, \alpha_R)$, where
-        $\alpha_S : S \to S'$, for every $s : S$, $\alpha_C : C_s \to C'_{\alpha_S(s)}$, and for every $c : C$, $\alpha_R
-        : R'_{\alpha_C(c)} \to R_c$, such that the following diagram commutes for every $s : S$ and every $c : C_s$:
+        A \emph{functional morphism} $\mc I \to \mc J$ is a tuple $(\alpha_S, \alpha_C, \alpha_R)$, where $\alpha_S :
+        \iss I \to \iss J$, for every $s : \iss I$, $\alpha_C : \isc I [s] \to \isc J [\alpha_S(s)]$, and for every $c :
+        \isc I [s]$, $\alpha_R : \isr J [\alpha_C(c)] \to \isc I [c]$, such that the following diagram commutes for
+        every $s : \iss I$ and every $c : \isc I [s]$:
         \begin{center}
             \begin{tikzcd}
-                R_{c} \arrow[d, "t"] && R'_{\alpha_C(c)} \arrow[ll, "\alpha_R"] \arrow[d, "t'"] \\
-                S \arrow[rr, "\alpha_S"] && S'
+                \isr I [c] \arrow[d, "t"] && \isr J [\alpha_C(c)] \arrow[ll, "\alpha_R"] \arrow[d, "t'"] \\
+                \iss I \arrow[rr, "\alpha_S"] && \iss J
             \end{tikzcd}
         \end{center}
     \end{definition}
@@ -99,21 +108,53 @@
     We will often use $\alpha$ to refer to each of the components of this tuple.
 
     It is easy to see that every interaction structure has a corresponding identity morphism, and that the composition
-    of two functional morphisms is again a functional morphism.
+    of two functional morphisms is again a functional morphism.  The laws are also easily checked, and thus interaction
+    structures and functional morphisms form a category.  We will denote this category $\mathcal{IS}_F$.
 
     \subsubsection{Relational Morphisms}
 
     \begin{definition}
-        A \emph{relational morphism} $\mathcal{I} \to \mathcal{J}$ is a tuple $(\alpha_S, \alpha_{C, s, s'}, \alpha_R)$
-        such that
+        A \emph{relational morphism} $\mc I \to \mc J$ is a tuple $(\alpha_S, \alpha_{C, p}, \alpha_R)$
+        such that $\alpha_S$ is a proof-relevant relation between $\iss I$ and $\iss J$ and for every $s : \iss I$, $s'
+        : \iss J$, and proof $p : \alpha_S(s, s')$,
         \begin{enumerate}
-            \item $\alpha_S$ is a relation between $S$ and $S'$;
-            \item for every $s : S$ and $s' : S'$ such that  $\alpha_S(s, s')$, $\alpha_{C, s, s'} : C_s \to C'_{s'}$;
-            \item for every $s : S$ and $s' : S'$ such that $\alpha_S(s, s')$, and for every $c : C_s$, $\alpha_R :
-                R'_{\alpha_{C, s, s'}(c)} \to R_c$;
-            \item and\ldots responses get mapped to related states by $t$ and $t'$.  
+            \item $\alpha_{C, p} : \isc I [s] \to \isc J [s']$;
+            \item for every $c : \isc I [s]$, $\alpha_R : \isr J [\alpha_{C, p}(c)] \to \isr I [c]$;
+            \item for every $c : \isc I [s]$ and $r : \isr J [\alpha_{C, p}(c)]$, there is a proof $\alpha_S(t(\alpha_R(r)),
+                t'(r))$.
         \end{enumerate}
     \end{definition}
+
+    It is easy to see that every interaction structure has a corresponding identity morphism.  The following lemma
+    guarantees that compositions also exist.
+
+    \begin{lemma}
+        Let $\mathcal{I}$, $\mathcal{J}$, $\mathcal{K}$ be interaction structures and let $\alpha : \mathcal{I} \to
+        \mathcal{J}$ and $\beta : \mathcal{J} \to \mathcal{K}$.  There exists a composed morphism $\beta \circ \alpha :
+        \mathcal{I} \to \mathcal{K}$.
+    \end{lemma}
+
+    \begin{proof}
+        The essential component for this construction is the proof-relevance of the relation on $S$.  We define
+        \[
+            (\beta \circ \alpha)_S(s, s'') = \sum_{s' : \iss J} \alpha_S(s, s') \times \beta_S(s', s'').
+        \]
+
+        Now given $s : \iss I$, $s'' : \iss K$, and a proof $p = (s', p_\alpha, p\beta) : (\beta \circ \alpha)_S(s, s'')$,
+        we can define
+        \[
+            (\beta \circ \alpha)_{C, p} = \beta_{C, p_\beta} \circ \alpha_{C, p_\alpha}.
+        \]
+
+        The action on responses is given by composition with no further complications.  It remains to show that the
+        morphism is coherent with the transition function.  Given $s$, $s''$, and $p$ as above, for any $c : \isc I[s]$
+        and $r'' : \isr K{(\beta \circ \alpha)_{C, p}(c)}$, we can find a proof $q_\beta : \beta_S(\ist J(\beta_R(r'')),
+        \ist K(r''))$ and, since $\beta_R(r'') : \isr J[\alpha_{R, p_\alpha}(c)]$ a proof $q_\alpha :
+        \alpha_S(\ist I(\alpha_R(\beta_R(r''))), \ist J(\beta_R(r'')))$, which together give a proof of $(\beta \circ
+        \alpha)_S(\ist I(\alpha_R(\beta_R(r''))), \ist K(r''))$.
+        
+    \end{proof}
+
     \section{Indexed Monads}
 
     \section{Free Monads of Interaction Structures}
