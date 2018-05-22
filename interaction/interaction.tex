@@ -109,7 +109,30 @@
 
     It is easy to see that every interaction structure has a corresponding identity morphism, and that the composition
     of two functional morphisms is again a functional morphism.  The laws are also easily checked, and thus interaction
-    structures and functional morphisms form a category.  We will denote this category $\mathcal{IS}_F$.
+    structures and functional morphisms form a category.  We will denote this category $\mathbf{IS}_F$.
+
+    \begin{theorem}
+        $(\{\star\}, \{\star\}, \emptyset, \lambda ())$ is a terminal object of $\mathbf{IS}_F$.
+    \end{theorem}
+
+    \begin{theorem}
+        Given interaction structures $\mc I, \mc J$, their product is given pointwise on states and commands, and is a
+        disjoint union on responses.  The transition function receives a response in $I$ or in $J$ and updates the
+        corresponding component of the state tuple.
+    \end{theorem}
+
+    \begin{theorem}
+        $(\emptyset, \emptyset, \emptyset, \lambda ())$ is an initial object of $\mathbf{IS}_F$.
+    \end{theorem}
+
+    \begin{theorem}
+        Given interaction structures $\mc I, \mc J$, their coproduct is given pointwise on states, which extends to
+        commands and responses uniquely.
+    \end{theorem}
+
+    The above constructions can be generalised to any collection of interaction structures indexed by a decidable type.
+    The decidability is necessary in the product case to update the component of the state in which we received a
+    response.
 
     \subsubsection{Relational Morphisms}
 
@@ -152,8 +175,12 @@
         \ist K(r''))$ and, since $\beta_R(r'') : \isr J[\alpha_{R, p_\alpha}(c)]$ a proof $q_\alpha :
         \alpha_S(\ist I(\alpha_R(\beta_R(r''))), \ist J(\beta_R(r'')))$, which together give a proof of $(\beta \circ
         \alpha)_S(\ist I(\alpha_R(\beta_R(r''))), \ist K(r''))$.
-        
     \end{proof}
+
+    This construction thus gives rise to a category of interaction structures and relational morphisms, which we will
+    denote $\mathbf{IS}_R$.
+
+
 
     \section{Indexed Monads}
 
