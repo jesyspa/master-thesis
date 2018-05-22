@@ -30,7 +30,9 @@
     In this document, we will present interaction structures and show their role in our development.  We use, amongst
     other things, the work of Hancock (Ordinals and Interactive Programs).  Our development is phrased in type
     theoretical term terms, with care taken to avoid the use of the law of excluded middle, and so we expect this to be
-    formalisable in Agda in a straightforward manner.
+    formalisable in Agda in a straightforward manner.  We will use $\mathbf{Type}$ to denote the category of types and
+    functions in which we perform most of these constructions.  For some constructions, we will need to go to higher
+    categories $\mathbf{Type}_1, \mathbf{Type}_2, \ldots$; as much as possible, we will leave this implicit.
 
     When talking of a family of types $B$ indexed over $A$, we will use $B$ to refer both to the family and to the
     coproduct $\sum_{a \in A} B[a]$.  Essentially, this corresponds to the view that an indexed family is a type $B$
@@ -180,9 +182,17 @@
     This construction thus gives rise to a category of interaction structures and relational morphisms, which we will
     denote $\mathbf{IS}_R$.
 
-
-
     \section{Indexed Monads}
+
+    Given a type $S$ we can regard it as a discrete category to obtain the category of functions $S \to \mathbf{Type}$.
+    The objects of this category are $S$-indexed collections of types, and the morphisms are $S$-indexed collections of
+    functions.  We can construct this category in $\mathbf{Type}_1$.
+
+    \begin{definition}
+        An \emph{indexed monad}, indexed over a type $S$, is a monad $M$ on the category $S \to \mathbf{Type}$.
+        Explicitly, it is an endofunctor on $S \to \mathbf{Type}$ with associated natural transformations $\eta :
+        \mathbf{1} \to M$ and $\mu : M \circ M \to M$, satisfying the usual monad laws.
+    \end{definition}
 
     \section{Free Monads of Interaction Structures}
 
