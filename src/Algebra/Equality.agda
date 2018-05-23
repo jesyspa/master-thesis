@@ -27,3 +27,8 @@ flip-transport : ∀{l l′} {A : Set l} (B : A → Set l′) {a a′}
                → b ≡ transport B (sym p) b′
                → transport B p b ≡ b′
 flip-transport B refl .b′ b′ refl = refl
+
+split-pair-eq : ∀{l}{A B : Set l}{a₁ a₂ : A}{b₁ b₂ : B}
+              → (a₁ , b₁) ≡ (a₂ , b₂)
+              → (a₁ ≡ a₂) × (b₁ ≡ b₂)
+split-pair-eq {a₁ = a₁} {.a₁} {b₁} {.b₁} refl = refl , refl
