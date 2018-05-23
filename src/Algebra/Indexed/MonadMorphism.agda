@@ -15,8 +15,3 @@ record IxMonadComorphism : Set (lsuc l₁ ⊔ lsuc l₂ ⊔ lsuc l′) where
   field
     StateCM : S₂ → S₁
     TermCM  : ∀{A s} → M₁ A (StateCM s) → M₂ (A ∘′ StateCM) s
-
-record IxMonadRelmorphism : Set (lsuc l₁ ⊔ lsuc l₂ ⊔ lsuc l′) where
-  field
-    StateRM : Relation S₁ S₂
---    TermCM  : ∀{A s} → M₁ A (StateCM s) → M₂ (A ∘′ StateCM) s
