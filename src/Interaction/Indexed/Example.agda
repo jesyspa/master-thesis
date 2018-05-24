@@ -1,12 +1,12 @@
-module Interaction.Stateful.Example where
+module Interaction.Indexed.Example where
 
 open import ThesisPrelude
 open import Algebra.Proposition
-open import Interaction.Stateful.InteractionStructure 
-open import Interaction.Stateful.FreeMonad 
-open import Interaction.Stateful.Implementation 
-open import Interaction.Stateful.CryptoExpr 
-open import Interaction.Stateful.StateExpr 
+open import Interaction.Indexed.InteractionStructure 
+open import Interaction.Indexed.FreeMonad 
+open import Interaction.Indexed.Implementation 
+open import Interaction.Indexed.CryptoExpr 
+open import Interaction.Indexed.StateExpr 
 open import Utility.Vector
 
 open InteractionStructure
