@@ -29,12 +29,19 @@ filter-preserves-Ret a .(y ∷ xs) pd pf (there .a y xs p) | false = cong (there
 filter-preserves-Ret a .(y ∷ xs) pd pf (there .a y xs p) | true = cong (there a y xs) $ filter-preserves-Ret a xs pd pf p
 
 if-not-a-then-nothing : (a : A) (xs : List A)
-                      → ¬ (a ∈ filter (isYes ∘ (_==_ a)) xs) → [] ≡ filter (isYes ∘ (_==_ a)) xs
+                      → ¬ (a ∈ filter-is a xs) → [] ≡ filter-is a xs
 if-not-a-then-nothing a [] np = refl
 if-not-a-then-nothing a (x ∷ xs) np with a == x
 ... | yes refl = ⊥-elim $ np (here a (filter (isYes ∘ (_==_ a)) xs)) 
 ... | no eq = if-not-a-then-nothing a xs np
 
 if-not-there-filter-empty : (a : A) (xs : List A)
-                          → ¬ (a ∈ xs) → [] ≡ filter (isYes ∘ (_==_ a)) xs
+                          → ¬ (a ∈ xs) → [] ≡ filter-is a xs
 if-not-there-filter-empty a xs np = if-not-a-then-nothing a xs λ p → np (equalFilter-inv a xs p) 
+
+if-not-there-filter-equal : (a : A)(xs : List A)
+                          → ¬ (a ∈ xs) → xs ≡ filter-is-not a xs
+if-not-there-filter-equal a [] np = refl
+if-not-there-filter-equal a (x ∷ xs) np with a == x
+... | yes refl = ⊥-elim (np (here a xs))
+... | no neq rewrite sym (if-not-there-filter-equal a xs λ p → np (there a x xs p)) = refl
