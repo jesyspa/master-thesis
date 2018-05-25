@@ -4,17 +4,18 @@ open import ThesisPrelude
 open import Algebra.Proposition
 open import Algebra.Equality
 open import Algebra.FunExt
+open import Utility.All
 
-record InteractionStructure (State : Set) : Set₁ where
+record InteractionStructure (S : List Set) : Set₁ where
   field
-    Command     : State → Set
-    Response    : {s : State} → Command s → Set
-    next        : {s : State}{c : Command s}(r : Response c) → State
+    Command     : All′ S → Set
+    Response    : {s : All′ S} → Command s → Set
+    next        : {s : All′ S}{c : Command s}(r : Response c) → All′ S
 open InteractionStructure
 
 IStruct = InteractionStructure
 
-record ISMorphism {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂)(StateF : S₁ → S₂) : Set₁ where
+record ISMorphism {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂)(StateF : All′ S₁ → All′ S₂) : Set₁ where
   field
     CommandF  : ∀{s} → Command IS₁ s → Command IS₂ (StateF s)
     ResponseF : ∀{s} → {c : Command IS₁ s} → Response IS₂ (CommandF c) → Response IS₁ c
@@ -36,19 +37,22 @@ module _ {S₁ S₂ S₃}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{IS₃ : IS
   _∘′-IS_ : ISMorphism IS₂ IS₃ sg → ISMorphism IS₁ IS₂ sf → ISMorphism IS₁ IS₃ (sg ∘′ sf)
   _∘′-IS_ = flip comp-IS
 
-TensorUnit-IS : InteractionStructure ⊤
-Command  TensorUnit-IS  tt = ⊥
-Response TensorUnit-IS {tt} ()
-next     TensorUnit-IS {tt} {()}
+TensorUnit-IS : InteractionStructure []
+Command  TensorUnit-IS  [] = ⊥
+Response TensorUnit-IS {[]} ()
+next     TensorUnit-IS {[]} {()}
 
 module _ {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂) where
-  BinTensor-IS : InteractionStructure (S₁ × S₂)
-  Command      BinTensor-IS (s₁ , s₂) = Command IS₁ s₁ ⊎ Command IS₂ s₂
-  Response     BinTensor-IS {s₁ , s₂} (left  c) = Response IS₁ c
-  Response     BinTensor-IS {s₁ , s₂} (right c) = Response IS₂ c
-  next         BinTensor-IS {s₁ , s₂} {left  c} r = next IS₁ r , s₂
-  next         BinTensor-IS {s₁ , s₂} {right c} r = s₁ , next IS₂ r
+  BinTensor-IS : InteractionStructure (S₁ ++ S₂)
+  Command      BinTensor-IS s with split-All S₁ S₂ s
+  ... | s₁ , s₂ = Command IS₁ s₁ ⊎ Command IS₂ s₂
+  Response     BinTensor-IS {s} c with split-All S₁ S₂ s | c
+  ... | s₁ , s₂ | left  c′ = Response IS₁ c′
+  ... | s₁ , s₂ | right c′ = Response IS₂ c′
+  next         BinTensor-IS {s} {c} r with split-All S₁ S₂ s
+  ... | s₁ , s₂ = {!!}
 
+  {-
   infixr 3 _⊕-IS_ 
   _⊕-IS_ : InteractionStructure (S₁ × S₂)
   _⊕-IS_ = BinTensor-IS
@@ -79,3 +83,5 @@ postulate
   LeftUncancel-IS  : ∀{S}{IS : IStruct S} → ISMorphism IS (BinTensor-IS TensorUnit-IS IS) (λ s → tt , s)
   RightUncancel-IS : ∀{S}{IS : IStruct S} → ISMorphism IS (BinTensor-IS IS TensorUnit-IS) (λ s → s , tt)
 
+
+-}
