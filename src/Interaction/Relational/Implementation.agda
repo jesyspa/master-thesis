@@ -19,8 +19,7 @@ module _ {S}(IS : IStruct S){𝑺 : Set} where
 
 module _ {S}{IS : IStruct S}{𝑺 : Set}{M : (𝑺 → Set) → 𝑺 → Set}{{_ : IxMonad M}}{RS : Relation S 𝑺} where
   {-# TERMINATING #-}
-  uprop-Impl : Implementation IS M RS → IxMonadRelMorphism (FreeMonad IS) M
-  StateRM (uprop-Impl impl) = RS
+  uprop-Impl : Implementation IS M RS → IxMonadRelMorphism (FreeMonad IS) M RS
   TermRM  (uprop-Impl impl) pf fun (Return-FM a) = returnⁱ (fun pf a)
   TermRM  (uprop-Impl impl) pf fun (Invoke-FM c cont) = impl pf c >>=ⁱ λ { (DepRelV r pf′) → TermRM (uprop-Impl impl) pf′ fun (cont r) }
 
@@ -35,7 +34,7 @@ module _ {S}{IS : IStruct S} where
   id-SI refl c = Invoke-FM c λ r → Return-FM (DepRelV r refl)
 
 module _ {S₁ S₂}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{RS} where
-  fmap-SynImpl-FM : (si : SynImpl IS₁ IS₂ RS) → IxMonadRelMorphism (FreeMonad IS₁) (FreeMonad IS₂) 
+  fmap-SynImpl-FM : (si : SynImpl IS₁ IS₂ RS) → IxMonadRelMorphism (FreeMonad IS₁) (FreeMonad IS₂)  RS
   fmap-SynImpl-FM = uprop-Impl
 
 module _ {S₁ S₂ S₃}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{IS₃ : IStruct S₃}{R₁ R₂} where
@@ -52,7 +51,7 @@ module _ {S₁ S₂}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{RS}(m : ISMorph
   fmap-IS-SynImpl : SynImpl IS₁ IS₂ RS
   fmap-IS-SynImpl pf c = Invoke-FM (CommandF pf c) λ r → Return-FM (DepRelV (ResponseF pf r) (nextF pf r))
 
-  fmap-IS-FM : FMMorphism IS₁ IS₂
+  fmap-IS-FM : FMMorphism IS₁ IS₂ RS
   fmap-IS-FM = fmap-SynImpl-FM fmap-IS-SynImpl
 
 module _ {S₁ S₂ T₁ T₂}
@@ -60,7 +59,8 @@ module _ {S₁ S₂ T₁ T₂}
          {JS₁ : IStruct T₁}{JS₂ : IStruct T₂}
          {R₁ : Relation S₁ T₁}{R₂ : Relation S₂ T₂} where
   binmap-SI : SynImpl IS₁ JS₁ R₁ → SynImpl IS₂ JS₂ R₂ → SynImpl (BinTensor-IS IS₁ IS₂) (BinTensor-IS JS₁ JS₂) (parcomp-R R₁ R₂)
-  binmap-SI si sj {s₁ , s₂} {t₁ , t₂} (p₁ , p₂) (left  c) = TermRM (fmap-IS-FM IncL-IS) {!!} (λ { pf r → {!!} }) (si {!!} c)
+  binmap-SI si sj {s₁ , s₂} {t₁ , t₂} (p₁ , p₂) (left  c)
+    = TermRM (fmap-IS-FM IncL-IS) refl (λ { {.t} {t , t′} refl (DepRelV r {.t} pf) → DepRelV r {{!? , ?!}} {!!} }) (si p₁ c)
   binmap-SI si sj {s₁ , s₂} {t₁ , t₂} (p₁ , p₂) (right c) = {!!}
   {-
   binmap-SI si sj {s₁ , s₂} {t₁ , t₂} pf (left  c) = TermRM (fmap-IS-FM IncL-IS) $ fmapⁱ (λ { (DepRelV x pf) → DepRelV x ? }) $ si ? c

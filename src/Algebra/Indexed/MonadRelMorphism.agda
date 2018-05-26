@@ -6,7 +6,7 @@ module Algebra.Indexed.MonadRelMorphism {S₁ S₂ : Set}
 open import Algebra.Function
 open import Algebra.Relation
 
-record IxMonadRelMorphism : Set₁ where
+record IxMonadRelMorphism (R : Relation S₁ S₂) : Set₁ where
+  constructor ix-rel-mmorphism
   field
-    StateRM : Relation S₁ S₂
-    TermRM  : ∀{A A′ s s′} → StateRM s s′ → (∀{t t′} → StateRM t t′ → A t → A′ t′) → M₁ A s → M₂ A′ s′
+    TermRM  : ∀{A A′ s s′} → R s s′ → (∀{t t′} → R t t′ → A t → A′ t′) → M₁ A s → M₂ A′ s′

@@ -2,6 +2,7 @@ module Interaction.Relational.FreeMonad where
 
 open import ThesisPrelude
 open import Algebra.Proposition
+open import Algebra.Relation
 open import Interaction.Relational.InteractionStructure 
 open import Algebra.Indexed.Monad
 open import Algebra.Indexed.MonadRelMorphism
@@ -30,7 +31,7 @@ module _ {S}{IS : IStruct S} where
     _>>=ⁱ_  FreeIxMonad = bind-FM
     fmapⁱ   FreeIxMonad = fmap-FM
     
-module _ {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂) where
+module _ {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂)(R : Relation S₁ S₂) where
   FMMorphism : Set₁
-  FMMorphism = IxMonadRelMorphism (FreeMonad IS₁) (FreeMonad IS₂)
+  FMMorphism = IxMonadRelMorphism (FreeMonad IS₁) (FreeMonad IS₂) R
 
