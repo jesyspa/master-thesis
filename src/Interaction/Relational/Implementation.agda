@@ -1,59 +1,56 @@
-module Interaction.Indexed.Implementation where
+module Interaction.Relational.Implementation where
 
 open import ThesisPrelude
 open import Algebra.Proposition
+open import Algebra.Relation
 open import Algebra.Indexed.Monad
 open import Algebra.Indexed.Atkey
-open import Algebra.Indexed.MonadMorphism
-open import Interaction.Indexed.InteractionStructure 
-open import Interaction.Indexed.FreeMonad 
+open import Algebra.Indexed.MonadRelMorphism
+open import Interaction.Relational.InteractionStructure 
+open import Interaction.Relational.FreeMonad 
 
 open InteractionStructure
 open IxMonad {{...}}
-open IxMonadMorphism
+open IxMonadRelMorphism
 
-module _ {l S}(IS : IStruct S){𝑺 : Set l} where
-  Implementation : (M : (𝑺 → Set l) → 𝑺 → Set l)(StateF : S → 𝑺) → Set l
-  Implementation M StateF = {s : S}(c : Command IS s) → M (StrongAtkey (Response IS c) (StateF ∘′ next IS)) (StateF s)
+module _ {S}(IS : IStruct S){𝑺 : Set} where
+  Implementation : (M : (𝑺 → Set) → 𝑺 → Set)(RS : Relation S 𝑺) → Set
+  Implementation M RS = ∀{s s′}(sr : RS s s′)(c : Command IS s) → M (DepRelAtkey RS (Response IS c) (next IS)) s′
 
-module _ {l S}{IS : IStruct S}{𝑺 : Set l}{M : (𝑺 → Set l) → 𝑺 → Set l}{{_ : IxMonad M}}{StateF : S → 𝑺} where
-  open IxMonadMorphism
+module _ {S}{IS : IStruct S}{𝑺 : Set}{M : (𝑺 → Set) → 𝑺 → Set}{{_ : IxMonad M}}{RS : Relation S 𝑺} where
   {-# TERMINATING #-}
-  uprop-Impl : Implementation IS M StateF → IxMonadMorphism (FreeMonad IS) M
-  StateM (uprop-Impl impl) = StateF
-  TermM (uprop-Impl impl) (Return-FM a) = returnⁱ a
-  TermM (uprop-Impl impl) (Invoke-FM c cont) = impl c >>=ⁱ λ { (StrongV r refl) → TermM (uprop-Impl impl) (cont r) }
+  uprop-Impl : Implementation IS M RS → IxMonadRelMorphism (FreeMonad IS) M
+  StateRM (uprop-Impl impl) = RS
+  TermRM  (uprop-Impl impl) pf fun (Return-FM a) = returnⁱ (fun pf a)
+  TermRM  (uprop-Impl impl) pf fun (Invoke-FM c cont) = impl pf c >>=ⁱ λ { (DepRelV r pf′) → TermRM (uprop-Impl impl) pf′ fun (cont r) }
 
-module _ {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂)(StateF : S₁ → S₂) where
+module _ {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂)(RS : Relation S₁ S₂) where
   SyntacticImplementation : Set
-  SyntacticImplementation = Implementation IS₁ (FreeMonad IS₂) StateF
+  SyntacticImplementation = Implementation IS₁ (FreeMonad IS₂) RS
 
 SynImpl = SyntacticImplementation
 
 module _ {S}{IS : IStruct S} where
-  id-SI : SynImpl IS IS id
-  id-SI c = Invoke-FM c λ r → Return-FM (StrongV r refl)
+  id-SI : SynImpl IS IS _≡_
+  id-SI refl c = Invoke-FM c λ r → Return-FM (DepRelV r refl)
 
-module _ {S₁ S₂}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{StateF : S₁ → S₂} where
-  fmap-SynImpl-FM : (si : SynImpl IS₁ IS₂ StateF) → IxMonadMorphism (FreeMonad IS₁) (FreeMonad IS₂) 
+module _ {S₁ S₂}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{RS} where
+  fmap-SynImpl-FM : (si : SynImpl IS₁ IS₂ RS) → IxMonadRelMorphism (FreeMonad IS₁) (FreeMonad IS₂) 
   fmap-SynImpl-FM = uprop-Impl
 
-module _ {S₁ S₂ S₃}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{IS₃ : IStruct S₃}{f g} where
-  open IxMonadMorphism
+module _ {S₁ S₂ S₃}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{IS₃ : IStruct S₃}{R₁ R₂} where
   {-# TERMINATING #-}
-  comp-SI : SynImpl IS₁ IS₂ f → SynImpl IS₂ IS₃ g → SynImpl IS₁ IS₃ (g ∘′ f)
-  comp-SI si sj x = TermM (fmap-SynImpl-FM sj) (fmapⁱ (λ { (StrongV r refl) → StrongV r refl }) (si x))
+  comp-SI : SynImpl IS₁ IS₂ R₁ → SynImpl IS₂ IS₃ R₂ → SynImpl IS₁ IS₃ (comp-R R₁ R₂)
+  comp-SI si sj (s₁ , p₁ , p₂) c = TermRM (fmap-SynImpl-FM sj) p₂ (λ { q₂ (DepRelV r q₁) → DepRelV r (_ , q₁ , q₂) }) (si p₁ c)
 
   infixr 9 _∘′-SI_
-  _∘′-SI_ : SynImpl IS₂ IS₃ g → SynImpl IS₁ IS₂ f → SynImpl IS₁ IS₃ (g ∘′ f)
+  _∘′-SI_ : SynImpl IS₂ IS₃ R₂ → SynImpl IS₁ IS₂ R₁ → SynImpl IS₁ IS₃ (comp-R R₁ R₂)
   _∘′-SI_ = flip comp-SI
 
-module _ {S₁ S₂}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{StateF : S₁ → S₂}(m : ISMorphism IS₁ IS₂ StateF) where
+module _ {S₁ S₂}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{RS}(m : ISMorphism IS₁ IS₂ RS) where
   open ISMorphism m
-  fmap-IS-SynImpl : SynImpl IS₁ IS₂ StateF
-  fmap-IS-SynImpl c = Invoke-FM (CommandF c) lem
-    where lem : ∀ r → FreeMonad IS₂ (StrongAtkey (Response IS₁ c) (StateF ∘′ next IS₁)) (next IS₂ r)
-          lem r = Return-FM (StrongV (ResponseF r) (sym (nextF r)))  
+  fmap-IS-SynImpl : SynImpl IS₁ IS₂ RS
+  fmap-IS-SynImpl pf c = Invoke-FM (CommandF pf c) λ r → Return-FM (DepRelV (ResponseF pf r) (nextF pf r))
 
   fmap-IS-FM : FMMorphism IS₁ IS₂
   fmap-IS-FM = fmap-SynImpl-FM fmap-IS-SynImpl
@@ -61,7 +58,12 @@ module _ {S₁ S₂}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{StateF : S₁ �
 module _ {S₁ S₂ T₁ T₂}
          {IS₁ : IStruct S₁}{IS₂ : IStruct S₂}
          {JS₁ : IStruct T₁}{JS₂ : IStruct T₂}
-         {StateF₁ : S₁ → T₁}{StateF₂ : S₂ → T₂} where
-  binmap-SI : SynImpl IS₁ JS₁ StateF₁ → SynImpl IS₂ JS₂ StateF₂ → SynImpl (BinTensor-IS IS₁ IS₂) (BinTensor-IS JS₁ JS₂) (StateF₁ ***′ StateF₂)
-  binmap-SI si sj {s , t} (left  c) = TermM (fmap-IS-FM $ IncL-IS (StateF₂ t)) $ fmapⁱ (λ { (StrongV x refl) → StrongV x refl }) $ si c
-  binmap-SI si sj {s , t} (right c) = TermM (fmap-IS-FM $ IncR-IS (StateF₁ s)) $ fmapⁱ (λ { (StrongV x refl) → StrongV x refl }) $ sj c
+         {R₁ : Relation S₁ T₁}{R₂ : Relation S₂ T₂} where
+  binmap-SI : SynImpl IS₁ JS₁ R₁ → SynImpl IS₂ JS₂ R₂ → SynImpl (BinTensor-IS IS₁ IS₂) (BinTensor-IS JS₁ JS₂) (parcomp-R R₁ R₂)
+  binmap-SI si sj {s₁ , s₂} {t₁ , t₂} (p₁ , p₂) (left  c) = TermRM (fmap-IS-FM IncL-IS) {!!} (λ { pf r → {!!} }) (si {!!} c)
+  binmap-SI si sj {s₁ , s₂} {t₁ , t₂} (p₁ , p₂) (right c) = {!!}
+  {-
+  binmap-SI si sj {s₁ , s₂} {t₁ , t₂} pf (left  c) = TermRM (fmap-IS-FM IncL-IS) $ fmapⁱ (λ { (DepRelV x pf) → DepRelV x ? }) $ si ? c
+  binmap-SI si sj {s₁ , s₂} {t₁ , t₂} pf (right c) = TermRM (fmap-IS-FM IncR-IS) $ fmapⁱ (λ { (DepRelV x pf) → DepRelV x ? }) $ sj ? c
+  -}
+
