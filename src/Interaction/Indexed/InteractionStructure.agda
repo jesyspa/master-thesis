@@ -4,15 +4,16 @@ open import ThesisPrelude
 open import Algebra.Proposition
 open import Algebra.Equality
 open import Algebra.FunExt
-open import Utility.All
+open import Utility.BTAll
 
-record InteractionStructure (S : List Set) : Set₁ where
+record InteractionStructure (S : BTree Set) : Set₁ where
   field
-    Command     : All′ S → Set
-    Response    : {s : All′ S} → Command s → Set
-    next        : {s : All′ S}{c : Command s}(r : Response c) → All′ S
+    Command     : BTAll′ S → Set
+    Response    : {s : BTAll′ S} → Command s → Set
+    next        : {s : BTAll′ S}{c : Command s}(r : Response c) → BTAll′ S
 open InteractionStructure
 
+{-
 IStruct = InteractionStructure
 
 record ISMorphism {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂)(StateF : All′ S₁ → All′ S₂) : Set₁ where
@@ -83,5 +84,7 @@ postulate
   LeftUncancel-IS  : ∀{S}{IS : IStruct S} → ISMorphism IS (BinTensor-IS TensorUnit-IS IS) (λ s → tt , s)
   RightUncancel-IS : ∀{S}{IS : IStruct S} → ISMorphism IS (BinTensor-IS IS TensorUnit-IS) (λ s → s , tt)
 
+
+-}
 
 -}
