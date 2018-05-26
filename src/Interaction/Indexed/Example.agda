@@ -2,6 +2,7 @@ module Interaction.Indexed.Example where
 
 open import ThesisPrelude
 open import Algebra.Proposition
+open import Algebra.Indexed.Atkey
 open import Interaction.Indexed.InteractionStructure 
 open import Interaction.Indexed.FreeMonad 
 open import Interaction.Indexed.Implementation 
@@ -13,7 +14,7 @@ open import Utility.Vector
 open InteractionStructure
 open ISMorphism
 
-challengerInfc : InteractionStructure (⊤ × ⊤)
+challengerInfc : InteractionStructure (⊤ × ⊤ × ⊤ × ⊤)
 Command  challengerInfc _ = ⊤
 Response challengerInfc tt = Bool
 next     challengerInfc {s} r  = s
@@ -33,43 +34,41 @@ module _ (K PT CT : Set) where
     generate-msgs : CommandAdv
     guess-which   : CT → CommandAdv
 
-  adversaryInfc : InteractionStructure (⊤ × ⊤ × ⊤ × ⊤)
+  adversaryInfc : InteractionStructure (⊤ × ⊤)
   Command  adversaryInfc _               = CommandAdv
   Response adversaryInfc generate-msgs   = PT × PT
   Response adversaryInfc (guess-which _) = Bool
   next     adversaryInfc {s} _           = s
 
   totalInfcTelescope : InfcTelescope (⊤ ∷ ⊤ ∷ ⊤ ∷ [])
-  totalInfcTelescope = InfcCons {!challengerInfc!} $ InfcCons {!!} $ InfcCons {!!} InfcEmpty
+  totalInfcTelescope = InfcCons challengerInfc $ InfcCons encSchemeInfc $ InfcCons adversaryInfc InfcEmpty
 
-{-
-  challengerImpl : SynImpl challengerInfc ( CE (encSchemeInfc ∷ adversaryInfc ∷ []))
-  challengerImpl tt =
-    Invoke-FM (true , false , keygen)                λ k →
-    Invoke-FM (true , true , false , generate-msgs)  λ m →
-    Invoke-FM (false , uniform 1)                    λ bv →
-    Invoke-FM (true , false , enc k (if head bv
-                                     then fst m
-                                     else snd m))    λ ct →
-    Invoke-FM (true , true , false , guess-which ct) λ b →
-    Return-FM (isYes (head bv == b))
-    -}
+  totalISTelescope : ISTelescope (⊤ ∷ ⊤ ∷ ⊤ ∷ [])
+  totalISTelescope = ISCons CryptoExprIS $ ISCons CryptoExprIS $ ISCons CryptoExprIS ISEmpty
 
-{-
+  tailInfcTelescope : ∀{IS ISs} → InfcTelescope (IS ∷ ISs) → InfcTelescope ISs
+  tailInfcTelescope (InfcCons _ tele) = tele
+
+  challengerImpl : SynImpl challengerInfc (BinTensor-IS CryptoExprIS (InfcTele-QT (tailInfcTelescope totalInfcTelescope))) id
+  challengerImpl {_ , _ , _ , _} _ =
+    Invoke-FM (right $ left          $ keygen)           λ k → 
+    Invoke-FM (right $ right $ left  $ generate-msgs)    λ m → 
+    Invoke-FM (left                  $ uniform-CE 1)     λ bv → 
+    Invoke-FM (right $ left          $ enc k
+                (if head bv then fst m else snd m))      λ ct →
+    Invoke-FM (right $ right $ left  $ guess-which ct)   λ b →
+    Return-FM (StrongV (isYes (head bv == b)) refl) 
+
   encSchemeImplType : Set
-  encSchemeImplType = SynImpl encSchemeInfc (Extend*-IS CE [])
+  encSchemeImplType = SynImpl encSchemeInfc (BinTensor-IS CryptoExprIS (InfcTele-QT (InfcCons adversaryInfc InfcEmpty))) (first id)
 
   adversaryImplType : Set
-  adversaryImplType = SynImpl adversaryInfc (Extend*-IS CE [])
+  adversaryImplType = SynImpl adversaryInfc (BinTensor-IS CryptoExprIS (InfcTele-QT InfcEmpty)) (first id)
 
-  bindEncScheme : encSchemeImplType → SynImpl challengerInfc (Extend*-IS CE [ adversaryInfc ])
-  bindEncScheme scheme = CombineHead {challengerInfc} {encSchemeInfc} {CE} {[ adversaryInfc ]} challengerImpl (WeakenBy {encSchemeInfc} {CE} {[]} adversaryInfc scheme)
- 
-  game : encSchemeImplType → adversaryImplType → ImplTelescope (challengerInfc ∷ adversaryInfc ∷ []) (CE ∷ CE ∷ [])
-  game scheme adv = Cons-IT (bindEncScheme scheme) (Cons-IT adv Nil-IT)
+  game : encSchemeImplType → adversaryImplType → ImplTelescope totalInfcTelescope totalISTelescope
+  game scheme adv = ImplCons id challengerImpl $ ImplCons id scheme $ ImplCons id adv $ ImplEmpty
 
-
-  game′ : encSchemeImplType → adversaryImplType → SynImpl challengerInfc CE
-  game′ scheme adv = free-SynImpl (BinMatch-IS _ _ id-IS Coproduct-RightUnit-IS) ∘′-SI CombineSyn* (game scheme adv) ∘′-SI free-SynImpl (InclL-IS _ _)
-
--}
+  game′ : (scheme : encSchemeImplType)
+        → (adv : adversaryImplType)
+        → SynImpl (InfcTele-QT totalInfcTelescope) (ISTele-T totalISTelescope) (combine-state $ game scheme adv)
+  game′ scheme adv {s} = combine-tele (game scheme adv) {s}

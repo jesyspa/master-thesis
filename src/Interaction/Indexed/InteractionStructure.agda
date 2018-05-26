@@ -78,4 +78,3 @@ postulate
   RightCancel-IS   : ∀{S}{IS : IStruct S} → ISMorphism (BinTensor-IS IS TensorUnit-IS) IS fst
   LeftUncancel-IS  : ∀{S}{IS : IStruct S} → ISMorphism IS (BinTensor-IS TensorUnit-IS IS) (λ s → tt , s)
   RightUncancel-IS : ∀{S}{IS : IStruct S} → ISMorphism IS (BinTensor-IS IS TensorUnit-IS) (λ s → s , tt)
-
