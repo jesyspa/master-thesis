@@ -60,7 +60,18 @@ module _ {S₁ S₂ T₁ T₂}
          {R₁ : Relation S₁ T₁}{R₂ : Relation S₂ T₂} where
   binmap-SI : SynImpl IS₁ JS₁ R₁ → SynImpl IS₂ JS₂ R₂ → SynImpl (BinTensor-IS IS₁ IS₂) (BinTensor-IS JS₁ JS₂) (parcomp-R R₁ R₂)
   binmap-SI si sj {s₁ , s₂} {t₁ , t₂} (p₁ , p₂) (left  c)
-    = TermRM (fmap-IS-FM IncL-IS) refl (λ { {.t} {t , t′} refl (DepRelV r {.t} pf) → DepRelV r {{!? , ?!}} {!!} }) (si p₁ c)
+    = goal 
+    where lem : FreeMonad JS₁ (DepRelAtkey R₁ (Response IS₁ c) (next IS₁)) t₁
+          lem = si p₁ c
+          rewrap : ∀{t t′} → incL-R t t′
+                 → DepRelAtkey R₁ (Response IS₁ c) (next IS₁) t
+                 → DepRelAtkey (parcomp-R R₁ R₂) (Response IS₁ c) (λ r → next IS₁ r , s₂) t′
+          rewrap {.ta} {ta , tb} refl at = {!!}
+          goal : FreeMonad (BinTensor-IS JS₁ JS₂) (DepRelAtkey (parcomp-R R₁ R₂) (Response IS₁ c) (λ r → next IS₁ r , s₂)) (t₁ , t₂)
+          -- Ergo: we are looking for a response r in a state related to next IS₁ r. 
+          goal = TermRM (fmap-IS-FM IncL-IS) refl rewrap lem
+-- this almost works:
+--    = TermRM (fmap-IS-FM IncL-IS) refl (λ { {.t} {t , t′} refl (DepRelV r {.t} pf) → DepRelV r {{!? , ?!}} {!!} }) (si p₁ c)
   binmap-SI si sj {s₁ , s₂} {t₁ , t₂} (p₁ , p₂) (right c) = {!!}
   {-
   binmap-SI si sj {s₁ , s₂} {t₁ , t₂} pf (left  c) = TermRM (fmap-IS-FM IncL-IS) $ fmapⁱ (λ { (DepRelV x pf) → DepRelV x ? }) $ si ? c
