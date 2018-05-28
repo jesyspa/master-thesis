@@ -37,16 +37,21 @@ record DistMonadProps : Set₂ where
                         → sample D a ≡ sample (fmap f D) (f a)
     irrelevance : ∀{A} {{_ : Eq A}} n (D : F A)
                 → D ≡D (uniform n >>= const D)
+    return-certain : ∀{A}{{_ : Eq A}}(a : A) → sample (return a) a ≡ one
     >>=-D-ext : ∀{A B}{{_ : Eq B}}
               → (x : F A)
               → (f g : A → F B)
               → (∀ a → f a ≡D g a)
               → (x >>= f) ≡D (x >>= g) 
-    -- The equality tests are needed for this to be provable, since we want to reason about
-    -- a's and b's.  Any way to avoid this?
+    >>=-D-inv : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}
+              → (x y : F A)
+              → (f : A → F B)
+              → (x ≡D y)
+              → (x >>= f) ≡D (y >>= f) 
     interchange : ∀{A B C}{{_ : Eq C}}(DA : F A)(DB : F B)
                    (f : A → B → F C)
                 → (DA >>= λ a → DB >>= f a) ≡D (DB >>= λ b → DA >>= λ a → f a b)
+    uniform-not-return : ∀ n v → ¬(n ≡ 0) → ¬(uniform n ≡D return v)
 
   sample-invariant-at : ∀{A}{{_ : Eq A}}{D₁ D₂ : F A} → (a : A) → D₁ ≡D D₂ → sample D₁ a ≡ sample D₂ a
   sample-invariant-at = flip sample-invariant
