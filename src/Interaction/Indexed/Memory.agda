@@ -92,6 +92,6 @@ eval-bounded b {.s}       (write-C s addr val) = fmapⁱ (λ { (V (lift _)) → 
 eval-bounded b {.s}       (read-C s addr)      = fmapⁱ (λ { (V (lift r)) → StrongV (lookup-vec addr r) refl }) $ modify id
 
 module _ where
-  open import Algebra.Indexed.Reindexing (Vec Nat) IxState {{it}} renaming (Reindexed to VecState)
-  modifyVec : ∀{n k} → (f : Vec Nat n → Vec Nat k) → VecState (Atkey (Lift (Vec Nat k)) k) n
-  modifyVec = ?
+  open import Utility.State.Indexed.Reindexing {lzero} (Vec Nat) renaming (IxStateᵣ to VecState; modifyᵣ to modifyVec)
+  eval-vec : Implementation Mem {!!} id
+  eval-vec {s} c = {!!}
