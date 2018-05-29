@@ -1,11 +1,8 @@
-module Utility.State.Indexed.Definition where
+module Utility.State.Indexed.Definition {l} where
 
 open import ThesisPrelude
 open import Algebra.Lift
 open import Algebra.Indexed.Monad
+open import Utility.Identity
 
--- There exists an indexed state monad.  However, since the identity has the wrong
--- signature (mismatch of universes), we have to use Lift, which isn't a Monad in
--- the agda-prelude sense of the word (it is universe-polymorphic).  This means we
--- cannot reuse the LiftM machinery, so it's too much trouble to bother with right
--- now.
+open import Utility.State.Indexed.Transformer {T = {!Set !}} Identity {{{!!}}}

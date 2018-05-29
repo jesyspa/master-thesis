@@ -63,3 +63,5 @@ read′ s addr = mkSmartConstructor′ (read-C s addr) s (const refl)
 
 inc : ∀ s (addr : Fin s) → FreeMonad Mem (Atkey ⊤ s) s
 inc s addr = read′ s addr >>=ⁱ λ { (V n) → write′ s addr n }
+
+eval : ∀{A s} → FreeMonad Mem A s → 
