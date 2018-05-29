@@ -77,21 +77,24 @@ lookup-vec () []
 lookup-vec zero (x ∷ xs) = x
 lookup-vec (suc addr) (x ∷ xs) = lookup-vec addr xs
 
-eval-direct : Implementation Mem IxState (Vec Nat)
-eval-direct {.s}       (alloc-C s)          = fmapⁱ (λ { (V (lift _)) → StrongV alloc-success refl }) $ modify (_∷_ zero)
-eval-direct {.(suc s)} (dealloc-C s)        = fmapⁱ (λ { (V (lift _)) → StrongV tt refl }) $ modify λ { (_ ∷ v) → v }
-eval-direct {.s}       (write-C s addr val) = fmapⁱ (λ { (V (lift _)) → StrongV tt refl }) $ modify (modify-vec addr val)
-eval-direct {.s}       (read-C s addr)      = fmapⁱ (λ { (V (lift r)) → StrongV (lookup-vec addr r) refl }) $ modify id
+eval-direct : Implementation {l′ = lzero} Mem IxState (Vec Nat)
+eval-direct {.s} (alloc-C s)          = fmapⁱ (λ { (V (lift _)) → lift $ StrongV alloc-success refl }) $ modify (_∷_ zero)
+eval-direct {._} (dealloc-C s)        = fmapⁱ (λ { (V (lift _)) → lift $ StrongV tt refl }) $ modify λ { (_ ∷ v) → v }
+eval-direct {.s} (write-C s addr val) = fmapⁱ (λ { (V (lift _)) → lift $ StrongV tt refl }) $ modify (modify-vec addr val)
+eval-direct {.s} (read-C s addr)      = fmapⁱ (λ { (V (lift r)) → lift $ StrongV (lookup-vec addr r) refl }) $ modify id
 
-eval-bounded : ∀ b → Implementation Mem IxState (Vec Nat)
-eval-bounded b {.s}       (alloc-C s)          = if isLess (compare b s) 
-                                                 then fmapⁱ (λ { (V (lift _)) → StrongV alloc-success refl }) (modify (_∷_ zero))
-                                                 else returnⁱ (StrongV alloc-fail refl)
-eval-bounded b {.(suc s)} (dealloc-C s)        = fmapⁱ (λ { (V (lift _)) → StrongV tt refl }) $ modify λ { (_ ∷ v) → v }
-eval-bounded b {.s}       (write-C s addr val) = fmapⁱ (λ { (V (lift _)) → StrongV tt refl }) $ modify (modify-vec addr val)
-eval-bounded b {.s}       (read-C s addr)      = fmapⁱ (λ { (V (lift r)) → StrongV (lookup-vec addr r) refl }) $ modify id
+eval-bounded : ∀ b → Implementation {l′ = lzero} Mem IxState (Vec Nat)
+eval-bounded b {.s} (alloc-C s)          = if isLess (compare b s) 
+                                           then fmapⁱ (λ { (V (lift _)) → lift $ StrongV alloc-success refl }) (modify (_∷_ zero))
+                                           else returnⁱ (lift $ StrongV alloc-fail refl)
+eval-bounded b {._} (dealloc-C s)        = fmapⁱ (λ { (V (lift _)) → lift $ StrongV tt refl }) $ modify λ { (_ ∷ v) → v }
+eval-bounded b {.s} (write-C s addr val) = fmapⁱ (λ { (V (lift _)) → lift $ StrongV tt refl }) $ modify (modify-vec addr val)
+eval-bounded b {.s} (read-C s addr)      = fmapⁱ (λ { (V (lift r)) → lift $ StrongV (lookup-vec addr r) refl }) $ modify id
 
 module _ where
   open import Utility.State.Indexed.Reindexing {lzero} (Vec Nat) renaming (IxStateᵣ to VecState; modifyᵣ to modifyVec)
-  eval-vec : Implementation Mem {!!} id
-  eval-vec {s} c = {!!}
+  eval-vec : Implementation Mem VecState id
+  eval-vec (alloc-C s)          = fmapⁱ {{IxMonadStateᵣ}} (λ { (V (lift _)) → lift $ StrongV alloc-success refl }) $ modifyVec (_∷_ zero)
+  eval-vec (dealloc-C s)        = fmapⁱ {{IxMonadStateᵣ}} (λ { (V (lift _)) → lift $ StrongV tt refl }) $ modifyVec λ { (_ ∷ v) → v }
+  eval-vec (write-C s addr val) = fmapⁱ {{IxMonadStateᵣ}} (λ { (V (lift _)) → lift $ StrongV tt refl }) $ modifyVec (modify-vec addr val)
+  eval-vec (read-C s addr)      = fmapⁱ {{IxMonadStateᵣ}} (λ { (V (lift r)) → lift $ StrongV (lookup-vec addr r) refl }) $ modifyVec id
