@@ -25,6 +25,7 @@ bindⁱ-RM rm f = rm >>=ⁱ-M λ { (s′ , refl , a) → f a }
 fmapⁱ-RM : ∀{A B s} → (∀{s′} → A s′ → B s′) → Reindexed A s → Reindexed B s
 fmapⁱ-RM f rm = fmapⁱ-M (λ { (s′ , eq , a) → s′ , eq , f a }) rm
 
+
 open import Algebra.Indexed.MonadMorphism
 open IxMonadMorphism
 open IxMonadComorphism
@@ -32,6 +33,10 @@ open IxMonadComorphism
 EmbedReindexed : IxMonadMorphism Reindexed M
 StateM  EmbedReindexed = reindex
 TermM   EmbedReindexed rm = fmapⁱ-M (λ { (s′ , refl , a) → a }) rm
+
+CoembedReindexed : IxMonadComorphism M Reindexed
+StateCM  CoembedReindexed = reindex
+TermCM   CoembedReindexed {A} {s′} m = fmapⁱ-M (λ {s} a → s′ , {!!} , {!!}) m
 
 module _ (reindex-sec : S → S′)(pf : Section reindex-sec of reindex) where
   ExtractReindexed : IxMonadMorphism M Reindexed

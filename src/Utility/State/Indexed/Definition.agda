@@ -8,8 +8,8 @@ open import Algebra.Indexed.Atkey
 open import Algebra.Indexed.MonadMorphism
 open import Utility.IxIdentity
 
-open import Utility.State.Indexed.Transformer {l′ = l} {T = LiftTop ⊤} (IxIdentity {l}) {{IxMonadIxIdentity}}
-open import Algebra.Indexed.Reindexing (λ s → s , LiftTop.lift tt) IxStateT {{IxMonadStateT}}
+open import Utility.State.Indexed.Transformer {l′ = l} {T = LiftTop ⊤} (IxIdentity {l}) {{it}}
+open import Algebra.Indexed.Reindexing (λ s → s , LiftTop.lift tt) IxStateT {{it}}
 
 -- without the reindexing, the type would be 
 -- (Set l × Lift ⊤ → Set (lsuc l)) → (Set l × Lift ⊤ → Set (lsuc l))

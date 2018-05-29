@@ -67,16 +67,31 @@ read′ s addr = mkSmartConstructor′ (read-C s addr) s (const refl)
 inc : ∀ s (addr : Fin s) → FreeMonad Mem (Atkey ⊤ s) s
 inc s addr = read′ s addr >>=ⁱ λ { (V n) → write′ s addr n }
 
+modify-vec : ∀{n} → Fin n → Nat → Vec Nat n → Vec Nat n
+modify-vec () val []
+modify-vec zero val (x ∷ xs) = val ∷ xs
+modify-vec (suc addr) val (x ∷ xs) = x ∷ modify-vec addr val xs
+
+lookup-vec : ∀{n} → Fin n → Vec Nat n → Nat
+lookup-vec () []
+lookup-vec zero (x ∷ xs) = x
+lookup-vec (suc addr) (x ∷ xs) = lookup-vec addr xs
+
 eval-direct : Implementation Mem IxState (Vec Nat)
 eval-direct {.s}       (alloc-C s)          = fmapⁱ (λ { (V (lift _)) → StrongV alloc-success refl }) $ modify (_∷_ zero)
 eval-direct {.(suc s)} (dealloc-C s)        = fmapⁱ (λ { (V (lift _)) → StrongV tt refl }) $ modify λ { (_ ∷ v) → v }
 eval-direct {.s}       (write-C s addr val) = fmapⁱ (λ { (V (lift _)) → StrongV tt refl }) $ modify (modify-vec addr val)
-  where modify-vec : ∀{n} → Fin n → Nat → Vec Nat n → Vec Nat n
-        modify-vec () val []
-        modify-vec zero val (x ∷ xs) = val ∷ xs
-        modify-vec (suc addr) val (x ∷ xs) = x ∷ modify-vec addr val xs
 eval-direct {.s}       (read-C s addr)      = fmapⁱ (λ { (V (lift r)) → StrongV (lookup-vec addr r) refl }) $ modify id
-  where lookup-vec : ∀{n} → Fin n → Vec Nat n → Nat
-        lookup-vec () []
-        lookup-vec zero (x ∷ xs) = x
-        lookup-vec (suc addr) (x ∷ xs) = lookup-vec addr xs
+
+eval-bounded : ∀ b → Implementation Mem IxState (Vec Nat)
+eval-bounded b {.s}       (alloc-C s)          = if isLess (compare b s) 
+                                                 then fmapⁱ (λ { (V (lift _)) → StrongV alloc-success refl }) (modify (_∷_ zero))
+                                                 else returnⁱ (StrongV alloc-fail refl)
+eval-bounded b {.(suc s)} (dealloc-C s)        = fmapⁱ (λ { (V (lift _)) → StrongV tt refl }) $ modify λ { (_ ∷ v) → v }
+eval-bounded b {.s}       (write-C s addr val) = fmapⁱ (λ { (V (lift _)) → StrongV tt refl }) $ modify (modify-vec addr val)
+eval-bounded b {.s}       (read-C s addr)      = fmapⁱ (λ { (V (lift r)) → StrongV (lookup-vec addr r) refl }) $ modify id
+
+module _ where
+  open import Algebra.Indexed.Reindexing (Vec Nat) IxState {{it}} renaming (Reindexed to VecState)
+  modifyVec : ∀{n k} → (f : Vec Nat n → Vec Nat k) → VecState (Atkey (Lift (Vec Nat k)) k) n
+  modifyVec = ?
