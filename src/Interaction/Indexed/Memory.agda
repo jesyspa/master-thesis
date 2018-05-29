@@ -1,10 +1,13 @@
 module Interaction.Indexed.Memory where
 
 open import ThesisPrelude
+open import Algebra.Lift
 open import Algebra.Indexed.Monad
 open import Algebra.Indexed.Atkey
 open import Interaction.Indexed.InteractionStructure
 open import Interaction.Indexed.FreeMonad
+open import Interaction.Indexed.Implementation
+open import Utility.State.Indexed.Definition {lzero}
 
 open IxMonad {{...}}
 
@@ -64,4 +67,16 @@ read′ s addr = mkSmartConstructor′ (read-C s addr) s (const refl)
 inc : ∀ s (addr : Fin s) → FreeMonad Mem (Atkey ⊤ s) s
 inc s addr = read′ s addr >>=ⁱ λ { (V n) → write′ s addr n }
 
-eval : ∀{A s} → FreeMonad Mem A s → 
+eval-direct : Implementation Mem IxState (Vec Nat)
+eval-direct {.s}       (alloc-C s)          = fmapⁱ (λ { (V (lift _)) → StrongV alloc-success refl }) $ modify (_∷_ zero)
+eval-direct {.(suc s)} (dealloc-C s)        = fmapⁱ (λ { (V (lift _)) → StrongV tt refl }) $ modify λ { (_ ∷ v) → v }
+eval-direct {.s}       (write-C s addr val) = fmapⁱ (λ { (V (lift _)) → StrongV tt refl }) $ modify (modify-vec addr val)
+  where modify-vec : ∀{n} → Fin n → Nat → Vec Nat n → Vec Nat n
+        modify-vec () val []
+        modify-vec zero val (x ∷ xs) = val ∷ xs
+        modify-vec (suc addr) val (x ∷ xs) = x ∷ modify-vec addr val xs
+eval-direct {.s}       (read-C s addr)      = fmapⁱ (λ { (V (lift r)) → StrongV (lookup-vec addr r) refl }) $ modify id
+  where lookup-vec : ∀{n} → Fin n → Vec Nat n → Nat
+        lookup-vec () []
+        lookup-vec zero (x ∷ xs) = x
+        lookup-vec (suc addr) (x ∷ xs) = lookup-vec addr xs

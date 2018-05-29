@@ -28,3 +28,6 @@ modify {S} {S′} f = TermM (ExtractReindexed fst (λ { (a , liftTop tt) → ref
         lem : ∀{t} → IxStateT (Atkey (LiftS S′) S′ ∘′ fst) (S , t)
         lem = fmapⁱ {{IxMonadStateT}} {s = S , liftTop tt} g (modifyT {S} {S′} {liftTop tt} f)
 
+instance
+  IxMonadState : IxMonad IxState
+  IxMonadState = IxMonadReindexed

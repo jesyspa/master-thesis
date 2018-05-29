@@ -37,3 +37,9 @@ module _ (reindex-sec : S → S′)(pf : Section reindex-sec of reindex) where
   ExtractReindexed : IxMonadMorphism M Reindexed
   StateM ExtractReindexed = reindex-sec
   TermM  ExtractReindexed {A} {s} m rewrite sym (pf s) = fmapⁱ-M (λ {s′} a → _ , sym (pf s′) , a) m
+
+instance
+  IxMonadReindexed : IxMonad Reindexed
+  fmapⁱ   IxMonadReindexed = fmapⁱ-RM
+  returnⁱ IxMonadReindexed = returnⁱ-RM
+  _>>=ⁱ_  IxMonadReindexed = bindⁱ-RM
