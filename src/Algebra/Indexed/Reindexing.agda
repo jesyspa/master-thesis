@@ -33,3 +33,7 @@ EmbedReindexed : IxMonadMorphism Reindexed M
 StateM  EmbedReindexed = reindex
 TermM   EmbedReindexed rm = fmapⁱ-M (λ { (s′ , refl , a) → a }) rm
 
+module _ (reindex-sec : S → S′)(pf : Section reindex-sec of reindex) where
+  ExtractReindexed : IxMonadMorphism M Reindexed
+  StateM ExtractReindexed = reindex-sec
+  TermM  ExtractReindexed {A} {s} m rewrite sym (pf s) = fmapⁱ-M (λ {s′} a → _ , sym (pf s′) , a) m
