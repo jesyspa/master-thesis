@@ -2,10 +2,10 @@ open import ThesisPrelude
 open import Algebra.Function
 open import Algebra.Indexed.Monad
 module Algebra.Indexed.Reindexing {l l′}{S : Set l}{S′ : Set l′}
-                                  (reindex : S′ → S){{If : Injective reindex}}
+                                  (reindex : S′ → S)
                                   (M : (S → Set (l ⊔ l′)) → S → Set (l ⊔ l′)){{IMM : IxMonad M}} where
 
-open import Algebra.KanExtension reindex {{If}}
+open import Algebra.KanExtension reindex
 
 open IxMonad
 

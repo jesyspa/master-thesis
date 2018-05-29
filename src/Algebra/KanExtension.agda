@@ -1,5 +1,5 @@
 open import Algebra.Function
-module Algebra.KanExtension {l l′}{S : Set l}{S′ : Set l′}(f : S′ → S){{If : Injective f}} where
+module Algebra.KanExtension {l l′}{S : Set l}{S′ : Set l′}(f : S′ → S) where
 
 open import ThesisPrelude
 open import Algebra.NaturalTransformation
@@ -16,5 +16,4 @@ Lε : ∀{φ} → φ ⇒ (Lan φ ∘′ f)
 Lε v = _ , refl , v
 
 factorise : ∀{φ ψ} → φ ⇒ (ψ ∘′ f) → (Lan φ ∘′ f) ⇒ (ψ ∘′ f)
-factorise nt (s′ , eq , v) with If eq
-factorise nt (s′ , eq , v) | refl = nt v
+factorise nt (s′ , eq , v) rewrite sym eq = nt v
