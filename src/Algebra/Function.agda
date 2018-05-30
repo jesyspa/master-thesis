@@ -88,6 +88,10 @@ get-inv : ∀{l l′} {A : Set l} {B : Set l′}
         → A ↔ B → B → A
 get-inv = fst ∘ snd
 
+get-Sec : ∀{l l′}{A : Set l}{B : Set l′}
+        → (bj : A ↔ B) → Section get-inv bj of get-fun bj
+get-Sec (_ , _ , _ , pf) = pf
+
 ↔-refl : ∀{l} (A : Set l)
        → A ↔ A
 ↔-refl A = id , id-Bijective

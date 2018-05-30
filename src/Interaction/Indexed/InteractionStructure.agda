@@ -4,6 +4,7 @@ open import ThesisPrelude
 open import Algebra.Proposition
 open import Algebra.Equality
 open import Algebra.FunExt
+open import Algebra.Function
 
 record InteractionStructure (State : Set) : Set₁ where
   field
@@ -79,3 +80,8 @@ postulate
   LeftUncancel-IS  : ∀{S}{IS : IStruct S} → ISMorphism IS (BinTensor-IS TensorUnit-IS IS) (λ s → tt , s)
   RightUncancel-IS : ∀{S}{IS : IStruct S} → ISMorphism IS (BinTensor-IS IS TensorUnit-IS) (λ s → s , tt)
 
+module _ {S T}(IS : IStruct T)(bj : S ↔ T) where
+  iso-IS : IStruct S
+  Command   iso-IS s = Command IS (get-fun bj s)
+  Response  iso-IS c = Response IS c
+  next      iso-IS {s} r rewrite get-Sec bj (next IS r) = get-inv bj (next IS r)
