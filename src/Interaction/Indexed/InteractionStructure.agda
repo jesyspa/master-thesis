@@ -80,8 +80,15 @@ postulate
   LeftUncancel-IS  : ∀{S}{IS : IStruct S} → ISMorphism IS (BinTensor-IS TensorUnit-IS IS) (λ s → tt , s)
   RightUncancel-IS : ∀{S}{IS : IStruct S} → ISMorphism IS (BinTensor-IS IS TensorUnit-IS) (λ s → s , tt)
 
-module _ {S T}(IS : IStruct T)(bj : S ↔ T) where
+module _ {S T}(bj : S ↔ T)(IS : IStruct T) where
   iso-IS : IStruct S
   Command   iso-IS s = Command IS (get-fun bj s)
   Response  iso-IS c = Response IS c
   next      iso-IS {s} r rewrite get-Sec bj (next IS r) = get-inv bj (next IS r)
+
+module _ {S T}(IS : IStruct S)(JS : IStruct T) where
+  join-joinable-IS : ISMorphism (IS ⊕-IS IS) IS → ISMorphism (JS ⊕-IS JS) JS
+                   → ISMorphism ((IS ⊕-IS JS) ⊕-IS (IS ⊕-IS JS)) (IS ⊕-IS JS)
+  CommandF  (join-joinable-IS m₁ m₂) = ?
+  ResponseF (join-joinable-IS m₁ m₂) = ?
+  nextF     (join-joinable-IS m₁ m₂) = ?
