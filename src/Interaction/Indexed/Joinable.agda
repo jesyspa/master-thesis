@@ -15,7 +15,7 @@ record Joinable {S}(IS : IStruct S) : Set₁ where
     IStructJ : ISMorphism (IS ⊕-IS IS) IS (uncurry StateJ)
 open Joinable
 
-module _ {S T}(IS : IStruct S)(JS : IStruct T) where
+module _ {S T}{IS : IStruct S}{JS : IStruct T} where
   join-joinable-IS : Joinable IS → Joinable JS → Joinable (IS ⊕-IS JS)
   StateJ              (join-joinable-IS j₁ j₂)   (s₁ , t₁)   (s₂ , t₂) = StateJ j₁ s₁ s₂ , StateJ j₂ t₁ t₂
   CommandF  (IStructJ (join-joinable-IS j₁ j₂)) {(s₁ , t₁) , (s₂ , t₂)} (left  (left  c)) = left  $ CommandF (IStructJ j₁) {s₁ , s₂} (left  c)
@@ -48,3 +48,13 @@ module _ {S T}(bf : S ↔ T)(IS : IStruct S) where
     = {!!}
 
 -}
+
+module _ {S}(IS : IStruct S)(unit : S)(j : Joinable IS) where
+  NestedStateJoin : ∀ n → ReplicateState-IS IS n → S
+  NestedStateJoin zero tt = unit
+  -- weird way to write it, but it makes the latter stuff easier
+  NestedStateJoin (suc n) = uncurry (StateJ j) ∘′ (id ***′ NestedStateJoin n)
+
+  NestedJoin : ∀ n → ISMorphism (Replicate-IS IS n) IS (NestedStateJoin n)
+  NestedJoin zero = TensorUnit-incl IS unit
+  NestedJoin (suc n) = IStructJ j ∘′-IS binmap-IS id-IS (NestedJoin n)

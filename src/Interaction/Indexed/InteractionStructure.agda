@@ -41,6 +41,12 @@ Command  TensorUnit-IS  tt = ⊥
 Response TensorUnit-IS {tt} ()
 next     TensorUnit-IS {tt} {()}
 
+module _ {S}(IS : IStruct S)(s : S) where
+  TensorUnit-incl : ISMorphism TensorUnit-IS IS (const s)
+  CommandF  TensorUnit-incl ()
+  ResponseF TensorUnit-incl {c = ()}
+  nextF     TensorUnit-incl {c = ()}
+
 module _ {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂) where
   BinTensor-IS : InteractionStructure (S₁ × S₂)
   Command      BinTensor-IS (s₁ , s₂) = Command IS₁ s₁ ⊎ Command IS₂ s₂
@@ -85,4 +91,9 @@ module _ {S T}(bf : S ↔ T)(IS : IStruct S) where
   Response  iso-IS c = Response IS c
   next      iso-IS {s} r rewrite get-Ret bf (next IS r) = get-fun bf (next IS r)
 
-
+module _ {S}(IS : IStruct S) where
+  ReplicateState-IS : Nat → Set
+  ReplicateState-IS n = foldr _×_ ⊤ (replicate n S)
+  Replicate-IS : ∀ n → IStruct (ReplicateState-IS n)
+  Replicate-IS zero = TensorUnit-IS
+  Replicate-IS (suc n) = BinTensor-IS IS (Replicate-IS n)

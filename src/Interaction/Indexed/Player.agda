@@ -10,6 +10,7 @@ open import Interaction.Indexed.Implementation
 open import Interaction.Indexed.Telescope
 open import Interaction.Indexed.CryptoExpr
 open import Interaction.Indexed.StateExpr
+open import Interaction.Indexed.Joinable
 
 open IxMonad {{...}}
 
@@ -34,12 +35,6 @@ SimplePlayerImpl : ∀{xs}{ift : InfcTelescope xs}
                  → SynImpl (InfcTele-QT ift) (ISTele-T (CryptoStateTelescope (length xs))) (combine-state impt)
 SimplePlayerImpl = combine-tele 
 
-squish-states : ∀ n → foldr _×_ ⊤ (replicate n (StateExprState × ⊤)) → StateExprState × ⊤
-squish-states zero tt = bitvec-SE zero , tt
-squish-states (suc n) (s , ss) = combine s (squish-states n ss)
-  where combine : StateExprState × ⊤ → StateExprState × ⊤ → StateExprState × ⊤
-        combine (v , tt) (w , tt) = product-SE v w , tt
-
 {-
 SquishImpl : ∀ n → SynImpl (ISTele-T $ CryptoStateTelescope n) CryptoStateIS (squish-states n)
 SquishImpl zero ()
@@ -48,7 +43,10 @@ SquishImpl (suc n) {sa , sb} (left (right (uniform-CE k))) = Invoke-FM (right (u
 SquishImpl (suc n) {sa , sb} (right c) = {!SquishImpl n ?!}
 -}
 
+joinable-SCE-IS : Joinable CryptoStateIS
+joinable-SCE-IS = join-joinable-IS joinable-SE-IS joinable-CE-IS 
+
 PlayerImpl : ∀{xs}{ift : InfcTelescope xs}
            → (impt : PlayerImplTelescope ift)
-           → SynImpl (InfcTele-QT ift) CryptoStateIS (squish-states (length xs) ∘ combine-state impt)
-PlayerImpl impt c = {!fmapⁱ ? (combine-tele impt c)!}
+           → SynImpl (InfcTele-QT ift) CryptoStateIS (NestedStateJoin CryptoStateIS (bitvec-SE zero , tt) joinable-SCE-IS (length xs) ∘′ {!!} ∘′ combine-state impt) 
+PlayerImpl {xs} impt = fmap-IS-SynImpl (NestedJoin CryptoStateIS (bitvec-SE zero , tt) joinable-SCE-IS {!length xs!} ) ∘′-SI SimplePlayerImpl impt

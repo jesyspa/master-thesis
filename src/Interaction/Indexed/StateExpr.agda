@@ -33,14 +33,14 @@ Command  StateExprIS = StateExprCommand
 Response StateExprIS (modify-SE S′ _) = eval-SE S′
 next     StateExprIS {S} {modify-SE S′ _} r = S′
 
-joinable-CE-IS : Joinable StateExprIS
-StateJ    joinable-CE-IS = product-SE
-CommandF  (IStructJ joinable-CE-IS) {s₁ , s₂} (left  (modify-SE s₁′ f)) = modify-SE (product-SE s₁′ s₂) (first  f)
-CommandF  (IStructJ joinable-CE-IS) {s₁ , s₂} (right (modify-SE s₂′ f)) = modify-SE (product-SE s₁ s₂′) (second f)
-ResponseF (IStructJ joinable-CE-IS) {s₁ , s₂} {left  (modify-SE s₁′ f)} r = fst r
-ResponseF (IStructJ joinable-CE-IS) {s₁ , s₂} {right (modify-SE s₂′ f)} r = snd r
-nextF     (IStructJ joinable-CE-IS) {s₁ , s₂} {left  (modify-SE s₁′ f)} r = refl
-nextF     (IStructJ joinable-CE-IS) {s₁ , s₂} {right (modify-SE s₁′ f)} r = refl
+joinable-SE-IS : Joinable StateExprIS
+StateJ    joinable-SE-IS = product-SE
+CommandF  (IStructJ joinable-SE-IS) {s₁ , s₂} (left  (modify-SE s₁′ f)) = modify-SE (product-SE s₁′ s₂) (first  f)
+CommandF  (IStructJ joinable-SE-IS) {s₁ , s₂} (right (modify-SE s₂′ f)) = modify-SE (product-SE s₁ s₂′) (second f)
+ResponseF (IStructJ joinable-SE-IS) {s₁ , s₂} {left  (modify-SE s₁′ f)} r = fst r
+ResponseF (IStructJ joinable-SE-IS) {s₁ , s₂} {right (modify-SE s₂′ f)} r = snd r
+nextF     (IStructJ joinable-SE-IS) {s₁ , s₂} {left  (modify-SE s₁′ f)} r = refl
+nextF     (IStructJ joinable-SE-IS) {s₁ , s₂} {right (modify-SE s₁′ f)} r = refl
 
 module _ {S T : Set}{IS : IStruct S}{M : (T → Set) → (T → Set)}{f : S → T}(Impl : Implementation IS M f){{IMM : IxMonad M}} where
   open import Utility.State.Indexed.Reindexing eval-SE M
