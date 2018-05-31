@@ -30,3 +30,21 @@ module _ {S T}(IS : IStruct S)(JS : IStruct T) where
   nextF     (IStructJ (join-joinable-IS j₁ j₂)) {(s₁ , t₁) , (s₂ , t₂)} {left  (right c)} r rewrite nextF (IStructJ j₂) r = refl
   nextF     (IStructJ (join-joinable-IS j₁ j₂)) {(s₁ , t₁) , (s₂ , t₂)} {right (left  c)} r rewrite nextF (IStructJ j₁) r = refl
   nextF     (IStructJ (join-joinable-IS j₁ j₂)) {(s₁ , t₁) , (s₂ , t₂)} {right (right c)} r rewrite nextF (IStructJ j₂) r = refl
+
+{- This would be a nice lemma to have and it is obviously true, but this is terrible.
+module _ {S T}(bf : S ↔ T)(IS : IStruct S) where
+  iso-Joinable : Joinable IS → Joinable (iso-IS bf IS)
+  StateJ   (iso-Joinable j) t₁ t₂ = get-fun bf (StateJ j (get-inv bf t₁) (get-inv bf t₂))
+  CommandF  (IStructJ (iso-Joinable j)) {t₁ , t₂} c
+    rewrite sym $ get-Ret bf (StateJ j (get-inv bf t₁) (get-inv bf t₂))
+    = CommandF (IStructJ j) {get-inv bf t₁ , get-inv bf t₂} c
+  ResponseF (IStructJ (iso-Joinable j)) {t₁ , t₂} {left c} r
+    rewrite sym $ get-Ret bf (StateJ j (get-inv bf t₁) (get-inv bf t₂))
+    = ResponseF (IStructJ j) r
+  ResponseF (IStructJ (iso-Joinable j)) {t₁ , t₂} {right c} r
+    rewrite sym $ get-Ret bf (StateJ j (get-inv bf t₁) (get-inv bf t₂))
+    = ResponseF (IStructJ j) r
+  nextF     (IStructJ (iso-Joinable j)) {t₁ , t₂} {c} r
+    = {!!}
+
+-}

@@ -11,9 +11,11 @@ open import Utility.Vector
 open import Interaction.Indexed.InteractionStructure 
 open import Interaction.Indexed.FreeMonad 
 open import Interaction.Indexed.Implementation 
+open import Interaction.Indexed.Joinable 
 
 open InteractionStructure
 open ISMorphism
+open Joinable
 
 data CryptoExprCommand : Set where
   uniform-CE : Nat → CryptoExprCommand
@@ -23,13 +25,14 @@ Command  CryptoExprIS tt = CryptoExprCommand
 Response CryptoExprIS (uniform-CE n) = BitVec n
 next     CryptoExprIS _ = tt
 
-joinable-CE-IS : ISMorphism (CryptoExprIS ⊕-IS CryptoExprIS) CryptoExprIS ⊤-final
-CommandF  joinable-CE-IS {tt , tt} (left  c) = c
-CommandF  joinable-CE-IS {tt , tt} (right c) = c
-ResponseF joinable-CE-IS {tt , tt} {left  c} r = r
-ResponseF joinable-CE-IS {tt , tt} {right c} r = r
-nextF     joinable-CE-IS {tt , tt} {left  c} r = refl
-nextF     joinable-CE-IS {tt , tt} {right c} r = refl
+joinable-CE-IS : Joinable CryptoExprIS
+StateJ              joinable-CE-IS   tt   tt = tt
+CommandF  (IStructJ joinable-CE-IS) {tt , tt} (left  c) = c
+CommandF  (IStructJ joinable-CE-IS) {tt , tt} (right c) = c
+ResponseF (IStructJ joinable-CE-IS) {tt , tt} {left  c} r = r
+ResponseF (IStructJ joinable-CE-IS) {tt , tt} {right c} r = r
+nextF     (IStructJ joinable-CE-IS) {tt , tt} {left  c} r = refl
+nextF     (IStructJ joinable-CE-IS) {tt , tt} {right c} r = refl
 
 module _ {𝑺 : Set}(M : Set → Set)(s : 𝑺){{DMM : DistMonad M}} where
   open DistMonad DMM

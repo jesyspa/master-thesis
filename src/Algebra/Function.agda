@@ -92,6 +92,10 @@ get-Sec : ∀{l l′}{A : Set l}{B : Set l′}
         → (bj : A ↔ B) → Section get-inv bj of get-fun bj
 get-Sec (_ , _ , _ , pf) = pf
 
+get-Ret : ∀{l l′}{A : Set l}{B : Set l′}
+        → (bj : A ↔ B) → Retraction get-inv bj of get-fun bj
+get-Ret (_ , _ , pf , _) = pf
+
 ↔-refl : ∀{l} (A : Set l)
        → A ↔ A
 ↔-refl A = id , id-Bijective

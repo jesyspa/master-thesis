@@ -1,6 +1,7 @@
 module Interaction.Indexed.Player where
 
 open import ThesisPrelude
+open import Algebra.Function
 open import Algebra.Indexed.Monad
 open import Algebra.Indexed.Atkey
 open import Interaction.Indexed.InteractionStructure
@@ -15,9 +16,11 @@ open IxMonad {{...}}
 -- A player has some specific interface and is implemented in terms of a StateExpr S ⊕ CryptoExpr 
 -- The player may be aware of what players it depends on (since it needs to contain their state).
 
+crypto-iso : StateExprState ↔ StateExprState × ⊤
+crypto-iso = (λ z → z , tt) , fst , (λ a → refl) , λ { (z , tt) → refl }
+
 CryptoStateIS : IStruct StateExprState
-CryptoStateIS = iso-IS lem $ StateExprIS ⊕-IS CryptoExprIS
-  where lem = (λ z → z , tt) , fst , (λ a → refl) , λ { (z , tt) → refl }
+CryptoStateIS = iso-IS crypto-iso $ StateExprIS ⊕-IS CryptoExprIS
 
 CryptoStateTelescope : ∀ n → ISTelescope (replicate n StateExprState)
 CryptoStateTelescope zero = ISEmpty
