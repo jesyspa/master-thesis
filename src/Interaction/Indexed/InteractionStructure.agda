@@ -3,7 +3,6 @@ module Interaction.Indexed.InteractionStructure where
 open import ThesisPrelude
 open import Algebra.Proposition
 open import Algebra.Equality
-open import Algebra.FunExt
 open import Algebra.Function
 
 record InteractionStructure (State : Set) : Set₁ where
@@ -86,9 +85,3 @@ module _ {S T}(bj : S ↔ T)(IS : IStruct T) where
   Response  iso-IS c = Response IS c
   next      iso-IS {s} r rewrite get-Sec bj (next IS r) = get-inv bj (next IS r)
 
-module _ {S T}(IS : IStruct S)(JS : IStruct T) where
-  join-joinable-IS : ISMorphism (IS ⊕-IS IS) IS → ISMorphism (JS ⊕-IS JS) JS
-                   → ISMorphism ((IS ⊕-IS JS) ⊕-IS (IS ⊕-IS JS)) (IS ⊕-IS JS)
-  CommandF  (join-joinable-IS m₁ m₂) = ?
-  ResponseF (join-joinable-IS m₁ m₂) = ?
-  nextF     (join-joinable-IS m₁ m₂) = ?
