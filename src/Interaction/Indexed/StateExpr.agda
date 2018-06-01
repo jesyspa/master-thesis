@@ -45,8 +45,11 @@ nextF     (IStructJ joinable-SE-IS) {s₁ , s₂} {right (modify-SE s₁′ f)} 
 module _ {S T : Set}{IS : IStruct S}{M : (T → Set) → (T → Set)}{f : S → T}(Impl : Implementation IS M f){{IMM : IxMonad M}} where
   open import Utility.State.Indexed.Reindexing eval-SE M
   open IxMonad {{...}}
-  postulate
-    implementation-SE-IS : Implementation (StateExprIS ⊕-IS IS) IxStateTᵣ (second f)
+  open Implementation
+
+  implementation-SE-IS : Implementation (StateExprIS ⊕-IS IS) IxStateTᵣ (second f)
+  RunImpl implementation-SE-IS {s₁ , s₂} (left  c) = {!!}
+  RunImpl implementation-SE-IS {s₁ , s₂} (right c) = {!!}
   {- this is pretty old
   StateI implementation-SE-IS (s , t) = s , StateI Impl t 
   ImplI  implementation-SE-IS {s , t} (left (modify-SE s′ f)) = fmapⁱ-STᵣ DepV (modify-STᵣ f) 

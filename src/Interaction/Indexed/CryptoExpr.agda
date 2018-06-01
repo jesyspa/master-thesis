@@ -35,8 +35,8 @@ ResponseF (IStructJ joinable-CE-IS) {tt , tt} {right c} r = r
 nextF     (IStructJ joinable-CE-IS) {tt , tt} {left  c} r = refl
 nextF     (IStructJ joinable-CE-IS) {tt , tt} {right c} r = refl
 
-module _ {𝑺 : Set}(M : Set → Set)(s : 𝑺){{DMM : DistMonad M}} where
+module _ (M : Set → Set){{DMM : DistMonad M}} where
   open DistMonad DMM
-  implementation-CE-IS : Implementation CryptoExprIS (LiftM M) (const s)
+  implementation-CE-IS : Implementation CryptoExprIS (LiftM M {S = ⊤}) (const tt)
   RunImpl implementation-CE-IS {tt} (uniform-CE n) = fmap (λ v → StrongV v refl) (uniform n)
 
