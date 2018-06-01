@@ -50,7 +50,7 @@ module _ {S T}(bf : S ↔ T)(IS : IStruct S) where
 -}
 
 module _ {S}(IS : IStruct S)(unit : S)(j : Joinable IS) where
-  NestedStateJoin : ∀ n → ReplicateState-IS IS n → S
+  NestedStateJoin : ∀ n → ReplicateState-IS S n → S
   NestedStateJoin zero tt = unit
   -- weird way to write it, but it makes the latter stuff easier
   NestedStateJoin (suc n) = uncurry (StateJ j) ∘′ (id ***′ NestedStateJoin n)

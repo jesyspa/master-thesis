@@ -48,5 +48,5 @@ joinable-SCE-IS = join-joinable-IS joinable-SE-IS joinable-CE-IS
 
 PlayerImpl : ∀{xs}{ift : InfcTelescope xs}
            → (impt : PlayerImplTelescope ift)
-           → SynImpl (InfcTele-QT ift) CryptoStateIS (NestedStateJoin CryptoStateIS (bitvec-SE zero , tt) joinable-SCE-IS (length xs) ∘′ {!!} ∘′ combine-state impt) 
-PlayerImpl {xs} impt = fmap-IS-SynImpl (NestedJoin CryptoStateIS (bitvec-SE zero , tt) joinable-SCE-IS {!length xs!} ) ∘′-SI SimplePlayerImpl impt
+           → SynImpl (InfcTele-QT ift) CryptoStateIS (NestedStateJoin CryptoStateIS (bitvec-SE zero , tt) joinable-SCE-IS (length xs) ∘′ combine-state impt) 
+PlayerImpl {xs} impt = fmap-IS-SynImpl (NestedJoin CryptoStateIS (bitvec-SE zero , tt) joinable-SCE-IS (length xs) ) ∘′-SI {!!} ∘′-SI SimplePlayerImpl impt
