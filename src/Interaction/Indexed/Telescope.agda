@@ -52,19 +52,20 @@ module _ {S₁ S₂ T₁ T₂}{IS₁ : IStruct (S₁ × S₂)}{IS₂ : IStruct S
          (f₁ : S₁ → T₁)(f₂ : S₂ → T₂)
          (si₁ : SynImpl IS₁ (JS₁ ⊕-IS IS₂) (first f₁))(si₂ : SynImpl IS₂ JS₂ f₂) where
   combine-bin : SynImpl (QuotientTensor-IS IS₁ IS₂) (JS₁ ⊕-IS JS₂) (f₁ ***′ f₂)
-  RunImpl combine-bin {s₁ , s₂} (left  c) = TermM fmm (fmapⁱ lem (RunImpl si₁ c))
+  RunImpl combine-bin {s₁ , s₂} (left  c) = RunIxMM fmm (fmapⁱ lem (RunImpl si₁ c))
     where
+      fmm : FMMorphism (JS₁ ⊕-IS IS₂) (JS₁ ⊕-IS JS₂) (id ***′ f₂)
       fmm = fmap-SynImpl-FM (binmap-SI {StateF₁ = id} (id-SI {IS = JS₁}) si₂)
       lem : ∀{s′}
           → StrongAtkey (Response IS₁ c) (first f₁ ∘′ next IS₁) s′
-          → StrongAtkey (Response IS₁ c) ((f₁ ***′ f₂) ∘′ (λ r → next IS₁ r)) (StateM fmm s′)
+          → StrongAtkey (Response IS₁ c) ((f₁ ***′ f₂) ∘′ (λ r → next IS₁ r)) ((id ***′ f₂) s′)
       lem {s₁′ , t₂′} (StrongV r eq) = StrongV r lem-eq
         where
           split-***′ : ∀ sᵢ → (f₁ ***′ f₂) sᵢ ≡ second f₂ (first f₁ sᵢ)
           split-***′ (_ , _) = refl
           lem-eq : (s₁′ , f₂ t₂′) ≡ (f₁ ***′ f₂) (next IS₁ r)
           lem-eq rewrite split-***′ (next IS₁ r) | sym eq = refl
-  RunImpl combine-bin {s₁ , s₂} (right c) = TermM (fmap-IS-FM (IncR-IS (f₁ s₁))) goal
+  RunImpl combine-bin {s₁ , s₂} (right c) = RunIxMM (fmap-IS-FM (IncR-IS (f₁ s₁))) goal
     where
       lem : FreeMonad JS₂ (StrongAtkey (Response IS₂ c) (f₂ ∘′ next IS₂)) (f₂ s₂)
       lem = RunImpl si₂ c
