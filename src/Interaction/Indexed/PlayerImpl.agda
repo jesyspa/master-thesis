@@ -1,6 +1,5 @@
 open import ThesisPrelude
-module _ {𝑺 : Set}(M : Set → Set)(s : 𝑺){{DMM : DistMonad M}} where
-module Interaction.Indexed.PlayerImpl {S\ where
+module Interaction.Indexed.PlayerImpl where
 
 open import Algebra.Function
 open import Algebra.Indexed.Monad
