@@ -16,6 +16,7 @@ open import Interaction.Indexed.Joinable
 open InteractionStructure
 open ISMorphism
 open Joinable
+open Implementation
 
 data CryptoExprCommand : Set where
   uniform-CE : Nat → CryptoExprCommand
@@ -37,5 +38,5 @@ nextF     (IStructJ joinable-CE-IS) {tt , tt} {right c} r = refl
 module _ {𝑺 : Set}(M : Set → Set)(s : 𝑺){{DMM : DistMonad M}} where
   open DistMonad DMM
   implementation-CE-IS : Implementation CryptoExprIS (LiftM M) (const s)
-  implementation-CE-IS {tt} (uniform-CE n) = fmap (λ v → StrongV v refl) (uniform n)
+  RunImpl implementation-CE-IS {tt} (uniform-CE n) = fmap (λ v → StrongV v refl) (uniform n)
 

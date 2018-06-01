@@ -14,9 +14,6 @@ open import Interaction.Indexed.Joinable
 
 open IxMonad {{...}}
 
--- A player has some specific interface and is implemented in terms of a StateExpr S ⊕ CryptoExpr 
--- The player may be aware of what players it depends on (since it needs to contain their state).
-
 crypto-iso : StateExprState ↔ StateExprState × ⊤
 crypto-iso = (λ z → z , tt) , fst , (λ a → refl) , λ { (z , tt) → refl }
 
@@ -35,18 +32,24 @@ SimplePlayerImpl : ∀{xs}{ift : InfcTelescope xs}
                  → SynImpl (InfcTele-QT ift) (ISTele-T (CryptoStateTelescope (length xs))) (combine-state impt)
 SimplePlayerImpl = combine-tele 
 
-{-
-SquishImpl : ∀ n → SynImpl (ISTele-T $ CryptoStateTelescope n) CryptoStateIS (squish-states n)
-SquishImpl zero ()
-SquishImpl (suc n) {sa , sb} (left (left (modify-SE S′ f))) = {!!}
-SquishImpl (suc n) {sa , sb} (left (right (uniform-CE k))) = Invoke-FM (right (uniform-CE k)) λ r → Return-FM (StrongV r refl)
-SquishImpl (suc n) {sa , sb} (right c) = {!SquishImpl n ?!}
--}
-
 joinable-SCE-IS : Joinable CryptoStateIS
 joinable-SCE-IS = join-joinable-IS joinable-SE-IS joinable-CE-IS 
 
-PlayerImpl : ∀{xs}{ift : InfcTelescope xs}
-           → (impt : PlayerImplTelescope ift)
-           → SynImpl (InfcTele-QT ift) CryptoStateIS (NestedStateJoin CryptoStateIS (bitvec-SE zero , tt) joinable-SCE-IS (length xs) ∘′ combine-state impt) 
-PlayerImpl {xs} impt = fmap-IS-SynImpl (NestedJoin CryptoStateIS (bitvec-SE zero , tt) joinable-SCE-IS (length xs) ) ∘′-SI {!!} ∘′-SI SimplePlayerImpl impt
+rewrap-state : ∀ n → foldr _×_ ⊤ (replicate n (StateExprState × ⊤)) → ReplicateState-IS (StateExprState × ⊤) n
+rewrap-state zero = id
+rewrap-state (suc n) = id ***′ rewrap-state n
+
+rewrap-Impl : ∀ n → SynImpl (ISTele-T (CryptoStateTelescope n)) (Replicate-IS CryptoStateIS n) (rewrap-state n)
+rewrap-Impl zero = id-SI
+rewrap-Impl (suc n) = binmap-SI id-SI (rewrap-Impl n) 
+
+SynPlayerImpl : ∀{xs}{ift : InfcTelescope xs}
+              → (impt : PlayerImplTelescope ift)
+              → SynImpl (InfcTele-QT ift)
+                        CryptoStateIS
+                        (NestedStateJoin CryptoStateIS (bitvec-SE zero , tt) joinable-SCE-IS (length xs)
+                          ∘′ rewrap-state (length xs)
+                          ∘′ combine-state impt) 
+SynPlayerImpl {xs} impt = fmap-IS-SynImpl (NestedJoin CryptoStateIS (bitvec-SE zero , tt) joinable-SCE-IS (length xs))
+                          ∘′-SI rewrap-Impl (length xs)
+                          ∘′-SI SimplePlayerImpl impt
