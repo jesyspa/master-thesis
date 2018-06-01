@@ -16,8 +16,11 @@ IxStateTᵣ = Reindexed
 modifyTᵣ : ∀{S S′ t} → (ev S → ev S′) → IxStateTᵣ (Atkey (Lift (ev S′)) (S′ , t)) (S , t)
 modifyTᵣ {S} {S′} {t} f s = returnⁱ (ev S′ , ((S′ , t) , refl , V (lift (f s))) , f s)
 
+map-liftTᵣ : ∀{A B t} S → (∀{t′} → A t′ → B (S , t′)) → M A t → IxStateTᵣ B (S , t)
+map-liftTᵣ S f m s = fmapⁱ (λ {t} a → ev S , ((S , t) , refl , f a) , s) m
+
 liftTᵣ : ∀{A t} S → M A t → IxStateTᵣ (A ∘′ snd) (S , t)
-liftTᵣ S m s = fmapⁱ (λ {t} a → ev S , ((S , t) , refl , a) , s) m
+liftTᵣ S = map-liftTᵣ S id
 
 instance
   IxMonadStateTᵣ : IxMonad IxStateTᵣ

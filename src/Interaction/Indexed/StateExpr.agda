@@ -52,16 +52,11 @@ module _ {S T : Set}{IS : IStruct S}{M : (T → Set₁) → (T → Set₁)}{f : 
                  → Atkey (Lift (eval-SE s₁′)) (s₁′ , f s₂) s′
                  → Lift (StrongAtkey (eval-SE s₁′) (second f ∘′ next (StateExprIS ⊕-IS IS) {s₁ , s₂} {left (modify-SE s₁′ g)} ) s′)
           rewrap (V (lift s)) = lift (StrongV s refl)
-  RunImpl implementation-SE-IS {s₁ , s₂} (right c) = goal -- fmapⁱ {s = s₁ , f s₂} rewrap (liftTᵣ s₁ (RunImpl Impl c))
+  RunImpl implementation-SE-IS {s₁ , s₂} (right c) = map-liftTᵣ s₁ lem (RunImpl Impl c)
     where
-      liftTerm : IxStateTᵣ (Lift ∘′ StrongAtkey (Response IS c) (f ∘′ next IS {c = c}) ∘′ snd) (second f (s₁ , s₂))
-      liftTerm = liftTᵣ s₁ (RunImpl Impl c)
-      rewrap : ∀{s′ : StateExprState × T}
-             → Lift (StrongAtkey (Response IS c) (f ∘′ next IS {c = c}) (snd s′))
-             → Lift (StrongAtkey (Response IS c) (second f ∘′ next (StateExprIS ⊕-IS IS) {s₁ , s₂} {right c}) s′)
-      rewrap {s₁′ , s₂′} (lift (StrongV r refl)) = {!!}
-      goal : IxStateTᵣ (Lift ∘′ StrongAtkey (Response IS c) (second f ∘′ next (StateExprIS ⊕-IS IS) {s₁ , s₂} {right c})) (second f (s₁ , s₂))
-      goal = {!!}
-      -- this really is a problem: we know a lifted term doesn't change the left component, but how do we argue that?
+      lem : ∀{t′}
+          → Lift (StrongAtkey (Response IS c) (f ∘′ next IS) t′)
+          → Lift (StrongAtkey (Response IS c) (second f ∘′ next (StateExprIS ⊕-IS IS) {s₁ , s₂} {right c}) (s₁ , t′))
+      lem (lift (StrongV r refl)) = lift $ StrongV r refl
   
 
