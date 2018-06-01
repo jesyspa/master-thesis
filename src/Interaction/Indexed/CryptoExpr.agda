@@ -3,6 +3,7 @@ module Interaction.Indexed.CryptoExpr where
 open import ThesisPrelude
 open import Algebra.Proposition
 open import Algebra.FunExt
+open import Algebra.Lift
 open import Algebra.Indexed.LiftMonad
 open import Algebra.Indexed.Atkey
 open import Algebra.Unit
@@ -38,5 +39,5 @@ nextF     (IStructJ joinable-CE-IS) {tt , tt} {right c} r = refl
 module _ (M : Set → Set){{DMM : DistMonad M}} where
   open DistMonad DMM
   implementation-CE-IS : Implementation CryptoExprIS (LiftM M {S = ⊤}) (const tt)
-  RunImpl implementation-CE-IS {tt} (uniform-CE n) = fmap (λ v → StrongV v refl) (uniform n)
+  RunImpl implementation-CE-IS {tt} (uniform-CE n) = fmap (λ v → lift $ StrongV v refl) (uniform n)
 
