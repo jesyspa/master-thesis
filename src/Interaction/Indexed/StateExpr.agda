@@ -1,8 +1,7 @@
 module Interaction.Indexed.StateExpr where
 
 open import ThesisPrelude
-open import Algebra.Proposition
-open import Algebra.FunExt
+open import Algebra.Lift
 open import Algebra.Indexed.Monad
 open import Algebra.Indexed.LiftMonad
 open import Algebra.Indexed.Atkey
@@ -47,20 +46,22 @@ module _ {S T : Set}{IS : IStruct S}{M : (T → Set₁) → (T → Set₁)}{f : 
   open IxMonad {{...}}
   open Implementation
 
-{-
   implementation-SE-IS : Implementation (StateExprIS ⊕-IS IS) IxStateTᵣ (second f)
-  RunImpl implementation-SE-IS {s₁ , s₂} (left  c) = {!!}
-  RunImpl implementation-SE-IS {s₁ , s₂} (right c) = {!!}
-  -}
-  {- this is pretty old
-  StateI implementation-SE-IS (s , t) = s , StateI Impl t 
-  ImplI  implementation-SE-IS {s , t} (left (modify-SE s′ f)) = fmapⁱ-STᵣ DepV (modify-STᵣ f) 
-  -- This looks correct to me, but I still get a lot of yellow.
-  ImplI  implementation-SE-IS {s , t} (right c) = fmapⁱ fun goal
-    where goal : IxStateTᵣ (DepAtkey (Response IS c) (StateI Impl ∘′ next IS) ∘′ snd) (s , StateI Impl t)
-          goal = lift-STᵣ (ImplI Impl c)
-          fun : ∀{S′} → DepAtkey (Response IS c) (StateI Impl ∘′ next IS) (snd S′)
-              → DepAtkey (Response IS c) (StateI implementation-SE-IS ∘′ next (StateExprIS ⊕-IS IS)) S′
-          fun {s′ , t′} (DepV x) = DepV x
-  -}
+  RunImpl implementation-SE-IS {s₁ , s₂} (left (modify-SE s₁′ g)) = fmapⁱ {s = s₁ , f s₂} rewrap (modifyTᵣ {s₁} {s₁′} {f s₂} g)
+    where rewrap : ∀{s′ : StateExprState × T}
+                 → Atkey (Lift (eval-SE s₁′)) (s₁′ , f s₂) s′
+                 → Lift (StrongAtkey (eval-SE s₁′) (second f ∘′ next (StateExprIS ⊕-IS IS) {s₁ , s₂} {left (modify-SE s₁′ g)} ) s′)
+          rewrap (V (lift s)) = lift (StrongV s refl)
+  RunImpl implementation-SE-IS {s₁ , s₂} (right c) = goal -- fmapⁱ {s = s₁ , f s₂} rewrap (liftTᵣ s₁ (RunImpl Impl c))
+    where
+      liftTerm : IxStateTᵣ (Lift ∘′ StrongAtkey (Response IS c) (f ∘′ next IS {c = c}) ∘′ snd) (second f (s₁ , s₂))
+      liftTerm = liftTᵣ s₁ (RunImpl Impl c)
+      rewrap : ∀{s′ : StateExprState × T}
+             → Lift (StrongAtkey (Response IS c) (f ∘′ next IS {c = c}) (snd s′))
+             → Lift (StrongAtkey (Response IS c) (second f ∘′ next (StateExprIS ⊕-IS IS) {s₁ , s₂} {right c}) s′)
+      rewrap {s₁′ , s₂′} (lift (StrongV r refl)) = {!!}
+      goal : IxStateTᵣ (Lift ∘′ StrongAtkey (Response IS c) (second f ∘′ next (StateExprIS ⊕-IS IS) {s₁ , s₂} {right c})) (second f (s₁ , s₂))
+      goal = {!!}
+      -- this really is a problem: we know a lifted term doesn't change the left component, but how do we argue that?
+  
 

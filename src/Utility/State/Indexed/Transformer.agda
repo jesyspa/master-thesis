@@ -14,6 +14,9 @@ IxStateT A (S , t) = S → M (λ t′ → Σ (Set l′) λ S′ → A (S′ , t�
 modifyT : ∀{S S′ t} → (S → S′) → IxStateT (Atkey (Lift S′) (S′ , t)) (S , t)
 modifyT {S} {S′} {t} f s = returnⁱ (S′ , V (lift (f s)) , f s) 
 
+liftT : ∀{A t} S → M A t → IxStateT (A ∘′ snd) (S , t)
+liftT S m s = fmapⁱ (λ a → S , a , s) m
+
 fmapⁱ-ST : ∀{S A B} → (∀{S′} → A S′ → B S′) → IxStateT A S → IxStateT B S
 fmapⁱ-ST {S , t} f st s = fmapⁱ (second (first f)) (st s)
 
