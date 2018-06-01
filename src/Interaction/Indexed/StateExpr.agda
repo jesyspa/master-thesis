@@ -42,14 +42,16 @@ ResponseF (IStructJ joinable-SE-IS) {s₁ , s₂} {right (modify-SE s₂′ f)} 
 nextF     (IStructJ joinable-SE-IS) {s₁ , s₂} {left  (modify-SE s₁′ f)} r = refl
 nextF     (IStructJ joinable-SE-IS) {s₁ , s₂} {right (modify-SE s₁′ f)} r = refl
 
-module _ {S T : Set}{IS : IStruct S}{M : (T → Set) → (T → Set)}{f : S → T}(Impl : Implementation IS M f){{IMM : IxMonad M}} where
-  open import Utility.State.Indexed.Reindexing eval-SE M
+module _ {S T : Set}{IS : IStruct S}{M : (T → Set₁) → (T → Set₁)}{f : S → T}(Impl : Implementation IS M f){{IMM : IxMonad M}} where
+  open import Utility.State.Indexed.ReindexingTransformer eval-SE M
   open IxMonad {{...}}
   open Implementation
 
+{-
   implementation-SE-IS : Implementation (StateExprIS ⊕-IS IS) IxStateTᵣ (second f)
   RunImpl implementation-SE-IS {s₁ , s₂} (left  c) = {!!}
   RunImpl implementation-SE-IS {s₁ , s₂} (right c) = {!!}
+  -}
   {- this is pretty old
   StateI implementation-SE-IS (s , t) = s , StateI Impl t 
   ImplI  implementation-SE-IS {s , t} (left (modify-SE s′ f)) = fmapⁱ-STᵣ DepV (modify-STᵣ f) 

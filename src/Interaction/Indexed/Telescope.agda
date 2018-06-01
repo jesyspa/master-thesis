@@ -2,6 +2,7 @@ module Interaction.Indexed.Telescope where
 
 open import ThesisPrelude
 open import Algebra.Equality
+open import Algebra.Lift
 open import Algebra.Indexed.Monad
 open import Algebra.Indexed.MonadMorphism
 open import Algebra.Indexed.Atkey
