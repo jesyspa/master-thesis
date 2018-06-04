@@ -30,7 +30,7 @@ open IxMonadMorphism
 open IxMonadComorphism
 
 EmbedReindexed : IxMonadMorphism Reindexed M reindex
-RunIxMM   EmbedReindexed rm = fmapⁱ-M (λ { (s′ , refl , a) → a }) rm
+RunIxMM   EmbedReindexed rm = fmapⁱ-M (lan-factorise id) rm
 
 module _ (reindex-sec : S → T)(pf : Section reindex-sec of reindex) where
   ExtractReindexed : IxMonadMorphism M Reindexed reindex-sec
