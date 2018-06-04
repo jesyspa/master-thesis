@@ -15,5 +15,19 @@ Lan* mf (s′ , eq , v) = s′ , eq , mf v
 Lε : ∀{φ} → φ ⇒ (Lan φ ∘′ f)
 Lε v = _ , refl , v
 
-factorise : ∀{φ ψ} → φ ⇒ (ψ ∘′ f) → (Lan φ ∘′ f) ⇒ (ψ ∘′ f)
-factorise nt (s′ , eq , v) rewrite sym eq = nt v
+lan-factorise : ∀{φ ψ} → φ ⇒ (ψ ∘′ f) → Lan φ ⇒ ψ
+lan-factorise nt (s′ , refl , v) = nt v
+
+Ran : (S′ → Set (l ⊔ l′)) → S → Set (l ⊔ l′)
+Ran φ s = ∀ s′ → f s′ ≡ s → φ s′
+
+Ran* : {φ φ′ : S′ → Set (l ⊔ l′)}
+     → φ ⇒ φ′
+     → Ran φ ⇒ Ran φ′
+Ran* nt {s} r s′ refl = nt (r s′ refl)
+
+Rε : ∀{φ} → (Ran φ ∘′ f) ⇒ φ
+Rε {s = s′} r = r s′ refl
+
+ran-factorise : ∀{φ ψ} → (φ ∘′ f) ⇒ ψ → φ ⇒ Ran ψ
+ran-factorise nt {s = s′} v t′ refl = nt v
