@@ -9,6 +9,7 @@ open import Interaction.Indexed.InteractionStructure
 open import Interaction.Indexed.FreeMonad
 open import Interaction.Indexed.Implementation
 open import Interaction.Indexed.Telescope
+open import Interaction.Indexed.DistExpr
 open import Interaction.Indexed.CryptoExpr
 open import Interaction.Indexed.StateExpr
 open import Interaction.Indexed.Joinable
@@ -21,8 +22,8 @@ open IxMonad {{...}}
 open DistMonad DMM
 open Implementation
 
-EvalCryptoState : Implementation CryptoStateIS IxStateT id 
+EvalCryptoState : Implementation CryptoExprIS IxStateT id 
 RunImpl EvalCryptoState {s , tt} (left (modify-SE s′ f))
   = fmapⁱ {s = s , tt} (λ { (V r) → StrongV r refl }) (modifyT f)
-RunImpl EvalCryptoState {s , tt} (right (uniform-CE n))
+RunImpl EvalCryptoState {s , tt} (right (uniform-DE n))
   = map-liftT s (λ v → StrongV v refl) (uniform n)
