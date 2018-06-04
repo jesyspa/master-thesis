@@ -4,7 +4,6 @@ open import ThesisPrelude
 open import Algebra.Proposition
 open import Algebra.FunExt
 open import Algebra.Lift
-open import Algebra.Indexed.LiftMonad
 open import Algebra.Indexed.Atkey
 open import Algebra.Unit
 open import Distribution.Class
@@ -37,7 +36,8 @@ nextF     (IStructJ joinable-CE-IS) {tt , tt} {left  c} r = refl
 nextF     (IStructJ joinable-CE-IS) {tt , tt} {right c} r = refl
 
 module _ (M : Set → Set){{DMM : DistMonad M}} where
+  open import Algebra.Indexed.LiftMonad {S = ⊤} M
   open DistMonad DMM
-  implementation-CE-IS : Implementation CryptoExprIS (LiftM M {S = ⊤}) (const tt)
+  implementation-CE-IS : Implementation CryptoExprIS LiftM (const tt)
   RunImpl implementation-CE-IS {tt} (uniform-CE n) = fmap (λ v → lift $ StrongV v refl) (uniform n)
 

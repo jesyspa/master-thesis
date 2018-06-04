@@ -13,12 +13,13 @@ open import Interaction.Indexed.CryptoExpr
 open import Interaction.Indexed.StateExpr
 open import Interaction.Indexed.Joinable
 open import Interaction.Indexed.Player
-open import Algebra.Indexed.LiftMonad {lzero} M {{it}}
--- Aaaa no please why.
--- Okay, given a level l monad, how do we get a level lsuc l monad?
-open import Utility.State.Indexed.ReindexingTransformer eval-SE LiftM
+open import Algebra.Indexed.LiftMonad {lzero} {S = ⊤} M {{it}}
+open import Utility.State.Indexed.FromUniverseTransformer eval-SE LiftM {{it}}
 
 open IxMonad {{...}}
+open Implementation
 
-EvalCryptoState : Implementation CryptoExprIS IxStateTᵣ (id ***′ id)
-EvalCryptoState = ?
+EvalCryptoState : Implementation CryptoStateIS IxStateT id 
+RunImpl EvalCryptoState {s , tt} (left (modify-SE s′ f))
+  = {!modifyT ?!}
+RunImpl EvalCryptoState {s , tt} (right (uniform-CE n)) = {!!}
