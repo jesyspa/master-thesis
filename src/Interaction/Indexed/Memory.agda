@@ -1,13 +1,11 @@
 module Interaction.Indexed.Memory where
 
 open import ThesisPrelude
-open import Algebra.Lift
 open import Algebra.Indexed.Monad
 open import Algebra.Indexed.Atkey
 open import Interaction.Indexed.InteractionStructure
 open import Interaction.Indexed.FreeMonad
 open import Interaction.Indexed.Implementation
-open import Utility.State.Indexed.Definition {lzero}
 
 open IxMonad {{...}}
 
@@ -79,24 +77,19 @@ lookup-vec (suc addr) (x ∷ xs) = lookup-vec addr xs
 
 open Implementation
 
-eval-direct : Implementation {l′ = lzero} Mem IxState (Vec Nat)
-RunImpl eval-direct {.s} (alloc-C s)          = fmapⁱ (λ { (V (lift _)) → lift $ StrongV alloc-success refl }) $ modify (_∷_ zero)
-RunImpl eval-direct {._} (dealloc-C s)        = fmapⁱ (λ { (V (lift _)) → lift $ StrongV tt refl }) $ modify λ { (_ ∷ v) → v }
-RunImpl eval-direct {.s} (write-C s addr val) = fmapⁱ (λ { (V (lift _)) → lift $ StrongV tt refl }) $ modify (modify-vec addr val)
-RunImpl eval-direct {.s} (read-C s addr)      = fmapⁱ (λ { (V (lift r)) → lift $ StrongV (lookup-vec addr r) refl }) $ modify id
-
-eval-bounded : ∀ b → Implementation {l′ = lzero} Mem IxState (Vec Nat)
-RunImpl (eval-bounded b) {.s} (alloc-C s)          = if isLess (compare b s) 
-                                                     then fmapⁱ (λ { (V (lift _)) → lift $ StrongV alloc-success refl }) (modify (_∷_ zero))
-                                                     else returnⁱ (lift $ StrongV alloc-fail refl)
-RunImpl (eval-bounded b) {._} (dealloc-C s)        = fmapⁱ (λ { (V (lift _)) → lift $ StrongV tt refl }) $ modify λ { (_ ∷ v) → v }
-RunImpl (eval-bounded b) {.s} (write-C s addr val) = fmapⁱ (λ { (V (lift _)) → lift $ StrongV tt refl }) $ modify (modify-vec addr val)
-RunImpl (eval-bounded b) {.s} (read-C s addr)      = fmapⁱ (λ { (V (lift r)) → lift $ StrongV (lookup-vec addr r) refl }) $ modify id
-
 module _ where
-  open import Utility.State.Indexed.Reindexing {lzero} (Vec Nat) renaming (IxStateᵣ to VecState; modifyᵣ to modifyVec)
-  eval-vec : Implementation Mem VecState id
-  RunImpl eval-vec (alloc-C s)          = fmapⁱ {{IxMonadStateᵣ}} (λ { (V (lift _)) → lift $ StrongV alloc-success refl }) $ modifyVec (_∷_ zero)
-  RunImpl eval-vec (dealloc-C s)        = fmapⁱ {{IxMonadStateᵣ}} (λ { (V (lift _)) → lift $ StrongV tt refl }) $ modifyVec λ { (_ ∷ v) → v }
-  RunImpl eval-vec (write-C s addr val) = fmapⁱ {{IxMonadStateᵣ}} (λ { (V (lift _)) → lift $ StrongV tt refl }) $ modifyVec (modify-vec addr val)
-  RunImpl eval-vec (read-C s addr)      = fmapⁱ {{IxMonadStateᵣ}} (λ { (V (lift r)) → lift $ StrongV (lookup-vec addr r) refl }) $ modifyVec id
+  open import Utility.State.Indexed.FromUniverse (Vec Nat)
+  eval-direct : Implementation Mem IxState id
+  RunImpl eval-direct {.s} (alloc-C s)          = fmapⁱ (λ { (V _) → StrongV alloc-success refl }) $ modify (_∷_ zero) 
+  RunImpl eval-direct {._} (dealloc-C s)        = fmapⁱ (λ { (V _) → StrongV tt refl }) $ modify λ { (_ ∷ v) → v }
+  RunImpl eval-direct {.s} (write-C s addr val) = fmapⁱ (λ { (V _) → StrongV tt refl }) $ modify (modify-vec addr val)
+  RunImpl eval-direct {.s} (read-C s addr)      = fmapⁱ (λ { (V r) → StrongV (lookup-vec addr r) refl }) $ modify id
+
+  eval-bounded : ∀ b → Implementation Mem IxState id
+  RunImpl (eval-bounded b) {.s} (alloc-C s)          = if isLess (compare b s) 
+                                                       then fmapⁱ (λ { (V _) → StrongV alloc-success refl }) (modify (_∷_ zero))
+                                                       else returnⁱ (StrongV alloc-fail refl)
+  RunImpl (eval-bounded b) {._} (dealloc-C s)        = fmapⁱ (λ { (V _) → StrongV tt refl }) $ modify λ { (_ ∷ v) → v }
+  RunImpl (eval-bounded b) {.s} (write-C s addr val) = fmapⁱ (λ { (V _) → StrongV tt refl }) $ modify (modify-vec addr val)
+  RunImpl (eval-bounded b) {.s} (read-C s addr)      = fmapⁱ (λ { (V r) → StrongV (lookup-vec addr r) refl }) $ modify id
+

@@ -41,22 +41,22 @@ ResponseF (IStructJ joinable-SE-IS) {s₁ , s₂} {right (modify-SE s₂′ f)} 
 nextF     (IStructJ joinable-SE-IS) {s₁ , s₂} {left  (modify-SE s₁′ f)} r = refl
 nextF     (IStructJ joinable-SE-IS) {s₁ , s₂} {right (modify-SE s₁′ f)} r = refl
 
-module _ {S T : Set}{IS : IStruct S}{M : (T → Set₁) → (T → Set₁)}{f : S → T}(Impl : Implementation IS M f){{IMM : IxMonad M}} where
-  open import Utility.State.Indexed.ReindexingTransformer eval-SE M
+module _ {S T : Set}{IS : IStruct S}{M : (T → Set) → (T → Set)}{f : S → T}(Impl : Implementation IS M f){{IMM : IxMonad M}} where
+  open import Utility.State.Indexed.FromUniverseTransformer eval-SE M
   open IxMonad {{...}}
   open Implementation
 
-  implementation-SE-IS : Implementation (StateExprIS ⊕-IS IS) IxStateTᵣ (second f)
-  RunImpl implementation-SE-IS {s₁ , s₂} (left (modify-SE s₁′ g)) = fmapⁱ {s = s₁ , f s₂} rewrap (modifyTᵣ {s₁} {s₁′} {f s₂} g)
+  implementation-SE-IS : Implementation (StateExprIS ⊕-IS IS) IxStateT (second f)
+  RunImpl implementation-SE-IS {s₁ , s₂} (left (modify-SE s₁′ g)) = fmapⁱ {s = s₁ , f s₂} rewrap (modifyT {s₁} {s₁′} {f s₂} g)
     where rewrap : ∀{s′ : StateExprState × T}
-                 → Atkey (Lift (eval-SE s₁′)) (s₁′ , f s₂) s′
-                 → Lift (StrongAtkey (eval-SE s₁′) (second f ∘′ next (StateExprIS ⊕-IS IS) {s₁ , s₂} {left (modify-SE s₁′ g)} ) s′)
-          rewrap (V (lift s)) = lift (StrongV s refl)
-  RunImpl implementation-SE-IS {s₁ , s₂} (right c) = map-liftTᵣ s₁ lem (RunImpl Impl c)
+                 → Atkey (eval-SE s₁′) (s₁′ , f s₂) s′
+                 → StrongAtkey (eval-SE s₁′) (second f ∘′ next (StateExprIS ⊕-IS IS) {s₁ , s₂} {left (modify-SE s₁′ g)} ) s′
+          rewrap (V s) = StrongV s refl
+  RunImpl implementation-SE-IS {s₁ , s₂} (right c) = map-liftT s₁ lem (RunImpl Impl c)
     where
       lem : ∀{t′}
-          → Lift (StrongAtkey (Response IS c) (f ∘′ next IS) t′)
-          → Lift (StrongAtkey (Response IS c) (second f ∘′ next (StateExprIS ⊕-IS IS) {s₁ , s₂} {right c}) (s₁ , t′))
-      lem (lift (StrongV r refl)) = lift $ StrongV r refl
+          → StrongAtkey (Response IS c) (f ∘′ next IS) t′
+          → StrongAtkey (Response IS c) (second f ∘′ next (StateExprIS ⊕-IS IS) {s₁ , s₂} {right c}) (s₁ , t′)
+      lem (StrongV r refl) = StrongV r refl
   
 

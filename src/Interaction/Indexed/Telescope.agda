@@ -58,9 +58,9 @@ module _ {S₁ S₂ T₁ T₂}{IS₁ : IStruct (S₁ × S₂)}{IS₂ : IStruct S
       fmm : FMMorphism (JS₁ ⊕-IS IS₂) (JS₁ ⊕-IS JS₂) (id ***′ f₂)
       fmm = fmap-SynImpl-FM (binmap-SI {StateF₁ = id} (id-SI {IS = JS₁}) si₂)
       lem : ∀{s′}
-          → Lift (StrongAtkey (Response IS₁ c) (first f₁ ∘′ next IS₁) s′)
-          → Lift (StrongAtkey (Response IS₁ c) ((f₁ ***′ f₂) ∘′ (λ r → next IS₁ r)) ((id ***′ f₂) s′))
-      lem {s₁′ , t₂′} (lift (StrongV r eq)) = lift (StrongV r lem-eq)
+          → StrongAtkey (Response IS₁ c) (first f₁ ∘′ next IS₁) s′
+          → StrongAtkey (Response IS₁ c) ((f₁ ***′ f₂) ∘′ (λ r → next IS₁ r)) ((id ***′ f₂) s′)
+      lem {s₁′ , t₂′} (StrongV r eq) = StrongV r lem-eq
         where
           split-***′ : ∀ sᵢ → (f₁ ***′ f₂) sᵢ ≡ second f₂ (first f₁ sᵢ)
           split-***′ (_ , _) = refl
@@ -68,10 +68,10 @@ module _ {S₁ S₂ T₁ T₂}{IS₁ : IStruct (S₁ × S₂)}{IS₂ : IStruct S
           lem-eq rewrite split-***′ (next IS₁ r) | sym eq = refl
   RunImpl combine-bin {s₁ , s₂} (right c) = RunIxMM (fmap-IS-FM (IncR-IS (f₁ s₁))) goal
     where
-      lem : FreeMonad JS₂ (Lift ∘′ StrongAtkey (Response IS₂ c) (f₂ ∘′ next IS₂)) (f₂ s₂)
+      lem : FreeMonad JS₂ (StrongAtkey (Response IS₂ c) (f₂ ∘′ next IS₂)) (f₂ s₂)
       lem = RunImpl si₂ c
-      goal : FreeMonad JS₂ (Lift ∘′ StrongAtkey (Response IS₂ c) (λ r → f₁ s₁ , f₂ (next IS₂ r)) ∘′ λ t₂ → f₁ s₁ , t₂) (f₂ s₂)
-      goal = fmapⁱ (λ { (lift (StrongV r refl)) → lift $ StrongV r refl }) lem
+      goal : FreeMonad JS₂ (StrongAtkey (Response IS₂ c) (λ r → f₁ s₁ , f₂ (next IS₂ r)) ∘′ λ t₂ → f₁ s₁ , t₂) (f₂ s₂)
+      goal = fmapⁱ (λ { (StrongV r refl) → StrongV r refl }) lem
 
 combine-state : ∀{Ss Ts} {ISs : InfcTelescope Ss}{JSs : ISTelescope Ts}
               → ImplTelescope ISs JSs

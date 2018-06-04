@@ -5,10 +5,10 @@ module Utility.State.Indexed.FromUniverse {U : Set}(ev : U → Set) where
 
 open import Utility.Identity
 open import Algebra.Indexed.LiftMonad
-open import Utility.State.Indexed.FromUniverseTransformer ev (LiftM Identity {S = ⊤}) {{IxMonadLiftM Identity}}
+open import Utility.State.Indexed.FromUniverseTransformer ev (LiftM {S = ⊤} Identity) {{IxMonadLiftM Identity}}
 open import Algebra.Indexed.Atkey 
 open import Algebra.Indexed.MonadMorphism 
-open import Algebra.Indexed.Reindexing {T = U} (λ u → u , tt) IxStateT {{IxMonadStateT}}
+open import Algebra.Indexed.Reindexing {T = U} (λ u → u , tt) IxStateT {{it}}
 
 open IxMonad {{...}}
 open IxMonadMorphism 

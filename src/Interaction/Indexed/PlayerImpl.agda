@@ -1,6 +1,6 @@
 open import ThesisPrelude
 open import Distribution.Class
-module Interaction.Indexed.PlayerImpl (M : Set → Set){{_ : DistMonad M}} where
+module Interaction.Indexed.PlayerImpl (M : Set → Set){{DMM : DistMonad M}} where
 
 open import Algebra.Function
 open import Algebra.Indexed.Monad
@@ -16,10 +16,13 @@ open import Interaction.Indexed.Player
 open import Algebra.Indexed.LiftMonad {lzero} {S = ⊤} M {{it}}
 open import Utility.State.Indexed.FromUniverseTransformer eval-SE LiftM {{it}}
 
+open InteractionStructure
 open IxMonad {{...}}
+open DistMonad DMM
 open Implementation
 
 EvalCryptoState : Implementation CryptoStateIS IxStateT id 
 RunImpl EvalCryptoState {s , tt} (left (modify-SE s′ f))
-  = {!modifyT ?!}
-RunImpl EvalCryptoState {s , tt} (right (uniform-CE n)) = {!!}
+  = fmapⁱ {s = s , tt} (λ { (V r) → StrongV r refl }) (modifyT f)
+RunImpl EvalCryptoState {s , tt} (right (uniform-CE n))
+  = map-liftT s (λ v → StrongV v refl) (uniform n)

@@ -39,5 +39,5 @@ module _ (M : Set → Set){{DMM : DistMonad M}} where
   open import Algebra.Indexed.LiftMonad {S = ⊤} M
   open DistMonad DMM
   implementation-CE-IS : Implementation CryptoExprIS LiftM (const tt)
-  RunImpl implementation-CE-IS {tt} (uniform-CE n) = fmap (λ v → lift $ StrongV v refl) (uniform n)
+  RunImpl implementation-CE-IS {tt} (uniform-CE n) = fmap (λ v → StrongV v refl) (uniform n)
 

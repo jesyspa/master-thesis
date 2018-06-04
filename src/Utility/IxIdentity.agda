@@ -8,8 +8,8 @@ open import Utility.Identity
 IxIdentity : {A : Set (lsuc l)} → (A → Set l′) → (A → Set l′)
 IxIdentity {A} = Identity {l ⊔ l′} {A → Set l′}
 
-open import Algebra.Indexed.LiftMonad {l′} Identity {{MonadIdentity}}
+open import Algebra.Indexed.LiftMonad
 
 instance
   IxMonadIxIdentity : {A : Set (lsuc l)} → IxMonad {S = A} IxIdentity
-  IxMonadIxIdentity = IxMonadLiftM
+  IxMonadIxIdentity {A} = IxMonadLiftM {l′} {S = A} Identity {{it}}
