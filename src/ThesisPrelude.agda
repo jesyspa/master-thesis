@@ -11,6 +11,7 @@ open import Prelude.Function public
 open import Prelude.Equality public
 open import Prelude.Decidable public
 open import Prelude.Ord public
+open import Prelude.Maybe public
 open import Prelude.Nat public
 open import Prelude.Fin public
 open import Prelude.List public
