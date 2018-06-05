@@ -2,7 +2,7 @@ module Utility.Identity {l} where
 
 open import ThesisPrelude
 
-Identity : Set l → Set l
+Identity : {A : Set (lsuc l)} → A → A
 Identity = id
 
 instance

@@ -31,6 +31,6 @@ module _ {S}{IS : IStruct S} where
     _>>=ⁱ_  FreeIxMonad = bind-FM
     fmapⁱ   FreeIxMonad = fmap-FM
     
-module _ {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂) where
+module _ {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂)(f : BTAll′ S₁ → BTAll′ S₂) where
   FMMorphism : Set₁
-  FMMorphism = IxMonadMorphism (FreeMonad IS₁) (FreeMonad IS₂)
+  FMMorphism = IxMonadMorphism (FreeMonad IS₁) (FreeMonad IS₂) f

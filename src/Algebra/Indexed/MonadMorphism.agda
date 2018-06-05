@@ -6,12 +6,10 @@ module Algebra.Indexed.MonadMorphism {l₁ l₂ l′}{S₁ : Set l₁}{S₂ : Se
 open import Algebra.Function
 open import Algebra.Relation
 
-record IxMonadMorphism : Set (lsuc l₁ ⊔ lsuc l₂ ⊔ lsuc l′) where
+record IxMonadMorphism (f : S₁ → S₂) : Set (lsuc l₁ ⊔ lsuc l₂ ⊔ lsuc l′) where
   field
-    StateM : S₁ → S₂
-    TermM  : ∀{A s} → M₁ (A ∘′ StateM) s → M₂ A (StateM s)
+    RunIxMM  : ∀{A s} → M₁ (A ∘′ f) s → M₂ A (f s)
 
-record IxMonadComorphism : Set (lsuc l₁ ⊔ lsuc l₂ ⊔ lsuc l′) where
+record IxMonadComorphism (f : S₂ → S₁): Set (lsuc l₁ ⊔ lsuc l₂ ⊔ lsuc l′) where
   field
-    StateCM : S₂ → S₁
-    TermCM  : ∀{A s} → M₁ A (StateCM s) → M₂ (A ∘′ StateCM) s
+    RunIxMCM  : ∀{A s} → M₁ A (f s) → M₂ (A ∘′ f) s

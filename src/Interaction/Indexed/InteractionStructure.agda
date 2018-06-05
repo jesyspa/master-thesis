@@ -3,8 +3,8 @@ module Interaction.Indexed.InteractionStructure where
 open import ThesisPrelude
 open import Algebra.Proposition
 open import Algebra.Equality
-open import Algebra.FunExt
 open import Utility.BTAll
+open import Algebra.Function
 
 record InteractionStructure (S : BTree Set) : Set₁ where
   field
@@ -37,10 +37,16 @@ module _ {S₁ S₂ S₃}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{IS₃ : IS
   _∘′-IS_ : ISMorphism IS₂ IS₃ sg → ISMorphism IS₁ IS₂ sf → ISMorphism IS₁ IS₃ (sg ∘′ sf)
   _∘′-IS_ = flip comp-IS
 
-TensorUnit-IS : InteractionStructure (Leaf ⊤)
-Command  TensorUnit-IS (leaf tt) = ⊥
-Response TensorUnit-IS {leaf tt} ()
-next     TensorUnit-IS {leaf tt} ()
+TensorUnit-IS : InteractionStructure Empty 
+Command  TensorUnit-IS  empty  = ⊥
+Response TensorUnit-IS {empty} ()
+next     TensorUnit-IS {empty} ()
+
+module _ {S}(IS : IStruct S)(s : BTAll′ S) where
+  TensorUnit-incl : ISMorphism TensorUnit-IS IS (const s)
+  CommandF  TensorUnit-incl {empty}  ()
+  ResponseF TensorUnit-incl {empty} {()}
+  nextF     TensorUnit-incl {empty} {()}
 
 module _ {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂) where
   BinTensor-IS : InteractionStructure (S₁ △ S₂)
@@ -73,3 +79,17 @@ module _ {S₁ S₂ T₁ T₂}{IS₁ : IStruct S₁}{IS₂ : IStruct S₂}{JS₁
   ResponseF (binmap-IS m₁ m₂) {s₁ ▵ s₂} {right c} r = ResponseF m₂ r
   nextF     (binmap-IS m₁ m₂) {s₁ ▵ s₂} {left  c} r rewrite nextF m₁ r = refl
   nextF     (binmap-IS m₁ m₂) {s₁ ▵ s₂} {right c} r rewrite nextF m₂ r = refl
+
+module _ {S T}(bf : BTAll′ S ↔ BTAll′ T)(IS : IStruct S) where
+  iso-IS : IStruct T
+  Command   iso-IS s = Command IS (get-inv bf s)
+  Response  iso-IS c = Response IS c
+  next      iso-IS {s} c r rewrite get-Ret bf (next IS c r) = get-fun bf (next IS c r)
+
+ReplicateState-IS : ∀{l}{A : Set l} → BTree A → Nat → BTree A
+ReplicateState-IS S n = foldr _△_ Empty (replicate n S)
+
+module _ {S}(IS : IStruct S) where
+  Replicate-IS : ∀ n → IStruct (ReplicateState-IS S n)
+  Replicate-IS zero = TensorUnit-IS
+  Replicate-IS (suc n) = BinTensor-IS IS (Replicate-IS n)

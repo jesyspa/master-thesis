@@ -1,38 +1,30 @@
 module Interaction.Indexed.CryptoExpr where
 
 open import ThesisPrelude
+open import Algebra.Function
 open import Algebra.Proposition
-open import Algebra.FunExt
-open import Algebra.Indexed.LiftMonad
 open import Algebra.Indexed.Atkey
 open import Algebra.Unit
 open import Distribution.Class
 open import Utility.Vector
+open import Utility.BTAll
 open import Interaction.Indexed.InteractionStructure 
 open import Interaction.Indexed.FreeMonad 
 open import Interaction.Indexed.Implementation 
+open import Interaction.Indexed.Joinable 
+open import Interaction.Indexed.StateExpr 
+open import Interaction.Indexed.DistExpr 
 
 open InteractionStructure
 open ISMorphism
+open Joinable
+open Implementation
 
-data CryptoExprCommand : Set where
-  uniform-CE : Nat → CryptoExprCommand
+crypto-iso : StateExprState ↔ StateExprState × ⊤
+crypto-iso = (λ z → z , tt) , fst , (λ a → refl) , λ { (z , tt) → refl }
 
-CryptoExprIS : InteractionStructure ⊤
-Command  CryptoExprIS tt = CryptoExprCommand
-Response CryptoExprIS (uniform-CE n) = BitVec n
-next     CryptoExprIS _ = tt
+CryptoExprIS : IStruct (Leaf StateExprState △ Empty)
+CryptoExprIS = StateExprIS ⊕-IS DistExprIS
 
-joinable-CE-IS : ISMorphism (CryptoExprIS ⊕-IS CryptoExprIS) CryptoExprIS ⊤-final
-CommandF  joinable-CE-IS {tt , tt} (left  c) = c
-CommandF  joinable-CE-IS {tt , tt} (right c) = c
-ResponseF joinable-CE-IS {tt , tt} {left  c} r = r
-ResponseF joinable-CE-IS {tt , tt} {right c} r = r
-nextF     joinable-CE-IS {tt , tt} {left  c} r = refl
-nextF     joinable-CE-IS {tt , tt} {right c} r = refl
-
-module _ {𝑺 : Set}(M : Set → Set)(s : 𝑺){{DMM : DistMonad M}} where
-  open DistMonad DMM
-  implementation-CE-IS : Implementation CryptoExprIS (LiftM M) (const s)
-  implementation-CE-IS {tt} (uniform-CE n) = fmap (λ v → StrongV v refl) (uniform n)
-
+joinable-SCE-IS : Joinable CryptoExprIS
+joinable-SCE-IS = join-joinable-IS joinable-SE-IS joinable-DE-IS 

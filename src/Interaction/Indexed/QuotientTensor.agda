@@ -28,3 +28,12 @@ module _ {S₁ S₂}{IS : IStruct (S₁ △ S₂)}{JS : IStruct S₂} where
   nextF     (QMatch-IS mi mj) {s₁ ▵ s₂} {left  c} r rewrite nextF mi r = refl
   nextF     (QMatch-IS mi mj) {s₁ ▵ s₂} {right c} r rewrite nextF mj r = refl
 
+  QIncL-IS : ISMorphism IS (QuotientTensor-IS IS JS) id
+  CommandF   QIncL-IS {s₁ ▵ s₂}  c = left c
+  ResponseF  QIncL-IS {s₁ ▵ s₂} {c} r = r
+  nextF      QIncL-IS {s₁ ▵ s₂} {c} r = refl 
+
+  QIncR-IS : ∀ s₁ → ISMorphism JS (QuotientTensor-IS IS JS) λ s₂ → s₁ ▵ s₂
+  CommandF   (QIncR-IS s₁) {s₂}  c = right c
+  ResponseF  (QIncR-IS s₁) {s₂} {c} r = r
+  nextF      (QIncR-IS s₁) {s₂} {c} r = refl 

@@ -11,8 +11,14 @@ open IxMonad IMM
 IxStateT : (Set l′ × T → Set (lsuc l′)) → (Set l′ × T → Set (lsuc l′))
 IxStateT A (S , t) = S → M (λ t′ → Σ (Set l′) λ S′ → A (S′ , t′) × S′) t
 
-modify : ∀{S S′ t} → (S → S′) → IxStateT (Atkey (Lift S′) (S′ , t)) (S , t)
-modify {S} {S′} {t} f s = returnⁱ (S′ , V (lift (f s)) , f s) 
+modifyT : ∀{S S′ t} → (S → S′) → IxStateT (Atkey (Lift S′) (S′ , t)) (S , t)
+modifyT {S} {S′} {t} f s = returnⁱ (S′ , V (lift (f s)) , f s) 
+
+map-liftT : ∀{A B t} S → (∀{t′} → A t′ → B (S , t′)) → M A t → IxStateT B (S , t)
+map-liftT S f m s = fmapⁱ (λ a → S , f a , s) m
+
+liftT : ∀{A t} S → M A t → IxStateT (A ∘′ snd) (S , t)
+liftT S = map-liftT S id
 
 fmapⁱ-ST : ∀{S A B} → (∀{S′} → A S′ → B S′) → IxStateT A S → IxStateT B S
 fmapⁱ-ST {S , t} f st s = fmapⁱ (second (first f)) (st s)
