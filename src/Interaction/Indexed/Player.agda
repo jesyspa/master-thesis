@@ -23,28 +23,25 @@ CryptoStateTelescope (suc n) = ISCons CryptoExprIS (CryptoStateTelescope n)
 PlayerImplTelescope : ∀{xs} → InfcTelescope (foldr _△_ Empty xs) → Set₁
 PlayerImplTelescope {xs} tele = ImplTelescope tele (CryptoStateTelescope (length xs))
 
+rewrap-by-eq : ∀ n → ISTele-T (CryptoStateTelescope n) ≡ Replicate-IS CryptoExprIS n
+rewrap-by-eq zero = refl
+rewrap-by-eq (suc n) rewrite rewrap-by-eq n = refl
+
 SimplePlayerImpl : ∀{xs}{ift : InfcTelescope (foldr _△_ Empty xs)}
                  → (impt : PlayerImplTelescope {xs} ift)
-                 → SynImpl (InfcTele-QT ift) (ISTele-T (CryptoStateTelescope (length xs))) (combine-state impt)
-SimplePlayerImpl = combine-tele 
+                 → SynImpl (InfcTele-QT ift) (Replicate-IS CryptoExprIS (length xs)) (combine-state impt)
+SimplePlayerImpl {xs} rewrite sym $ rewrap-by-eq (length xs) = combine-tele 
 
-{-
-rewrap-state : ∀ n → foldr _×_ ⊤ (replicate n (StateExprState × ⊤)) → BTAll′ (ReplicateState-IS (Leaf StateExprState △ Empty) n)
-rewrap-state zero = id
-rewrap-state (suc n) = id ***′ rewrap-state n
--}
+PlayerStateJoin : ∀(xs : List (BTree Set))
+                → BTAll′ (ReplicateState-IS (Leaf StateExprState △ Empty) (length xs))
+                → BTAll′ (Leaf StateExprState △ Empty)
+PlayerStateJoin xs = NestedStateJoin CryptoExprIS (leaf (bitvec-SE zero) ▵ empty) joinable-SCE-IS (length xs)
 
-rewrap-Impl : ∀ n → SynImpl (ISTele-T (CryptoStateTelescope n)) (Replicate-IS CryptoExprIS n) ?
-rewrap-Impl zero = id-SI
-rewrap-Impl (suc n) = binmap-SI id-SI (rewrap-Impl n) 
+PlayerJoin : ∀(xs : List (BTree Set))
+           → ISMorphism (Replicate-IS CryptoExprIS (length xs)) CryptoExprIS (PlayerStateJoin xs)
+PlayerJoin xs = NestedJoin CryptoExprIS (leaf (bitvec-SE zero) ▵ empty) joinable-SCE-IS (length xs)
 
 SynPlayerImpl : ∀{xs}{ift : InfcTelescope (foldr _△_ Empty xs)}
               → (impt : PlayerImplTelescope {xs} ift)
-              → SynImpl (InfcTele-QT ift)
-                        CryptoExprIS
-                        (NestedStateJoin CryptoExprIS (leaf (bitvec-SE zero) ▵ empty) joinable-SCE-IS (length xs)
-                          ∘′ ? -- rewrap-state (length xs)
-                          ∘′ combine-state impt) 
-SynPlayerImpl {xs} impt = fmap-IS-SynImpl (NestedJoin CryptoExprIS (leaf (bitvec-SE zero) ▵ empty) joinable-SCE-IS (length xs))
-                          ∘′-SI rewrap-Impl (length xs)
-                          ∘′-SI SimplePlayerImpl {xs} impt
+              → SynImpl (InfcTele-QT ift) CryptoExprIS (PlayerStateJoin xs ∘′ combine-state impt) 
+SynPlayerImpl {xs} impt = fmap-IS-SynImpl (PlayerJoin xs) ∘′-SI SimplePlayerImpl {xs} impt
