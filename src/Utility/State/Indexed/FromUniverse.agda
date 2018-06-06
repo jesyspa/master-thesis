@@ -19,6 +19,12 @@ IxState = Reindexed
 modify : ∀{u u′} → (ev u → ev u′) → IxState (Atkey (ev u′) u′) u
 modify {u} {u′} f s = u′ , (u′ , refl , V (f s)) , f s
 
+get : ∀{u} → IxState (Atkey (ev u) u) u
+get = modify id
+
+set : ∀{u u′} → ev u′ → IxState (Atkey (ev u′) u′) u
+set s = modify (const s)
+
 instance
   IxMonadState : IxMonad IxState
   IxMonadState = IxMonadReindexed

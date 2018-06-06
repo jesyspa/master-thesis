@@ -25,8 +25,8 @@ data MemReadResp : Set where
   read-out-of-bounds :       MemReadResp
 
 data MemWriteResp : Set where
-  write-success      : MemWriteResp
-  write-out-ofbounds : MemWriteResp
+  write-success       : MemWriteResp
+  write-out-of-bounds : MemWriteResp
 
 open InteractionStructure
 Mem : IStruct (Leaf Nat)
@@ -82,12 +82,11 @@ modify-vec addr val [] = nothing
 modify-vec zero val (v ∷ vs) = just $ val ∷ vs
 modify-vec (suc addr) val (v ∷ vs) = fmap (_∷_ v) $ modify-vec addr val vs
 
-lookup-vec : ∀{n} → Fin n → Vec Nat n → Maybe Nat
+lookup-vec : ∀{n} → Nat → Vec Nat n → Maybe Nat
 lookup-vec addr [] = nothing 
 lookup-vec zero (x ∷ xs) = just x
 lookup-vec (suc addr) (x ∷ xs) = lookup-vec addr xs
 
-{-
 open Implementation
 
 module _ where
@@ -95,15 +94,13 @@ module _ where
   eval-direct : Implementation Mem IxState getleaf-BT′
   RunImpl eval-direct {leaf ._} (alloc-C s)          = fmapⁱ (λ { (V _) → StrongV alloc-success refl }) $ modify (_∷_ zero) 
   RunImpl eval-direct {leaf ._} (dealloc-C s)        = fmapⁱ (λ { (V _) → StrongV tt refl }) $ modify λ { (_ ∷ v) → v }
-  RunImpl eval-direct {leaf ._} (write-C s addr val) = fmapⁱ (λ { (V _) → StrongV tt refl }) $ modify (modify-vec addr val)
-  RunImpl eval-direct {leaf ._} (read-C s addr)      = fmapⁱ (λ { (V r) → StrongV (lookup-vec addr r) refl }) $ modify id
-
-  eval-bounded : ∀ b → Implementation Mem IxState getleaf-BT′ 
-  RunImpl (eval-bounded b) {leaf._} (alloc-C s)          = if isLess (compare b s) 
-                                                           then fmapⁱ (λ { (V _) → StrongV alloc-success refl }) (modify (_∷_ zero))
-                                                           else returnⁱ (StrongV alloc-fail refl)
-  RunImpl (eval-bounded b) {leaf._} (dealloc-C s)        = fmapⁱ (λ { (V _) → StrongV tt refl }) $ modify λ { (_ ∷ v) → v }
-  RunImpl (eval-bounded b) {leaf._} (write-C s addr val) = fmapⁱ (λ { (V _) → StrongV tt refl }) $ modify (modify-vec addr val)
-  RunImpl (eval-bounded b) {leaf._} (read-C s addr)      = fmapⁱ (λ { (V r) → StrongV (lookup-vec addr r) refl }) $ modify id
-
--}
+  RunImpl eval-direct {leaf ._} (write-C s addr val) = get >>=ⁱ lem
+    where lem : ∀{s′} → Atkey (Vec Nat s) s s′ → IxState (StrongAtkey MemWriteResp (getleaf-BT′ ∘′ next Mem {leaf s} (write-C s addr val))) s′
+          lem (V v) with modify-vec addr val v
+          lem (V v) | nothing = returnⁱ (StrongV write-out-of-bounds refl)
+          lem (V v) | just _ = returnⁱ (StrongV write-success refl)
+  RunImpl eval-direct {leaf ._} (read-C s addr)      = get >>=ⁱ lem
+    where lem : ∀{s′} → Atkey (Vec Nat s) s s′ → IxState (StrongAtkey MemReadResp (getleaf-BT′ ∘′ next Mem {leaf s} (read-C s addr))) s′
+          lem (V v) with lookup-vec addr v
+          lem (V v) | nothing = returnⁱ (StrongV read-out-of-bounds refl)
+          lem (V v) | just k = returnⁱ (StrongV (read-success k) refl)

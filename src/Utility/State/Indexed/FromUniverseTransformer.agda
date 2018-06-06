@@ -13,6 +13,12 @@ IxStateT A (u , t) = ev u → M (λ t′ → Σ U λ u′ → A (u′ , t′) ×
 modifyT : ∀{u u′ t} → (ev u → ev u′) → IxStateT (Atkey (ev u′) (u′ , t)) (u , t)
 modifyT {u} {u′} {t} f s = returnⁱ (u′ , V (f s) , f s) 
 
+getT : ∀{u t} → IxStateT (Atkey (ev u) (u , t)) (u , t)
+getT = modifyT id
+
+setT : ∀{u u′ t} → ev u′ → IxStateT (Atkey (ev u′) (u′ , t)) (u , t)
+setT s = modifyT (const s)
+
 map-liftT : ∀{A B t} u → (∀{t′} → A t′ → B (u , t′)) → M A t → IxStateT B (u , t)
 map-liftT u f m s = fmapⁱ (λ a → u , f a , s) m
 
