@@ -77,19 +77,17 @@ inc s addr = read′ s addr >>=ⁱ λ {
                  (V read-out-of-bounds) → returnⁱ (V tt)
              }
 
-{-
 modify-vec : ∀{n} → Nat → Nat → Vec Nat n → Maybe (Vec Nat n)
-modify-vec zero = ?
-modify-vec zero val (x ∷ xs) = val ∷ xs
-modify-vec (suc addr) val (x ∷ xs) = x ∷ modify-vec addr val xs
--}
+modify-vec addr val [] = nothing
+modify-vec zero val (v ∷ vs) = just $ val ∷ vs
+modify-vec (suc addr) val (v ∷ vs) = fmap (_∷_ v) $ modify-vec addr val vs
 
-{-
-lookup-vec : ∀{n} → Fin n → Vec Nat n → Nat
-lookup-vec () []
-lookup-vec zero (x ∷ xs) = x
+lookup-vec : ∀{n} → Fin n → Vec Nat n → Maybe Nat
+lookup-vec addr [] = nothing 
+lookup-vec zero (x ∷ xs) = just x
 lookup-vec (suc addr) (x ∷ xs) = lookup-vec addr xs
 
+{-
 open Implementation
 
 module _ where
