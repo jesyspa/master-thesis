@@ -1,0 +1,39 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{tikz-cd}
+\usepackage[margin=2.5cm]{geometry}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{question}{Question}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\iss}[1]{\mathcal{#1}_S}
+\newcommand{\isc}[1]{\mathcal{#1}_C}
+\newcommand{\isr}[1]{\mathcal{#1}_R}
+\newcommand{\ist}[1]{\mathcal{#1}_t}
+
+\DeclareMathOperator{\Fam}{Fam}
+
+\title{\vspace{-2cm}Memory Manipulation}
+
+\begin{document}
+    \maketitle
+
+    Scratchpad document for presenting the memory example.
+
+    The basic example is an interaction structure that tracks the amount of memory currently available and has
+    operations for allocating, deallocating, writing, and reading memory.  We can show how this can be implemented in a
+    straightforward way in an indexed state monad.  It may also be interesting to show how we can implement this in a
+    non-indexed state monad.
+
+    A minor variation on this example is to allow the use of arbitrary indices in the read and write operations, losing
+    some type safety.
+\end{document}
