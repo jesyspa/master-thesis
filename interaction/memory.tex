@@ -27,7 +27,7 @@
 \begin{document}
     \maketitle
 
-    Scratchpad document for presenting the memory example.
+    \section*{Thoughts on this document}
 
     The basic example is an interaction structure that tracks the amount of memory currently available and has
     operations for allocating, deallocating, writing, and reading memory.  We can show how this can be implemented in a
@@ -36,4 +36,23 @@
 
     A minor variation on this example is to allow the use of arbitrary indices in the read and write operations, losing
     some type safety.
+
+    A good introduction may be to first show how this example plays out in the non-dependent case, and what kind of
+    complaining Agda does about that.  This is good motivation for introducing indexed monads.  (Do we want motivation?
+    Is just saying ``These are the things we work with'' not better?  It becomes so wishy-washy this way.)
+
+    I already have a definition of interaction structures, in mathematical terms.  Do I want to duplicate the work by
+    describing it in Agda terms, too?
+
+    We keep calling free monads free, but really we need some kind of equivalence to show this; there is no clear
+    `forgetful' structure here.  What do indexed free monads even mean?  Does every indexed functor extend to a free
+    monad?
+
+    \section{Introduction}
+
+    \section{Indexed Monads}
+
+    \section{Interaction Structures}
+
+    \section{Free Monads}
 \end{document}
