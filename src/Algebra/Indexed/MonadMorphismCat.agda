@@ -9,14 +9,14 @@ open IxMonadMorphism
 open IxStrongMonadMorphism
 open IxMonadComorphism
 
-module _ {l l′}{S : Set l}{M : (S → Set l′) → S → Set l′}{{IMM : IxMonad M}} where
-  open IxMonad IMM
-
+module _ {l l′}{S : Set l}{M : (S → Set l′) → S → Set l′} where
   id-IxMM : IxMonadMorphism M M id
   RunIxMM id-IxMM = id
 
-  id-IxSMM : IxStrongMonadMorphism M M id
-  RunIxSMM id-IxSMM f m = fmapⁱ f m
+  module _ {{IMM : IxMonad M}} where
+    open IxMonad IMM
+    id-IxSMM : IxStrongMonadMorphism M M id
+    RunIxSMM id-IxSMM f m = fmapⁱ f m
 
   id-IxMCM : IxMonadComorphism M M id
   RunIxMCM id-IxMCM = id
