@@ -6,7 +6,7 @@ open import Algebra.Indexed.Monad
 open import Algebra.Indexed.MonadMorphism
 
 open IxMonadMorphism
-open IxWeakMonadMorphism
+open IxStrongMonadMorphism
 open IxMonadComorphism
 
 module _ {l l′}{S : Set l}{M : (S → Set l′) → S → Set l′}{{IMM : IxMonad M}} where
@@ -15,8 +15,8 @@ module _ {l l′}{S : Set l}{M : (S → Set l′) → S → Set l′}{{IMM : IxM
   id-IxMM : IxMonadMorphism M M id
   RunIxMM id-IxMM = id
 
-  id-IxWMM : IxWeakMonadMorphism M M id
-  RunIxWMM id-IxWMM f m = fmapⁱ f m
+  id-IxSMM : IxStrongMonadMorphism M M id
+  RunIxSMM id-IxSMM f m = fmapⁱ f m
 
   id-IxMCM : IxMonadComorphism M M id
   RunIxMCM id-IxMCM = id
@@ -36,6 +36,6 @@ module _ {S₁ S₂ S₃ : Set}
          {M₁ : (S₁ → Set) → S₁ → Set}{{IMM₁ : IxMonad M₁}}
          {M₂ : (S₂ → Set) → S₂ → Set}{{IMM₂ : IxMonad M₂}}
          {M₃ : (S₃ → Set) → S₃ → Set}{{IMM₃ : IxMonad M₃}} where
-  comp-IxWMM : ∀{f g} → IxWeakMonadMorphism M₁ M₂ f → IxWeakMonadMorphism M₂ M₃ g → IxWeakMonadMorphism M₁ M₃ (g ∘′ f)
-  RunIxWMM (comp-IxWMM {f} {g} mm mn) {A₁} {A₃} {s} h = RunIxWMM mn (lan-factorise h) ∘′ RunIxWMM mm {A₂ = Lan A₁} Lε
+  comp-IxSMM : ∀{f g} → IxStrongMonadMorphism M₁ M₂ f → IxStrongMonadMorphism M₂ M₃ g → IxStrongMonadMorphism M₁ M₃ (g ∘′ f)
+  RunIxSMM (comp-IxSMM {f} {g} mm mn) {A₁} {A₃} {s} h = RunIxSMM mn (lan-factorise h) ∘′ RunIxSMM mm {A₂ = Lan A₁} Lε
     where open import Algebra.KanExtension f
