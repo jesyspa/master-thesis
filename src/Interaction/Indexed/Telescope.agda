@@ -14,7 +14,7 @@ open import Interaction.Indexed.QuotientTensor
 open InteractionStructure
 open ISMorphism
 open IxMonad {{...}}
-open IxMonadMorphism
+open IxStrongMonadMorphism
 open Implementation
 
 data InfcTelescope : List Set → Set₁ where
@@ -53,9 +53,9 @@ module _ {S₁ S₂ T₁ T₂}{IS₁ : IStruct (S₁ × S₂)}{IS₂ : IStruct S
          (f₁ : S₁ → T₁)(f₂ : S₂ → T₂)
          (si₁ : SynImpl IS₁ (JS₁ ⊕-IS IS₂) (first f₁))(si₂ : SynImpl IS₂ JS₂ f₂) where
   combine-bin : SynImpl (QuotientTensor-IS IS₁ IS₂) (JS₁ ⊕-IS JS₂) (f₁ ***′ f₂)
-  RunImpl combine-bin {s₁ , s₂} (left  c) = RunIxMM fmm (fmapⁱ {s = f₁ s₁ , s₂} lem (RunImpl si₁ c))
+  RunImpl combine-bin {s₁ , s₂} (left  c) = RunIxSMM fmm lem ((RunImpl si₁ c))
     where
-      fmm : FMMorphism (JS₁ ⊕-IS IS₂) (JS₁ ⊕-IS JS₂) (id ***′ f₂)
+      fmm : StrongFMMorphism (JS₁ ⊕-IS IS₂) (JS₁ ⊕-IS JS₂) (id ***′ f₂)
       fmm = fmap-SynImpl-FM (binmap-SI {StateF₁ = id} (id-SI {IS = JS₁}) si₂)
       lem : ∀{s′}
           → StrongAtkey (Response IS₁ c) (first f₁ ∘′ next IS₁) s′
@@ -66,12 +66,10 @@ module _ {S₁ S₂ T₁ T₂}{IS₁ : IStruct (S₁ × S₂)}{IS₂ : IStruct S
           split-***′ (_ , _) = refl
           lem-eq : (s₁′ , f₂ t₂′) ≡ (f₁ ***′ f₂) (next IS₁ r)
           lem-eq rewrite split-***′ (next IS₁ r) | sym eq = refl
-  RunImpl combine-bin {s₁ , s₂} (right c) = RunIxMM (fmap-IS-FM (IncR-IS (f₁ s₁))) goal
+  RunImpl combine-bin {s₁ , s₂} (right c) = RunIxSMM (fmap-IS-FM (IncR-IS (f₁ s₁))) (rewrap-StrongAtkey (_,_ (f₁ s₁))) lem
     where
       lem : FreeMonad JS₂ (StrongAtkey (Response IS₂ c) (f₂ ∘′ next IS₂)) (f₂ s₂)
       lem = RunImpl si₂ c
-      goal : FreeMonad JS₂ (StrongAtkey (Response IS₂ c) (λ r → f₁ s₁ , f₂ (next IS₂ r)) ∘′ λ t₂ → f₁ s₁ , t₂) (f₂ s₂)
-      goal = fmapⁱ (λ { (StrongV r refl) → StrongV r refl }) lem
 
 combine-state : ∀{Ss Ts} {ISs : InfcTelescope Ss}{JSs : ISTelescope Ts}
               → ImplTelescope ISs JSs

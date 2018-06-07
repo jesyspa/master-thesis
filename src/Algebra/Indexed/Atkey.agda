@@ -11,5 +11,9 @@ data DepAtkey {l l′}{S : Set l}(A : Set l′)(f : A → S) : S → Set l′ wh
 data StrongAtkey {l l′}{S : Set l}(A : Set l′)(f : A → S) : S → Set (l ⊔ l′) where
   StrongV : (a : A){s : S} → (hip : s ≡ f a) → StrongAtkey A f s
 
+rewrap-StrongAtkey : ∀{l l′}{S S′ : Set l}{A : Set l′}{f : A → S}(h : S → S′){s : S}
+                   → StrongAtkey A f s → StrongAtkey A (h ∘′ f) (h s)
+rewrap-StrongAtkey h (StrongV a refl) = StrongV a refl
+
 data MagicAtkey {l l′}{S S′ : Set l}(A : Set l′)(st : S → S′)(f : A → S′) : S → Set (l′ ⊔ l) where
   MagicV : ∀{s} → (a : A) → f a ≡ st s → MagicAtkey A st f s

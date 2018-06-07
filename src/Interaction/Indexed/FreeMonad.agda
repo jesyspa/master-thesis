@@ -1,4 +1,4 @@
-module Interaction.Indexed.FreeMonad {l} where
+module Interaction.Indexed.FreeMonad where
 
 open import ThesisPrelude
 open import Algebra.Proposition
@@ -9,7 +9,7 @@ open import Algebra.Indexed.MonadMorphism
 open InteractionStructure
 open ISMorphism
 
-data FreeMonad {S}(IS : IStruct S) : (S → Set l) → (S → Set l) where
+data FreeMonad {S}(IS : IStruct S) : (S → Set) → (S → Set) where
   Return-FM : ∀{A s} → A s → FreeMonad IS A s
   Invoke-FM : ∀{A s} → (c : Command IS s) → ((r : Response IS c) → FreeMonad IS A (next IS r)) → FreeMonad IS A s
 
@@ -31,5 +31,8 @@ module _ {S}{IS : IStruct S} where
     fmapⁱ   FreeIxMonad = fmap-FM
     
 module _ {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂)(f : S₁ → S₂) where
-  FMMorphism : Set (lsuc l)
+  FMMorphism : Set₁
   FMMorphism = IxMonadMorphism (FreeMonad IS₁) (FreeMonad IS₂) f
+
+  StrongFMMorphism : Set₁
+  StrongFMMorphism = IxStrongMonadMorphism (FreeMonad IS₁) (FreeMonad IS₂) f
