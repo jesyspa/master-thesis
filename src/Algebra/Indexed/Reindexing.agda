@@ -5,6 +5,11 @@ module Algebra.Indexed.Reindexing {l l′}{S : Set l}{T : Set l′}
                                   (reindex : T → S)
                                   (M : (S → Set (l ⊔ l′)) → S → Set (l ⊔ l′)){{IMM : IxMonad M}} where
 
+-- Thanks to dstolfa from #haskell on Freenode for the following realisation:
+-- Kan extensions along F are adjoint to F.  It follows that we get an adjoint
+-- pair that gives rise to a monad.  We then just use the fact that composing a monad
+-- with an adjoint pair again gives a monad.
+
 open import Algebra.KanExtension reindex
 
 open IxMonad

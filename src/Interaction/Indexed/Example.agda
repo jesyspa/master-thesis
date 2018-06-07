@@ -7,6 +7,7 @@ open import Interaction.Indexed.InteractionStructure
 open import Interaction.Indexed.FreeMonad 
 open import Interaction.Indexed.Implementation 
 open import Interaction.Indexed.CryptoExpr 
+open import Interaction.Indexed.DistExpr 
 open import Interaction.Indexed.StateExpr 
 open import Interaction.Indexed.Telescope 
 open import Utility.Vector
@@ -14,6 +15,7 @@ open import Utility.Vector
 open InteractionStructure
 open ISMorphism
 
+{-
 challengerInfc : InteractionStructure (⊤ × ⊤ × ⊤ × ⊤)
 Command  challengerInfc _ = ⊤
 Response challengerInfc tt = Bool
@@ -44,7 +46,7 @@ module _ (K PT CT : Set) where
   totalInfcTelescope = InfcCons challengerInfc $ InfcCons encSchemeInfc $ InfcCons adversaryInfc InfcEmpty
 
   totalISTelescope : ISTelescope (⊤ ∷ ⊤ ∷ ⊤ ∷ [])
-  totalISTelescope = ISCons CryptoExprIS $ ISCons CryptoExprIS $ ISCons CryptoExprIS ISEmpty
+  totalISTelescope = ISCons DistExprIS $ ISCons DistExprIS $ ISCons DistExprIS ISEmpty
 
   tailInfcTelescope : ∀{IS ISs} → InfcTelescope (IS ∷ ISs) → InfcTelescope ISs
   tailInfcTelescope (InfcCons _ tele) = tele
@@ -53,7 +55,7 @@ module _ (K PT CT : Set) where
   challengerImpl {_ , _ , _ , _} _ =
     Invoke-FM (right $ left          $ keygen)           λ k → 
     Invoke-FM (right $ right $ left  $ generate-msgs)    λ m → 
-    Invoke-FM (left                  $ uniform-CE 1)     λ bv → 
+    Invoke-FM (left                  $ uniform-DE 1)     λ bv → 
     Invoke-FM (right $ left          $ enc k
                 (if head bv then fst m else snd m))      λ ct →
     Invoke-FM (right $ right $ left  $ guess-which ct)   λ b →
@@ -72,3 +74,5 @@ module _ (K PT CT : Set) where
         → (adv : adversaryImplType)
         → SynImpl (InfcTele-QT totalInfcTelescope) (ISTele-T totalISTelescope) (combine-state $ game scheme adv)
   game′ scheme adv {s} = combine-tele (game scheme adv) {s}
+
+-}
