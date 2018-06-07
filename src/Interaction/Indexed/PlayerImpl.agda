@@ -26,6 +26,6 @@ open Implementation
 
 EvalCryptoState : Implementation CryptoExprIS IxStateT (foldsplit-BT′ getleaf-BT′ ⊤-final) 
 RunImpl EvalCryptoState {leaf s ▵ empty} (left (modify-SE s′ f))
-  = fmapⁱ {s = s , tt} (λ { (V r) → StrongV r refl }) (modifyT f)
+  = fmapⁱ {s = s , tt} strengthen-Atkey (modifyT f)
 RunImpl EvalCryptoState {leaf s ▵ empty} (right (uniform-DE n))
   = map-liftT s (λ v → StrongV v refl) (uniform n)

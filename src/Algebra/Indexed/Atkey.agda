@@ -15,5 +15,9 @@ rewrap-StrongAtkey : ∀{l l′}{S S′ : Set l}{A : Set l′}{f : A → S}(h : 
                    → StrongAtkey A f s → StrongAtkey A (h ∘′ f) (h s)
 rewrap-StrongAtkey h (StrongV a refl) = StrongV a refl
 
+strengthen-Atkey : ∀{l l′}{S : Set l}{A : Set l′}{s s′ : S}
+                 → Atkey A s s′ → StrongAtkey A (const s) s′
+strengthen-Atkey (V x) = StrongV x refl
+
 data MagicAtkey {l l′}{S S′ : Set l}(A : Set l′)(st : S → S′)(f : A → S′) : S → Set (l′ ⊔ l) where
   MagicV : ∀{s} → (a : A) → f a ≡ st s → MagicAtkey A st f s
