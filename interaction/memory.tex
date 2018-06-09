@@ -48,11 +48,25 @@
     `forgetful' structure here.  What do indexed free monads even mean?  Does every indexed functor extend to a free
     monad?
 
-    \section{Introduction}
+    I think the best way to go is to first introduce everything (perhaps abstractly?) and then show how it works with an
+    example (plus the implementation in Agda, if omitted).  On the other hand, implementing everything in Agda
+    immediately may be beneficial?
 
-    \section{Indexed Monads}
+    \section{Memory Motivation}
 
-    \section{Interaction Structures}
+    We can model a program that operates on a block of raw memory by representing the following four operations:
+    \begin{description}
+        \item[Allocating] a new memory cell;
+        \item[Deallocating] the last allocated memory cell;
+        \item[Writing] a value to an existing memory cell; and
+        \item[Reading] a value from an existing memory cell.
+    \end{description}
 
-    \section{Free Monads}
+    If we were working in Haskell, we could implement these operations as terms in a state monad.  However, in order for
+    these operations to be meaningful, a number of preconditions must be satisfied: in particular, we cannot deallocate
+    memory if there are no cells allocated, and all reads and writes must be within the bounds of the array.  A state
+    monad with state type |List Nat| does not give us enough information on the type level to rule out these uses, since
+    we can sequence any two terms in this monad.
+
+    The problem lies in the requirement that the bind of a monad work for any continuation.
 \end{document}
