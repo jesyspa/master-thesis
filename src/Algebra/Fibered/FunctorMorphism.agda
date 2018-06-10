@@ -1,11 +1,10 @@
-module Algebra.Fibered.FunctorMorphism where
+open import Algebra.Fibered.FiberedSet
+module Algebra.Fibered.FunctorMorphism {I J : Set}(ri : I → J)
+                                       (F : FiberedSet I → FiberedSet I)
+                                       (G : FiberedSet J → FiberedSet J) where
 
 open import ThesisPrelude
-open import Algebra.Fibered.FiberedSet
 
-module _ {I J : Set}(F : FiberedSet I → FiberedSet I)
-                    (G : FiberedSet J → FiberedSet J)
-                    (ri : I → J) where
-  record FiberedFunctorMorphism : Set₁ where
-    field
-      RunFFM : {!∀{A B} → (A →ᶠ B)!}
+record FiberedFunctorMorphism : Set₁ where
+  field
+    RunFFM : ∀{X Y} → RefiberingArrow ri X Y → RefiberingArrow ri (F X) (G Y)

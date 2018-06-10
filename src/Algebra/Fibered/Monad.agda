@@ -5,8 +5,9 @@ open import ThesisPrelude
 open import Algebra.Fibered.Functor
 
 record FiberedMonad : Set₁ where
-  infixl 1 _>>=ᶠ_
   field
     overlap {{super-functorᶠ}} : FiberedFunctor F
     returnᶠ : ∀{A} → (A →ᶠ F A)
-    _>>=ᶠ_  : ∀{A} → (A →ᶠ F A)
+    -- It would be interesting to rewrite this to have the usual order of parameters,
+    -- but it's not clear to me how this is possible.
+    bindᶠ  : ∀{A B} → (A →ᶠ F B) → (F A →ᶠ F B)

@@ -25,3 +25,17 @@ module _ {I} where
   
   _∘ᶠ_ : ∀{X Y Z} → FiberedArrow Y Z → FiberedArrow X Y → FiberedArrow X Z
   _∘ᶠ_ {X} {Y} {Z} ff fg = comp-RA {X = X} {Y} {Z} fg ff
+
+module _ {I J}(ri : I → J) where
+  reindex : FiberedSet I → FiberedSet J
+  reindex (A , f) = A , ri ∘′ f
+
+  embed-reindexed : ∀{X} → RefiberingArrow ri X (reindex X)
+  embed-reindexed {A , f} = id , λ a → refl
+
+  module _ {K}(rj : J → K) where
+    lift-reindexed : ∀{X Y} → RefiberingArrow rj (reindex X) Y → RefiberingArrow (rj ∘′ ri) X Y
+    lift-reindexed {A , f} {B , g} ra = ra
+
+    colift-reindexed : ∀{X Y}→ RefiberingArrow (rj ∘′ ri) X Y → RefiberingArrow rj (reindex X) Y 
+    colift-reindexed {A , f} {B , g} ra = ra
