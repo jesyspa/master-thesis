@@ -19,9 +19,9 @@ IStruct = InteractionStructure
 record ISMorphism {S₁ S₂}(IS₁ : IStruct S₁)(IS₂ : IStruct S₂)(sf : BTAll′ S₁ → BTAll′ S₂) : Set₁ where
   field
     CommandF  : RefiberingArrow sf (Command IS₁) (Command IS₂)
-    ResponseF : CorefiberingArrow (total-map sf {Command IS₁} {Command IS₂} CommandF) (Response IS₂) (Response IS₁)
+    ResponseF : CorefiberingArrow (total-map sf  CommandF) (Response IS₂) (Response IS₁)
     nextF     : (r : total-space (Response IS₂))
-              → sf (next IS₁ (total-comap sf {{!reindex (indexer (Command IS₂)) (Response IS₂)!}} {{!!}} ResponseF r)) ≡ next IS₂ r
+              → sf (next IS₁ (total-comap sf {!!} r)) ≡ next IS₂ r
     -- nextF     : {c : Command IS₁}(r : Response IS₂ (CommandF c)) → sf (next IS₁ c (ResponseF r)) ≡ next IS₂ (CommandF c) r 
 open ISMorphism
 
