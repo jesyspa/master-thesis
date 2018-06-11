@@ -1,0 +1,137 @@
+Topic list:
+* Cryptographic Games
+* Modelling multiplayer interactions
+* Modelling probabilistic programs
+* Bounding Adversary Power
+* Common Game Proof Techniques
+
+General structure:
+* Motivate the reader with what it should look like.
+* Introduce (hard-coded, non-indexed) free monads.
+* A few orthogonal questions: multiplayer systems, interpreting probabilities,
+  common game lemmas.
+* Wrap it all together, suggest how to make it usable.
+* Possible: example proof worked out in this language.
+
+Chapter list:
+1. Introduction
+2. Games as Free Monads
+3. Interpreting Games
+4. Cryptographic Proof Techniques
+5. Indexed Monads
+6. Interaction Structures
+7. A Language for Cryptography
+
+More details:
+
+1. Introduction
+
+We can use the introduction from the proposal for most of this.
+Maybe rewrite it to all be Agda, trusting that people who know Haskell
+understand enough?
+(Now that we have do notation there's not much difference.)
+
+
+2. Free Monads
+
+There is a specific free monad with the following operations that can be used to
+express games:
+* Generate random bitvector.
+* Get/set (adversary) state.
+* Set oracle state.
+* Call oracle.
+
+Pros:
+* Simple!
+* Enough to express many games.
+
+Cons:
+* Requires different interpretation functions for different oracles.
+* No way of stopping challenger from spying on adversary.
+* No way of stopping adversary from overwriting oracle state.
+* Few static guarantees.
+* No straightforward way to relate games with different oracles.
+
+Some code:
+
+-- Fix some types OracleState, OracleArg, OracleResult, AdvState
+-- They could be wrapped in a record or something, or in module parameters.
+data CryptoExpr : Set -> Set where
+    Return      : A -> CryptoExpr A
+    Uniform     : (n : Nat) -> CryptoExpr (BitVec n)
+    GetAdvState : CryptoExpr AdvState
+    PutAdvState : AdvState -> CryptoExpr ()
+    InitOracle  : OracleState -> CryptoExpr ()
+    CallOracle  : OracleArg -> CryptoExpr OracleResult
+
+We can show that this is a monad and show what a game using this monad looks
+like.  We now want to perform the other step, relating games to each other.
+
+
+3. Interpreting Games
+
+Given a syntactic game with result type A, we want to determine what the
+probability of a specific result a : A is.  We define a Dist monad representing
+probability distributions and show that this can be computed.
+
+(How explicit do we want to be here?  We can refer to existing work for a large
+part.)
+
+We can show that there exists an interpretation for our games:
+
+type OracleImpl = OracleArg -> StateT OracleState Dist OracleResult
+evalCryptoExpr :  OracleImpl
+               -> CryptoExpr A
+               -> StateT (OracleState * AdvState) Dist A
+
+The other key thing is to define notions of indistinguishability, especially in
+the presence of state.
+
+
+4. Cryptographic Proof Techniques
+
+There are a number of common operations we want to perform on games:
+* Change order of independent steps.  (Mind the state!)
+* Argue that if games only differ in an unlikely case, they are unlikely to give
+  different results.
+* Argue that something follows because the adversary can only be accessed a
+  certain number of times.
+
+Showing examples of such steps in Agda is probably useful.
+
+5. Indexed Monads
+
+In order to restrict the players somewhat more, we can use indexed monads to
+enforce certain constraints.  A good example is the number of adversary calls an
+adversary can perform.  We can also show how this allows the adversary to change
+the type of state it stores.
+
+Repeating the construction from the Free Monads chapter is probably worthwhile.
+
+
+6. Interaction Structures
+
+The above hard-codes many properties of players.  We can achieve much greater
+flexibility by switching to interaction structures.
+
+* Show that interaction structures give rise to all the previous.
+* Show that we can chain interaction structures to get players that can call
+  each other but can also hide secrets from each other.
+
+
+7. A Language for Cryptography
+
+* The above gives rise to a nice system, but Agda is too verbose for it to be
+  practical.
+* Many things could be computed from a simpler program text given the right
+  tools (reflection).
+* In particular, a bit of syntactic sugar for interaction structures would be
+  nice.
+
+
+------
+
+Important questions I don't yet have an answer to:
+* How do we define epsilon-indistinguishability in the presence of state?
+* How do we perform identical-until-bad proofs?
+* How do we "unroll" adversaries?
