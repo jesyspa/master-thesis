@@ -56,6 +56,8 @@ Some code:
 
 -- Fix some types OracleState, OracleArg, OracleResult, AdvState
 -- They could be wrapped in a record or something, or in module parameters.
+-- I've written these out in non-CPS style for now, since that makes it clearer,
+-- but they should be reworked into CPS.
 data CryptoExpr : Set -> Set where
     Return      : A -> CryptoExpr A
     Uniform     : (n : Nat) -> CryptoExpr (BitVec n)
@@ -94,8 +96,8 @@ There are a number of common operations we want to perform on games:
 * Change order of independent steps.  (Mind the state!)
 * Argue that if games only differ in an unlikely case, they are unlikely to give
   different results.
-* Argue that something follows because the adversary can only be accessed a
-  certain number of times.
+* Argue that something follows because the oracle can only be used a certain
+  number of times.
 
 Showing examples of such steps in Agda is probably useful.
 
@@ -107,6 +109,31 @@ adversary can perform.  We can also show how this allows the adversary to change
 the type of state it stores.
 
 Repeating the construction from the Free Monads chapter is probably worthwhile.
+That is, we can show that we can now define a monad indexed over the (quoted)
+type of the adversary and oracle states and the number of still-allowed oracle
+queries.
+
+data QuotedType : Set where
+    ...
+
+record CryptoState : Set where
+  field
+    AdvStateType    : QuotedType
+    OracleStateType : QuotedType
+    OracleUsesLeft  : Nat
+
+useOracle          : CryptoState -> CryptoState
+setAdvStateSize    : QuotedType -> CryptoState -> CryptoState
+setOracleStateSize : QuotedType -> CryptoState -> CryptoState
+
+data CryptoExpr : (CryptoState -> Set) -> (CryptoState -> Set) where
+    Return      : A s -> CryptoExpr A s
+    Uniform     : (n : Nat) -> CryptoExpr (const $ BitVec n) s
+    GetAdvState : CryptoExpr (unquote . AdvStateType) s
+    PutAdvState :  (q : QuotedType) -> unquote q -> CryptoExpr () s
+    InitOracle  : unquote (OracleStateType s) -> CryptoExpr () s
+    CallOracle  : OracleArg -> CryptoExpr OracleResult s
+
 
 
 6. Interaction Structures
@@ -114,9 +141,26 @@ Repeating the construction from the Free Monads chapter is probably worthwhile.
 The above hard-codes many properties of players.  We can achieve much greater
 flexibility by switching to interaction structures.
 
+* Show that stateless interaction structures give rise to stateless free monads.
 * Show that interaction structures give rise to all the previous.
 * Show that we can chain interaction structures to get players that can call
   each other but can also hide secrets from each other.
+
+record InteractionStructure (S : Set) : Set where
+  field
+    Command   : S -> Set
+    Response  : {s : S} -> Command s -> Set
+    next      : {s : S}(c : Command s)(r : Response c) -> S
+
+record ISMorphism {S_1 S_2 : Set}
+                  (IS_1 : IntStruct S_1)(IS_2 : IntStruct S_2)
+                  (StateF : S_1 -> S_2) : Set where
+  field
+    CommandF   : {s : S_1} -> Command IS_1 s -> Command IS_2 (StateF s)
+    ResponseF  : {s : S_1}{c : Command IS_1 s}
+               -> Response IS_2 (CommandF c) -> Response IS_1 c
+    nextF      : {s : S_1}(c : Command IS_1 s)(r : Response IS_2 (CommandF c))
+               -> StateF (next IS_1 c (ResponseF r)) == next IS_2 (CommandF c) r
 
 
 7. A Language for Cryptography
@@ -126,7 +170,9 @@ flexibility by switching to interaction structures.
 * Many things could be computed from a simpler program text given the right
   tools (reflection).
 * In particular, a bit of syntactic sugar for interaction structures would be
-  nice.
+  nice.  They form a category, so a nice language is possible.
+* Alternatively, a language that has weaker restrictions at face value but that
+  gets compiled into interaction structures and indexed monads could work.
 
 
 ------
@@ -135,3 +181,5 @@ Important questions I don't yet have an answer to:
 * How do we define epsilon-indistinguishability in the presence of state?
 * How do we perform identical-until-bad proofs?
 * How do we "unroll" adversaries?
+* How do we deal with variable-size states.  (Idea: let the oracle change the
+  state type!)
