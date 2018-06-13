@@ -127,16 +127,24 @@ module _ {CS} where
     eval-CE = fold-CE eval-CEA
   
   postulate
-    _≡D_ : ∀{A} → M A → M A → Set
+    _≡D_ : ∀{A}{{_ : Eq A}} → M A → M A → Set
+    refl-≡D : ∀{A}{{_ : Eq A}}(m : M A) → m ≡D m
+    sym-≡D : ∀{A}{{_ : Eq A}}{m₁ m₂ : M A} → m₁ ≡D m₂ → m₂ ≡D m₁
+    trans-≡D : ∀{A}{{_ : Eq A}}{m₁ m₂ m₃ : M A} → m₁ ≡D m₂ → m₂ ≡D m₃ → m₁ ≡D m₃
+    uniform-comm : ∀{A B}{{_ : Eq B}} n → (m : M A) → (f : BitVec n → A → M B)
+                 → (uniform n >>= λ v → m >>= λ a → f v a) ≡D (m >>= λ a → uniform n >>= λ v → f v a)
+    uniform-eq : ∀{A}{{_ : Eq A}} n (f g : BitVec n → M A)
+               → (∀ v → f v ≡D g v)
+               → (uniform n >>= f) ≡D (uniform n >>= g)
     instance
       EnumerationBitVec        : ∀{n} → Enumeration (BitVec n) 
+      EnumerationUnit          : Enumeration ⊤
       EnumerationAdvState      : Enumeration AdvState
       EnumerationOracleState   : Enumeration OracleState
       EnumerationOracleArg     : Enumeration OracleArg
       EnumerationOracleResult  : Enumeration OracleResult
-    -- We need a proof the list is non-empty, but eh.
-    -- For probabilities, we can always take 0.
-    maximum : ∀{A : Set}{{_ : Ord A}} → List A → A
+    -- We need a proof the list is non-empty, but eh. For Nat we can always take 0.
+    maximum : List Nat → Nat
     any : List Bool → Bool
 
   oracleUses-CEA : ∀{A} → CryptoExprAlg CS A Nat
@@ -144,8 +152,8 @@ module _ {CS} where
   UniformF      oracleUses-CEA n cont = maximum (map cont (Enumerate it))
   GetAdvStateF  oracleUses-CEA cont = maximum (map cont (Enumerate it)) 
   SetAdvStateF  oracleUses-CEA st ce = ce
-  InitOracleF   oracleUses-CEA st ce = ce
-  CallOracleF   oracleUses-CEA arg cont = maximum (map cont (Enumerate it)) 
+  InitOracleF   oracleUses-CEA st ce = 1 + ce
+  CallOracleF   oracleUses-CEA arg cont = 1 + maximum (map cont (Enumerate it)) 
 
   oracleUses-CE : ∀{A} → CryptoExpr CS A → Nat
   oracleUses-CE = fold-CE oracleUses-CEA
@@ -156,13 +164,58 @@ module _ {CS} where
   GetAdvStateF  usesState-CEA cont = true
   SetAdvStateF  usesState-CEA st ce = true
   InitOracleF   usesState-CEA st ce = true
-  CallOracleF   usesState-CEA arg cont = any (map cont (Enumerate it))
+  CallOracleF   usesState-CEA arg cont = true
 
   usesState-CE : ∀{A} → CryptoExpr CS A → Bool
   usesState-CE = fold-CE usesState-CEA
 
   module _ (OI : OracleImpl) where
-    interchange-CE : ∀{A B C}(ca : CryptoExpr CS A)(cb : CryptoExpr CS B)(f : A → B → CryptoExpr CS C)
+    interchange-CE : ∀{A B C}{{_ : Eq C}}(ca : CryptoExpr CS A)(cb : CryptoExpr CS B)(f : A → B → CryptoExpr CS C)
                    → IsFalse (usesState-CE ca) → IsFalse (usesState-CE cb)
                    → eval-CE OI (ca >>= λ a → cb >>= λ b → f a b) ≡D eval-CE OI (cb >>= λ b → ca >>= λ a → f a b)
-    interchange-CE ca cb f = {!!}
+    interchange-CE (Return a) cb f pfa pfb = refl-≡D _
+    interchange-CE (Uniform n cont) cb f pfa pfb =
+      trans-≡D (uniform-eq n (λ v → eval-CE OI (cont v >>= λ a → cb >>= λ b → f a b))
+                             (λ v → eval-CE OI cb >>= λ b → eval-CE OI (cont v) >>= λ a → eval-CE OI (f a b))
+                             λ v → interchange-CE (cont v) {!cb!} {!!} {!!} {!!}) $
+      trans-≡D (uniform-comm n (eval-CE OI cb) λ v b → eval-CE OI (cont v) >>= λ a → eval-CE OI (f a b)) $
+               {!!}
+    interchange-CE (GetAdvState cont) cb f () pfb
+    interchange-CE (SetAdvState st ca) cb f () pfb
+    interchange-CE (InitOracle st ca) cb f () pfb
+    interchange-CE (CallOracle arg cont) cb f () pfb
+
+  module _ {Q}{{PQ : Probability Q}} where
+    open Probability PQ
+    postulate
+      M-diff : ∀{A}{{_ : Enumeration A}} → M A → M A → Q
+
+    total-diff : ∀{A B}{{_ : Enumeration A}}{{_ : Enumeration B}}
+               → (A → M B) → (A → M B)
+               → Q
+    total-diff f g = sum $ map (λ a → M-diff (f a) (g a)) (Enumerate it)
+
+    postulate
+      >>=-l-bound : ∀{A B}{{_ : Enumeration A}}{{_ : Enumeration B}}
+                  → (x y : M A)(f : A → M B)(q : Q)
+                  → M-diff x y ≤ q
+                  → M-diff (x >>= f) (y >>= f) ≤ q
+      -- I think this is too strong, we need to look at the 
+      >>=-r-bound : ∀{A B}{{_ : Enumeration A}}{{_ : Enumeration B}}
+                  → (x : M A)(f g : A → M B)(q : Q)
+                  → M-diff (x >>= f) (x >>= g) ≤ q
+                  → total-diff f g ≤ q
+
+    module _ (OI₁ OI₂ : OracleImpl) where
+      open OracleImpl
+      change-oracle-CE : ∀{A}{{_ : Enumeration A}}(ce : CryptoExpr CS A)(q : Q)
+                       → total-diff (InitImpl OI₁) (InitImpl OI₂) ≤ q
+                       → total-diff (CallImpl OI₁) (CallImpl OI₂) ≤ q
+                       → M-diff (eval-CE OI₁ ce) (eval-CE OI₂ ce) ≤ embed (oracleUses-CE ce) * q
+      change-oracle-CE (Return x₁) q pfi pfc = {!!}
+      change-oracle-CE (Uniform n x₁) q pfi pfc = {!!}
+      change-oracle-CE (GetAdvState x₁) q pfi pfc = {!!}
+      change-oracle-CE (SetAdvState x₁ ce) q pfi pfc = {!!}
+      change-oracle-CE (InitOracle x₁ ce) q pfi pfc = {!!}
+      change-oracle-CE (CallOracle x₁ x₂) q pfi pfc = {!!}
+
