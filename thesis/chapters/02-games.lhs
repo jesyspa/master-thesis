@@ -65,4 +65,4 @@ A2 OTPINDCPAADV ct = do
 
 This approach is straightforward, but makes every adversary specification ad-hoc.
 
-Note that this approach does not specify the implementation of oracles.  
+Note that this approach does not specify the implementation of oracles.

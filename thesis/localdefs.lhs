@@ -80,6 +80,19 @@
 %format fst         = "\F{fst}"
 %format snd         = "\F{snd}"
 
+%% Indexed monads
+%format IxFunctor      = "\D{IxFunctor}"
+%format IxMonad        = "\D{IxMonad}"
+%format ixfunctorsuper = "\RF{ixfunctor-super}"
+%format fmapi          = "\RF{fmap\textsuperscript{i}}"
+%format bindi          = "\RF{$>\!>\!=$\textsuperscript{i}}"
+%format joini          = "\RF{join\textsuperscript{i}}"
+%format returni        = "\RF{return\textsuperscript{i}}"
+%format _=>_           = "\F{\_$\Rightarrow$\_}"
+%format =>             = "\F{$\Rightarrow$}"
+%format _~>_           = "\F{\_$\rightsquigarrow$\_}"
+%format ~>             = "\F{$\rightsquigarrow$}"
+
 %% Not sure where to put
 %format Injective = "\F{Injective}"
 
