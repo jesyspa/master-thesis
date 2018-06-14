@@ -62,3 +62,7 @@ A2 OTPINDCPAADV ct = do
   r <- callOracleCE (allone N)
   return (isYes (ct == r))
 \end{code}
+
+This approach is straightforward, but makes every adversary specification ad-hoc.
+
+Note that this approach does not specify the implementation of oracles.  

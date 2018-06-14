@@ -7,6 +7,7 @@
 \usepackage{array}
 \usepackage{hyperref}
 \usepackage{todonotes}
+\usepackage[margin=4cm]{geometry}
 
 %include polycode.fmt
 %include agda.lhs
@@ -36,8 +37,8 @@
 
     %include chapters/01-introduction.lhs
     %include chapters/02-games.lhs
-    %include chapters/03-interpretation.lhs
-    %include chapters/04-proofs.lhs
+    %include chapters/03-proofs.lhs
+    %include chapters/04-interpretation.lhs
     %include chapters/05-indexed-monads.lhs
     %include chapters/06-interaction-structures.lhs
     %include chapters/07-crypto-language.lhs
