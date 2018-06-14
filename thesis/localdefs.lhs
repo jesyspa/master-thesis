@@ -93,6 +93,21 @@
 %format _~>_           = "\F{\_$\rightsquigarrow$\_}"
 %format ~>             = "\F{$\rightsquigarrow$}"
 
+%% Interaction Structures
+%format InteractionStructure = "\D{InteractionStructure}"
+%format IntStruct            = "\D{IntStruct}"
+%format ISMorphism           = "\D{ISMorphism}"
+%format Command              = "\RF{Command}"
+%format Response             = "\RF{Response}"
+%format next                 = "\RF{next}"
+%format CommandF             = "\RF{CommandF}"
+%format ResponseF            = "\RF{ResponseF}"
+%format nextF                = "\RF{nextF}"
+%format S1                   = "S_1"
+%format S2                   = "S_2"
+%format IS1                  = "I\!S_1"
+%format IS2                  = "I\!S_2"
+
 %% Not sure where to put
 %format Injective = "\F{Injective}"
 

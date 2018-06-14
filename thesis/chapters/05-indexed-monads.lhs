@@ -69,3 +69,9 @@ category structure gives rise to this.)
 Another example is the indexed state monad: we can choose a universe and an
 evaluation function and then provide a monad (in fact, monad transformer) that
 stores a type and a value of that type.
+
+\section{Reindexing Morphisms}
+
+Sometimes, we want to speak about maps between indexed monads with different
+index sets.  There are surprisingly many ways to do this, and it's probably
+worth mentioning at least the main ones.
