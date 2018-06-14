@@ -11,4 +11,6 @@ sources/
 *.bbl
 *.blg
 *.out
+*.ptb
+*.toc
 thesis.tex

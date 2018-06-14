@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass{report}
 
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -27,22 +27,20 @@
     \maketitle
 
     \begin{abstract}
-        When we use cryptographic algorithms, we rely that they provide the security guarantees they claim.  For my
-        thesis, I wish to develop a framework using the Agda programming language that would allow the user to express
-        and automatically check proofs of such claims.
+        When we use cryptographic algorithms, we rely that they provide the
+        security guarantees they claim.  We develop a system for reasoning about
+        such guarantees in the Agda programming language.
     \end{abstract}
 
-    % The following topics have to be covered:
-    % - Interaction structures
-    % - Games in cryptography
-    % - Probability in Agda
-    % - Interaction between state and probability
+    \tableofcontents
 
-    % %include chapters/01-introduction.lhs
-    % %include chapters/02-proofs.lhs
-    % %include chapters/03-implementation-outline.lhs
-    % %include chapters/04-research-plan.lhs
-    % %include chapters/05-timetable.lhs
+    %include chapters/01-introduction.lhs
+    %include chapters/02-games.lhs
+    %include chapters/03-interpretation.lhs
+    %include chapters/04-proofs.lhs
+    %include chapters/05-indexed-monads.lhs
+    %include chapters/06-interaction-structures.lhs
+    %include chapters/07-crypto-language.lhs
 
     \nocite{*}
     \bibliography{thesis}
