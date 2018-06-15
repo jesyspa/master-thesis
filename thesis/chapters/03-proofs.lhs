@@ -15,3 +15,15 @@ the adversary should not be able to access; in particular, the oracle may have
 state that it can read and write, which the adversary should not be able to do.
 In practice, a notion of similarity between games should allow for a difference
 in the oracle implementation.
+
+Some thoughts about this chapter:
+\begin{itemize}
+    \item If I want to talk about what \emph{must} hold and thus define the
+        similarity relationship by that, I should not mention oracles at all.
+    \item If I want to mention oracles, I need to talk about interpretation to
+        some degree.
+    \item The relation we actually define is with respect to some
+        implementation; should I specify a class of relations that we consider
+        to be ``equivalences of games'' and parametrise over that?  It seems
+        like a lot of trouble to go to.
+\end{itemize}
