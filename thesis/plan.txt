@@ -16,8 +16,8 @@ General structure:
 Chapter list:
 1. Introduction
 2. Games as Free Monads
-3. Cryptographic Proof Techniques
-4. Interpreting Games
+3. Interpreting Games
+4. Cryptographic Proof Techniques
 5. Indexed Monads
 6. Interaction Structures
 7. A Language for Cryptography
@@ -70,7 +70,28 @@ We can show that this is a monad and show what a game using this monad looks
 like.  We now want to perform the other step, relating games to each other.
 
 
-3. Cryptographic Proof Techniques
+3. Interpreting Games
+
+Given a syntactic game with result type A, we want to determine what the
+probability of a specific result a : A is.  We define a Dist monad representing
+probability distributions and show that this can be computed.  This allows us to
+prove the properties of the relation we defined in the previous chapter.
+
+(How explicit do we want to be here?  We can refer to existing work for a large
+part.)
+
+We can show that there exists an interpretation for our games:
+
+type OracleImpl = OracleArg -> StateT OracleState Dist OracleResult
+evalCryptoExpr :  OracleImpl
+               -> CryptoExpr A
+               -> StateT (OracleState * AdvState) Dist A
+
+We can show that the reasoning steps specified in the previous chapter are sound
+with respect to this interpretation.
+
+
+4. Cryptographic Proof Techniques
 
 There are a number of common operations we want to perform on games:
 * Change order of independent steps.  (Mind the state!)
@@ -90,27 +111,6 @@ the later introduction of indexed monads and interaction structures as ways to
 approach this problem.
 
 Maybe have a whole chapter on interpreting oracles at the very end?
-
-
-4. Interpreting Games
-
-Given a syntactic game with result type A, we want to determine what the
-probability of a specific result a : A is.  We define a Dist monad representing
-probability distributions and show that this can be computed.  This allows us to
-prove the properties of the relation we defined in the previous chapter.
-
-(How explicit do we want to be here?  We can refer to existing work for a large
-part.)
-
-We can show that there exists an interpretation for our games:
-
-type OracleImpl = OracleArg -> StateT OracleState Dist OracleResult
-evalCryptoExpr :  OracleImpl
-               -> CryptoExpr A
-               -> StateT (OracleState * AdvState) Dist A
-
-We can show that the reasoning steps specified in the previous chapter are sound
-with respect to this interpretation.
 
 
 5. Indexed Monads

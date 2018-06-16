@@ -39,6 +39,7 @@
 %format SetAdvState   = "\RF{SetAdvState}"
 %format InitOracle    = "\RF{InitOracle}"
 %format CallOracle    = "\RF{CallOracle}"
+%format Repeat        = "\RF{Repeat}"
 
 %% CryptoExpressions
 %format uniformexpr     = "\F{uniform-expr}"
