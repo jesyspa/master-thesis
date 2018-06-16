@@ -52,6 +52,14 @@
 %format initOracleCE    = "\F{initOracle-CE}"
 %format callOracleCE    = "\F{callOracle-CE}"
 
+%format BoundOracleUse  = "\D{BoundOracleUse}"
+%format ReturnBOU       = "\RF{ReturnBOU}"
+%format UniformBOU      = "\RF{UniformBOU}"
+%format GetAdvStateBOU  = "\RF{GetAdvStateBOU}"
+%format SetAdvStateBOU  = "\RF{SetAdvStateBOU}"
+%format InitOracleBOU   = "\RF{InitOracleBOU}"
+%format CallOracleBOU   = "\RF{CallOracleBOU}"
+
 %% Games
 %format G1           = "G\textsubscript{1}"
 %format G2           = "G\textsubscript{2}"

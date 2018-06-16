@@ -65,6 +65,35 @@ behaviour of the oracle within the system: we only say what it does informally.
 
 \section{Example: One-Time Pad (IND-CPA)}
 
+For example, the following is the IND-CPA game of the One-Time Pad and the
+adversary that wins it.  We fix the security parameter |N|.  (This is the same
+example as in the introduction; do we want to keep both?)
+
+\begin{code}
+AdvState = BitVec N * BitVec N
+record Adversary : Set where
+  field
+    A1 : CryptoExpr (BitVec N * BitVec N)
+    A2 : BitVec N -> CryptoExpr Bool
+
+OTPINDCPA : Adversary -> CryptoExpr Bool
+OTPINDCPA adv = do
+  key <- uniformCE N
+  initOracleCE key
+  msgs <- A1 adv
+  b <- coinCE
+  let ct = vxor key (if b then snd msgs else fst msgs)
+  b' <- A2 adv ct
+  return $ isYes (b == b')
+
+OTPINDCPAADV : Adversary
+A1 OTPINDCPAADV = return (allzero N , allone N)
+A2 OTPINDCPAADV ct = do
+  r <- callOracleCE (allone N)
+  return $ isYes (ct == r)
+\end{code}
+
+This approach is straightforward, but makes every adversary specification ad-hoc.
 We can show that given access to an encryption oracle, the adversary has a
 winning strategy against the one-time pad.
 
