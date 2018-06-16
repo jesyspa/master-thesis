@@ -40,7 +40,7 @@ adversary has no active participation and so any adversary will have equal
 probability of winning (and thus advantage 0).  For more complicated games, we
 derive the upper bound by relating them to such simpler games.
 
-\section{Example: One-Time Pad}
+\section{Example: One-Time Pad (IND-EAV)}
 
 This section can be taken almost entirely from the proposal, except that I want
 to phrase it in Agda this time.
@@ -55,5 +55,24 @@ use a pseudo-random number generator, or store the queries already performed by
 the adversary.  As such, we should not allow the adversary to get or set this
 state, and want to force the adversary to use the oracle only as a black box.
 
+As such, the adversary is given a special command that calls the oracle with an
+argument and gives a result, but the adversary cannot know how this command is
+implemented.  The challenger is given access to a command that sets the oracle
+state.
+
+Note that unlike the challenger and adversary, we currently do not specify the
+behaviour of the oracle within the system: we only say what it does informally.
+
+\section{Example: One-Time Pad (IND-CPA)}
+
+We can show that given access to an encryption oracle, the adversary has a
+winning strategy against the one-time pad.
 
 \section{Example: PRFs (?)}
+
+We can show that we can extend the input size of a pseudo-random function and
+get a new pseudorandom function.  This is a good example to cover because it
+uses a lot of the topics we are interested in: oracles, transitions based on
+failure events, adversary action reordering, oracle substitutions, bounds on
+oracle uses.  It works well as motivation for why we want to study these things
+later on.
