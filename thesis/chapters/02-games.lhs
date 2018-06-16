@@ -1,5 +1,14 @@
 \chapter{Representing Games}
 
+A game is a sequence of instructions.  Although we will later see that tracking
+which player executes a given instruction can be useful later, for now we will
+develop a system where this information is not preserved.
+
+Instructions can be pure computations, but can also use randomness, state, and
+call an oracle.
+
+\section{Free Monads}
+
 We represent games by free monads.  There are a number of types we must
 parametrise over: |AdvState|, |OracleState|, |OracleArg|, |OracleResult|.  Once
 we've fixed that, we can define:
@@ -35,7 +44,11 @@ setAdvStateCE : AdvState -> CryptoExpr top
 setAdvStateCE st = SetAdvState st (Return tt)
 \end{code}
 
-This allows us to write simple games.  For example, the following is the IND-CPA
+This allows us to write simple games.
+
+\section{IND-CPA Example}
+
+For example, the following is the IND-CPA
 game of the One-Time Pad and the adversary that wins it.  We fix the security
 parameter |N|.
 

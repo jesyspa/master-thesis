@@ -69,3 +69,8 @@ category structure gives rise to this.)
 Another example is the indexed state monad: we can choose a universe and an
 evaluation function and then provide a monad (in fact, monad transformer) that
 stores a type and a value of that type.
+
+I think that indexed monads should be able to capture IND-CCA's requirement that
+the adversary not decrypt the ciphertext it is given by the challenger.  This
+would be an interesting illustration, since this seems to be tracked dynamically
+otherwise.
