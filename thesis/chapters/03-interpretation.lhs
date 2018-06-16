@@ -24,14 +24,24 @@ appendix in their own right.
 
 \section{The Valuation}
 
-Now that we have a distribution monad |Dist|, we can use |StateT (OracleState *
-AdvState) Dist| to interpret the 
+Now that we have a distribution monad |Dist|, once we have chosen some oracle
+state type |OracleState|, we can use |StateT (OracleState * AdvState) Dist| to
+interpret the distribution if we have an implementation of the oracle.  We
+denote this monad by |StateDist|.  This gives us the following:
 
+\begin{code}
+record OracleImpl : Set where
+  field
+    InitImpl : OracleInit -> StateDist top
+    CallImpl : OracleArg -> StateDist OracleResult
 
-A considerable problem is the implementation of oracles.  Namely, we don't have
-any guarantee that oracles actually have nicely-behaving distributions: they are
-not (as far as the type system is concerned) necessarily constructed using the
-base combinators, like the challenger and adversary are.  On the other hand,
-this code is known and thus we can prove it for every individual case.  Still, I
-think this can be used as good motivation to introduce interaction structures.
+evalCE : OracleImpl -> CryptoExpr A -> StateDist A
+\end{code}
+
+Now we can say that two games are indistinguishable with respect to an oracle
+implementation if their evaluations are indistinguishable.
+
+Given bounds on how similar oracles are, we can bound the difference of the same
+game with two different oracle implementations, as long as we bound the number
+of calls to init and impl.
 

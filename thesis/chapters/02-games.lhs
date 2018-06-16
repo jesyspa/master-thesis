@@ -13,7 +13,7 @@ see chapter \autoref{chp:interaction-structures}.
 
 We represent games by free monads.\footnote{Why they are called `free monads'
 will be discussed later.}  There are a number of types we must parametrise over:
-|AdvState|, |OracleState|, |OracleArg|, |OracleResult|.  Once we've fixed that,
+|AdvState|, |OracleInit|, |OracleArg|, |OracleResult|.  Once we've fixed that,
 we can define:
 \begin{code}
 data CryptoExpr : Set -> Set where
@@ -21,7 +21,7 @@ data CryptoExpr : Set -> Set where
   Uniform      : (n : Nat)    -> (BitVec n      ->  CryptoExpr A)  -> CryptoExpr A
   GetAdvState  :              -> (AdvState      ->  CryptoExpr A)  -> CryptoExpr A
   SetAdvState  : AdvState     ->                    CryptoExpr A   -> CryptoExpr A
-  InitOracle   : OracleState  ->                    CryptoExpr A   -> CryptoExpr A
+  InitOracle   : OracleInit   ->                    CryptoExpr A   -> CryptoExpr A
   CallOracle   : OracleArg    -> (OracleResult  ->  CryptoExpr A)  -> CryptoExpr A
 \end{code}
 
@@ -80,3 +80,5 @@ has |BoundOracleUse (suc k)| instead of |BoundOracleUse k|.  This means that if
 a term of type |BoundOracleUse zero ce| can be constructed, it cannot use
 |CallOracle| or |InitOracle|.  This lets us bound how much the adversary does
 with the oracle.
+
+TODO: Maybe instead have two nats, one for init and one for call?
