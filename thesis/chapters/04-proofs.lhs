@@ -10,7 +10,7 @@ In particular, if a computation does not depend on a random value, we can get
 that randomness later:
 \begin{code}
 uniforminterchange  : (uniformCE n >>= \ a -> ce >>= \ b -> f a b)
-                    ==D (ce >>= \b -> uniformCE n >>= \ a -> f a b)
+                    ==D (ce >>= \ b -> uniformCE n >>= \ a -> f a b)
 \end{code}
 
 More interestingly, if there are no |OracleInit| operations involved, we can

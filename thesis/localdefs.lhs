@@ -82,6 +82,7 @@
 %% Dist features
 %format coin = "\F{coin}"
 %format uniform = "\F{uniform}"
+%format uniforminterchange = "\F{uniform-interchange}"
 
 %% Helper functions
 %format sample      = "\F{sample}"

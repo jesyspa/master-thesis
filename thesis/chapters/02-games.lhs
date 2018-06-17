@@ -83,3 +83,14 @@ in |CallOracleBOU|, we decrease the number of allowed calls to the oracle by
 one.  Note that this is only a restriction on what the game is \emph{allowed} to
 do: since the |ReturnBOU| case does not restrict |b| or |k|, we do not require
 the game to perform any actions.
+
+\section{Specification of Oracles}
+
+Oracles are a difficulty because they support slightly different operations than
+the challenger and adversary.  We can define a similar syntax for specifying
+them as we did with challengers and adversaries, but this would involve some
+significant code duplication.  We will see in
+\autoref{chp:interaction-structures} how to do this nicely.
+
+TODO: I really don't know whether introducing this syntax for oracles is a good
+idea.  It would make some things easier later, but it feels very heavy.
