@@ -99,6 +99,8 @@
 %format vxor        = "\F{vxor}"
 %format fst         = "\F{fst}"
 %format snd         = "\F{snd}"
+%format left        = "\F{left}"
+%format right       = "\F{right}"
 
 %% Indexed monads
 %format IxFunctor      = "\D{IxFunctor}"
@@ -113,6 +115,22 @@
 %format _~>_           = "\F{\_$\rightsquigarrow$\_}"
 %format ~>             = "\F{$\rightsquigarrow$}"
 
+%% Interaction Structures
+%format InteractionStructure = "\D{InteractionStructure}"
+%format IntStruct            = "\D{IntStruct}"
+%format Command              = "\RF{Command}"
+%format Response             = "\RF{Response}"
+%format next                 = "\RF{next}"
+%format CommandF             = "\RF{CommandF}"
+%format ResponseF            = "\RF{ResponseF}"
+%format nextF                = "\RF{nextF}"
+%format S1                   = "S_1"
+%format S2                   = "S_2"
+%format s1                   = "s_1"
+%format s2                   = "s_2"
+%format IS1                  = "I\!S_1"
+%format IS2                  = "I\!S_2"
+
 %% Not sure where to put
 %format Injective = "\F{Injective}"
 
@@ -120,6 +138,7 @@
 %format _+_ = "\F{\_\hspace{-0.1em}+\hspace{-0.1em}\_}"
 %format _*_ = "\F{\_\hspace{-0.1em}*\hspace{-0.1em}\_}"
 %format _<_ = "\F{\_\hspace{-0.1em}\textless\hspace{-0.1em}\_}"
+%format _oplus_ = "\F{\_\hspace{-0.1em}$\oplus$\hspace{-0.1em}\_}"
 
 %% Punctuation
 %format dot   = "\hspace{-0.3em}.\,"
@@ -128,8 +147,9 @@
 %format rangle = "\rangle"
 
 %% Misc stuff
-%format (plus (a) (b))  = "{" a "}\mathbin{\RF{+}}{" b "}"
-%format (times (a) (b)) = "{" a "}\mathbin{\RF{$\cdot$}}{" b "}"
+%format (plus (a) (b))  = "{" a "}\mathbin{\F{+}}{" b "}"
+%format (times (a) (b)) = "{" a "}\mathbin{\F{$\cdot$}}{" b "}"
+%format oplus (a) (b) = "{" a "}\mathbin{\F{$\oplus$}}{" b "}"
 %format (VAL (a))       = "\llbracket {" a "} \rrbracket"
 
 %% Things annoying to :Align
