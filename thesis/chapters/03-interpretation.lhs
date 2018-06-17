@@ -38,10 +38,29 @@ record OracleImpl : Set where
 evalCE : OracleImpl -> CryptoExpr A -> StateDist A
 \end{code}
 
-Now we can say that two games are indistinguishable with respect to an oracle
-implementation if their evaluations are indistinguishable.
+This function arises from the fact that |CryptoExpr| is a free monad, since we
+have interpretations for all the operations.
 
-Given bounds on how similar oracles are, we can bound the difference of the same
-game with two different oracle implementations, as long as we bound the number
-of calls to init and impl.
+Note that the oracles have direct access to |StateDist|; their types alone do
+not require them to return well-behaved distributions.  We should do something
+about that.  In particular, we don't want the oracle inspecting the adversary
+state.
 
+\section{The Indistinguishability Relation}
+
+We now have a notion of indistinguishability for terms of type |M A| with |A|
+finite.\footnote{Perhaps doing something with the support would also be
+interesting?} Since we apply a state monad on top of |Dist|, we want to
+generalise this notion to terms of type |S -> M (A * S)|.
+
+Note that simply assuming |S| has decidable equality and taking the maximum over
+all |s : S| would not work: for every $\epsilon$, the adversary could choose a
+state type so that $\abs{S}^{-1}$ is much smaller than $\epsilon$.  By
+scrambling the state on every computation, the difference between any two
+outcomes becomes less than $\epsilon$, and so we cannot show that e.g. |return
+false| and |return true| are different.  Taking the sum over all |S| works,
+though.
+
+Another consideration is that when we regard the game as a whole, we don't want
+to worry about the initial and final states.  We thus require the adversary to
+specify their initial state and we project away the final state.

@@ -58,27 +58,28 @@ or use it too many times.   We can require a proof that the adversary satisfies
 these constraints as follows:
 
 \begin{code}
-data BoundOracleUse : Nat -> CryptoExpr A -> Set1 where
-  ReturnBOU       : forall k (a : A) -> BoundOracleUse k (Return a)
-  UniformBOU      : forall k n
-                  -> (cont : BitVec n -> CryptoExpr A)
-                  -> (forall v -> BoundOracleUse k (cont v))
-                  -> BoundOracleUse k (Uniform n cont)
-  GetAdvStateBOU  : forall k (cont : AdvState -> CryptoExpr A)
-                  -> (forall  st -> BoundOracleUse k (cont st))
-                  -> BoundOracleUse k (GetAdvState cont)
-  SetAdvStateBOU  : forall k st (ce : CryptoExpr A)
-                  -> BoundOracleUse k ce
-                  -> BoundOracleUse k (SetAdvState st ce)
-  CallOracleBOU   : forall k arg (cont : OracleResult -> CryptoExpr A)
-                  -> (forall  r -> BoundOracleUse k (cont r))
-                  -> BoundOracleUse (suc k) (CallOracle arg cont)
+data BoundOracleUse : Bool -> Nat -> CryptoExpr A -> Set1 where
+  ReturnBOU       : (a : A) -> BoundOracleUse b k (Return a)
+  UniformBOU      : (cont : BitVec n -> CryptoExpr A)
+                  -> (forall v -> BoundOracleUse b k (cont v))
+                  -> BoundOracleUse b k (Uniform n cont)
+  GetAdvStateBOU  : (cont : AdvState -> CryptoExpr A)
+                  -> (forall  st -> BoundOracleUse b k (cont st))
+                  -> BoundOracleUse b k (GetAdvState cont)
+  SetAdvStateBOU  : (ce : CryptoExpr A)
+                  -> BoundOracleUse b k ce
+                  -> BoundOracleUse b k (SetAdvState st ce)
+  InitOracleBOU   : (ce : CryptoExpr A)
+                  -> BoundOracleUse false k ce
+                  -> BoundOracleUse true k (InitOracle st ce)
+  CallOracleBOU   : (cont : OracleResult -> CryptoExpr A)
+                  -> (forall  r -> BoundOracleUse b k (cont r))
+                  -> BoundOracleUse b (suc k) (CallOracle arg cont)
 \end{code}
 
-Note that the |InitOracleBOU| case is missing, and the |CallOracleBOU| case
-has |BoundOracleUse (suc k)| instead of |BoundOracleUse k|.  This means that if
-a term of type |BoundOracleUse zero ce| can be constructed, it cannot use
-|CallOracle| or |InitOracle|.  This lets us bound how much the adversary does
-with the oracle.
-
-TODO: Maybe instead have two nats, one for init and one for call?
+Note that in the |InitOracleBOU| case we require the continuation to have no
+|InitOracleBOU| calls, thus forcing initialisation to happen exactly once, and
+in |CallOracleBOU|, we decrease the number of allowed calls to the oracle by
+one.  Note that this is only a restriction on what the game is \emph{allowed} to
+do: since the |ReturnBOU| case does not restrict |b| or |k|, we do not require
+the game to perform any actions.

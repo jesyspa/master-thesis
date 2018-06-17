@@ -9,9 +9,10 @@
 %format Ord              = "\D{Ord}"
 %format Dist             = "\D{Dist}"
 %format ListDist         = "\D{ListDist}"
-%format StateDist        = "\D{StateDist}"
+%format StateDist        = "\D{StatefulDist}"
 %format Writer           = "\D{Writer}"
 %format StateT           = "\D{StateT}"
+%format MaybeT           = "\D{MaybeT}"
 %format ProbabilityProps = "\D{ProbabilityProps}"
 %format top              = "\D{$\top$}"
 %format bot              = "\D{$\bot$}"
@@ -19,6 +20,7 @@
 %format OracleState      = "\D{OracleState}"
 %format OracleArg        = "\D{OracleArg}"
 %format OracleResult     = "\D{OracleResult}"
+%format OracleInit       = "\D{OracleInit}"
 %format Adversary        = "\D{Adversary}"
 
 %% Constructors

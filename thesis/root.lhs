@@ -8,7 +8,7 @@
 \usepackage{hyperref}
 \usepackage{todonotes}
 \usepackage[margin=4cm]{geometry}
-\usepackage[toc]{appendix}
+\usepackage{appendix}
 
 %include polycode.fmt
 %include agda.lhs
@@ -48,6 +48,7 @@
         %include chapters/ap01-finite-sets.lhs
         %include chapters/ap02-rationals.lhs
         %include chapters/ap03-distributions.lhs
+        %include chapters/ap04-code.lhs
     \end{appendices}
 
     \nocite{*}
