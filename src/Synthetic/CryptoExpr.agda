@@ -8,6 +8,7 @@ open import Probability.Class
 record CryptoState : Set₁ where
   field
     AdvState     : Set
+    OracleInit   : Set
     OracleState  : Set
     OracleArg    : Set
     OracleResult : Set
@@ -26,7 +27,7 @@ module Expr CS where
     Uniform     : ∀{A} → (n : Nat)   → (BitVec n     → CryptoExpr A) → CryptoExpr A
     GetAdvState : ∀{A}               → (AdvState     → CryptoExpr A) → CryptoExpr A
     SetAdvState : ∀{A} → AdvState    →                 CryptoExpr A  → CryptoExpr A
-    InitOracle  : ∀{A} → OracleState →                 CryptoExpr A  → CryptoExpr A
+    InitOracle  : ∀{A} → OracleInit  →                 CryptoExpr A  → CryptoExpr A
     CallOracle  : ∀{A} → OracleArg   → (OracleResult → CryptoExpr A) → CryptoExpr A
 
   uniform-CE : (n : Nat) → CryptoExpr (BitVec n)
@@ -55,6 +56,22 @@ module Expr CS where
       SetAdvStateF  : AdvState → R → R
       InitOracleF   : OracleState → R → R
       CallOracleF   : OracleArg → (OracleResult → R) → R
+
+  data BoundOracleUse : {A : Set} → Nat → CryptoExpr A → Set₁ where
+    ReturnBOU      : ∀{A} k (a : A) → BoundOracleUse k (Return a)
+    UniformBOU     : ∀{A} k n
+                   → (cont : BitVec n → CryptoExpr A)
+                   → (∀ v → BoundOracleUse k (cont v))
+                   → BoundOracleUse k (Uniform n cont)
+    GetAdvStateBOU : ∀{A} k (cont : AdvState → CryptoExpr A)
+                   → (∀ st → BoundOracleUse k (cont st))
+                   → BoundOracleUse k (GetAdvState cont)
+    SetAdvStateBOU : ∀{A} k st (ce : CryptoExpr A)
+                   → BoundOracleUse k ce
+                   → BoundOracleUse k (SetAdvState st ce)
+    CallOracleBOU  : ∀{A} k arg (cont : OracleResult → CryptoExpr A)
+                   → (∀ r → BoundOracleUse k (cont r))
+                   → BoundOracleUse (suc k) (CallOracle arg cont)
 
 module _ {CS} where
   open Expr CS
