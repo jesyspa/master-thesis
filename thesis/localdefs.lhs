@@ -117,19 +117,28 @@
 
 %% Interaction Structures
 %format InteractionStructure = "\D{InteractionStructure}"
-%format IntStruct            = "\D{IntStruct}"
+%format ISMorphism           = "\D{ISMorphism}"
+%format IStruct              = "\D{IStruct}"
 %format Command              = "\RF{Command}"
 %format Response             = "\RF{Response}"
 %format next                 = "\RF{next}"
 %format CommandF             = "\RF{CommandF}"
 %format ResponseF            = "\RF{ResponseF}"
 %format nextF                = "\RF{nextF}"
+%format TensorUnitIS         = "\D{$1$}"
 %format S1                   = "S_1"
 %format S2                   = "S_2"
 %format s1                   = "s_1"
 %format s2                   = "s_2"
 %format IS1                  = "I\!S_1"
 %format IS2                  = "I\!S_2"
+
+%% Free Monads
+%format FreeMonad            = "\D{FreeMonad}"
+%format ReturnFM             = "\F{Return-FM}"
+%format InvokeFM             = "\F{Invoke-FM}"
+%format fmapFM               = "\F{fmap-FM}"
+%format bindFM               = "\F{bind-FM}"
 
 %% Not sure where to put
 %format Injective = "\F{Injective}"
@@ -139,6 +148,7 @@
 %format _*_ = "\F{\_\hspace{-0.1em}*\hspace{-0.1em}\_}"
 %format _<_ = "\F{\_\hspace{-0.1em}\textless\hspace{-0.1em}\_}"
 %format _oplus_ = "\F{\_\hspace{-0.1em}$\oplus$\hspace{-0.1em}\_}"
+%format _qoplus_ = "\F{\_\hspace{-0.1em}$\oplus/\sim$\hspace{-0.1em}\_}"
 
 %% Punctuation
 %format dot   = "\hspace{-0.3em}.\,"
@@ -150,6 +160,7 @@
 %format (plus (a) (b))  = "{" a "}\mathbin{\F{+}}{" b "}"
 %format (times (a) (b)) = "{" a "}\mathbin{\F{$\cdot$}}{" b "}"
 %format oplus (a) (b) = "{" a "}\mathbin{\F{$\oplus$}}{" b "}"
+%format qoplus (a) (b) = "{" a "}\mathbin{\F{$\oplus/\sim$}}{" b "}"
 %format (VAL (a))       = "\llbracket {" a "} \rrbracket"
 
 %% Things annoying to :Align
