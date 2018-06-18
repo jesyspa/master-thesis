@@ -56,3 +56,10 @@ Problems and questions:
 Sometimes we want to assume that some property holds: for example, that our hash
 function is hard to break.  How does this fit into the system?
 
+I guess typically this is just an assumption that two games are similar, but how
+can this be phrased well without reference to the evaluation?
+
+\section{Example: PRF, Formalised}
+
+It is enlightening (?) to see how the above steps can be used to show that the
+game described can be formalised.

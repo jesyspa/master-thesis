@@ -84,6 +84,29 @@ one.  Note that this is only a restriction on what the game is \emph{allowed} to
 do: since the |ReturnBOU| case does not restrict |b| or |k|, we do not require
 the game to perform any actions.
 
+Proof search on these things: we could, potentially, do something like:
+\begin{code}
+hasBOU : Bool -> Nat -> CryptoExpr A -> Bool
+hasBOUsound : IsTrue (hasBOU b k ce) -> BoundedOracleUse b k ce
+\end{code}
+
+Now, given a concrete term |ce| we can use the evaluation mechanism of Agda
+itself to convince it that |IsTrue (hasBou b k ce)| is |top| and thus that we
+can pass |tt| to get a proof.
+
+There are a few problems with this.  First of all, this does not work in full
+generality: we need to assume that the types |OracleInit|, |OracleResult|, etc. are
+all finite, since otherwise we must enumerate an infinite domain.  Secondly, and
+more problematically in practice, even given this assumption this code must
+check an exponential number of cases when |Uniform| is used.  This makes it
+impractical for real cases.  Finally, we typically are not dealing with a
+concrete |CryptoExpr|: rather, it is parametrised by the security parameter.
+This means we have to prove |IsTrue (hasBOU b k ce)| by hand, which is no easier
+than just proving |BoundedOracleUse b k ce|.
+
+Similar consraints can be imposed on e.g. not using randomness, not using state,
+etc.
+
 \section{Specification of Oracles}
 
 Oracles are a difficulty because they support slightly different operations than

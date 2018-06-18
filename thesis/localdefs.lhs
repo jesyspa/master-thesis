@@ -70,6 +70,8 @@
 %format SetAdvStateBOU  = "\RF{SetAdvStateBOU}"
 %format InitOracleBOU   = "\RF{InitOracleBOU}"
 %format CallOracleBOU   = "\RF{CallOracleBOU}"
+%format hasBOU          = "\F{has-BOU?}"
+%format hasBOUsound     = "\F{has-BOU?-Sound}"
 
 %% Games
 %format G1           = "G\textsubscript{1}"
