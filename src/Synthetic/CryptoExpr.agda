@@ -1,172 +1,107 @@
-module Synthetic.CryptoExpr where
+open import Synthetic.CryptoState
+module Synthetic.CryptoExpr (CS : CryptoState) where
 
 open import ThesisPrelude
+open import Synthetic.Enumeration
 open import Utility.Vector.Definition
-open import Utility.List.Elem.Definition
 open import Probability.Class
 
-record CryptoState : Set₁ where
-  field
-    AdvState     : Set
-    OracleInit   : Set
-    OracleState  : Set
-    OracleArg    : Set
-    OracleResult : Set
-
-record Enumeration (A : Set) : Set where
-  field
-    Enumerate : List A
-    EnumerateComplete : ∀ a → a ∈ Enumerate
-    EnumerateUnique : ∀{a}(p q : a ∈ Enumerate) → p ≡ q
 open Enumeration
 
-module Expr CS where
-  open CryptoState CS
-  data CryptoExpr : Set → Set where
-    Return      : ∀{A} → A                                           → CryptoExpr A
-    Uniform     : ∀{A} → (n : Nat)   → (BitVec n     → CryptoExpr A) → CryptoExpr A
-    GetAdvState : ∀{A}               → (AdvState     → CryptoExpr A) → CryptoExpr A
-    SetAdvState : ∀{A} → AdvState    →                 CryptoExpr A  → CryptoExpr A
-    InitOracle  : ∀{A} → OracleInit  →                 CryptoExpr A  → CryptoExpr A
-    CallOracle  : ∀{A} → OracleArg   → (OracleResult → CryptoExpr A) → CryptoExpr A
+open CryptoState CS
+data CryptoExpr : Set → Set where
+  Return      : ∀{A} → A                                           → CryptoExpr A
+  Uniform     : ∀{A} → (n : Nat)   → (BitVec n     → CryptoExpr A) → CryptoExpr A
+  GetAdvState : ∀{A}               → (AdvState     → CryptoExpr A) → CryptoExpr A
+  SetAdvState : ∀{A} → AdvState    →                 CryptoExpr A  → CryptoExpr A
+  InitOracle  : ∀{A} → OracleInit  →                 CryptoExpr A  → CryptoExpr A
+  CallOracle  : ∀{A} → OracleArg   → (OracleResult → CryptoExpr A) → CryptoExpr A
 
-  uniform-CE : (n : Nat) → CryptoExpr (BitVec n)
-  uniform-CE n = Uniform n Return
+uniform-CE : (n : Nat) → CryptoExpr (BitVec n)
+uniform-CE n = Uniform n Return
 
-  coin-CE : CryptoExpr Bool
-  coin-CE = Uniform 1 λ { (v ∷ []) → Return v }
+coin-CE : CryptoExpr Bool
+coin-CE = Uniform 1 λ { (v ∷ []) → Return v }
 
-  getAdvState-CE : CryptoExpr AdvState
-  getAdvState-CE = GetAdvState Return
+getAdvState-CE : CryptoExpr AdvState
+getAdvState-CE = GetAdvState Return
 
-  setAdvState-CE : AdvState → CryptoExpr ⊤
-  setAdvState-CE st = SetAdvState st (Return tt)
+setAdvState-CE : AdvState → CryptoExpr ⊤
+setAdvState-CE st = SetAdvState st (Return tt)
 
-  initOracle-CE : OracleState → CryptoExpr ⊤
-  initOracle-CE st = InitOracle st (Return tt)
+initOracle-CE : OracleInit → CryptoExpr ⊤
+initOracle-CE st = InitOracle st (Return tt)
 
-  callOracle-CE : OracleArg → CryptoExpr OracleResult
-  callOracle-CE arg = CallOracle arg Return
+callOracle-CE : OracleArg → CryptoExpr OracleResult
+callOracle-CE arg = CallOracle arg Return
 
-  record CryptoExprAlg (A R : Set) : Set₁ where
-    field
-      ReturnF       : A → R
-      UniformF      : ∀ n → (BitVec n → R) → R
-      GetAdvStateF  : (AdvState → R) → R
-      SetAdvStateF  : AdvState → R → R
-      InitOracleF   : OracleState → R → R
-      CallOracleF   : OracleArg → (OracleResult → R) → R
+record CryptoExprAlg (A R : Set) : Set₁ where
+  field
+    ReturnF       : A → R
+    UniformF      : ∀ n → (BitVec n → R) → R
+    GetAdvStateF  : (AdvState → R) → R
+    SetAdvStateF  : AdvState → R → R
+    InitOracleF   : OracleInit → R → R
+    CallOracleF   : OracleArg → (OracleResult → R) → R
 
-  data BoundOracleUse : {A : Set} → Nat → CryptoExpr A → Set₁ where
-    ReturnBOU      : ∀{A} k (a : A) → BoundOracleUse k (Return a)
-    UniformBOU     : ∀{A} k n
-                   → (cont : BitVec n → CryptoExpr A)
-                   → (∀ v → BoundOracleUse k (cont v))
-                   → BoundOracleUse k (Uniform n cont)
-    GetAdvStateBOU : ∀{A} k (cont : AdvState → CryptoExpr A)
-                   → (∀ st → BoundOracleUse k (cont st))
-                   → BoundOracleUse k (GetAdvState cont)
-    SetAdvStateBOU : ∀{A} k st (ce : CryptoExpr A)
-                   → BoundOracleUse k ce
-                   → BoundOracleUse k (SetAdvState st ce)
-    CallOracleBOU  : ∀{A} k arg (cont : OracleResult → CryptoExpr A)
-                   → (∀ r → BoundOracleUse k (cont r))
-                   → BoundOracleUse (suc k) (CallOracle arg cont)
 
-module _ {CS} where
-  open Expr CS
-  open CryptoState CS
+module _ {A R}(CEA : CryptoExprAlg A R) where
+  open CryptoExprAlg CEA
+  fold-CE : CryptoExpr A → R
+  fold-CE (Return a) = ReturnF a
+  fold-CE (Uniform n cont) = UniformF n λ v → fold-CE (cont v)
+  fold-CE (GetAdvState cont) = GetAdvStateF λ st → fold-CE (cont st)
+  fold-CE (SetAdvState st ce) = SetAdvStateF st (fold-CE ce)
+  fold-CE (InitOracle st ce) = InitOracleF st (fold-CE ce)
+  fold-CE (CallOracle arg cont) = CallOracleF arg λ r → fold-CE (cont r)
 
-  module _ {A R}(CEA : CryptoExprAlg A R) where
-    open CryptoExprAlg CEA
-    fold-CE : CryptoExpr A → R
-    fold-CE (Return a) = ReturnF a
-    fold-CE (Uniform n cont) = UniformF n λ v → fold-CE (cont v)
-    fold-CE (GetAdvState cont) = GetAdvStateF λ st → fold-CE (cont st)
-    fold-CE (SetAdvState st ce) = SetAdvStateF st (fold-CE ce)
-    fold-CE (InitOracle st ce) = InitOracleF st (fold-CE ce)
-    fold-CE (CallOracle arg cont) = CallOracleF arg λ r → fold-CE (cont r)
+open CryptoExprAlg
+module _ {A B}(f : A → B) where
+  fmap-CEA : CryptoExprAlg A (CryptoExpr B)
+  ReturnF      fmap-CEA = Return ∘′ f
+  UniformF     fmap-CEA = Uniform
+  GetAdvStateF fmap-CEA = GetAdvState
+  SetAdvStateF fmap-CEA = SetAdvState
+  InitOracleF  fmap-CEA = InitOracle
+  CallOracleF  fmap-CEA = CallOracle
 
-  open CryptoExprAlg
-  module _ {A B}(f : A → B) where
-    fmap-CEA : CryptoExprAlg A (CryptoExpr B)
-    ReturnF      fmap-CEA = Return ∘′ f
-    UniformF     fmap-CEA = Uniform
-    GetAdvStateF fmap-CEA = GetAdvState
-    SetAdvStateF fmap-CEA = SetAdvState
-    InitOracleF  fmap-CEA = InitOracle
-    CallOracleF  fmap-CEA = CallOracle
+  fmap-CE : CryptoExpr A → CryptoExpr B
+  fmap-CE = fold-CE fmap-CEA
 
-    fmap-CE : CryptoExpr A → CryptoExpr B
-    fmap-CE = fold-CE fmap-CEA
+instance
+  FunctorCE : Functor CryptoExpr
+  fmap {{FunctorCE}} = fmap-CE
 
-  instance
-    FunctorCE : Functor CryptoExpr
-    fmap {{FunctorCE}} = fmap-CE
+module _ {A B} where
+  ap-CEA : CryptoExprAlg (A → B) (CryptoExpr A → CryptoExpr B)
+  ReturnF      ap-CEA f ce        = fmap f ce
+  UniformF     ap-CEA n cont ce   = Uniform n λ v → cont v ce
+  GetAdvStateF ap-CEA cont ce     = GetAdvState λ st → cont st ce
+  SetAdvStateF ap-CEA st cont ce  = SetAdvState st (cont ce)
+  InitOracleF  ap-CEA st cont ce  = InitOracle st (cont ce)
+  CallOracleF  ap-CEA arg cont ce = CallOracle arg λ r → cont r ce
 
-  module _ {A B} where
-    ap-CEA : CryptoExprAlg (A → B) (CryptoExpr A → CryptoExpr B)
-    ReturnF      ap-CEA f ce        = fmap f ce
-    UniformF     ap-CEA n cont ce   = Uniform n λ v → cont v ce
-    GetAdvStateF ap-CEA cont ce     = GetAdvState λ st → cont st ce
-    SetAdvStateF ap-CEA st cont ce  = SetAdvState st (cont ce)
-    InitOracleF  ap-CEA st cont ce  = InitOracle st (cont ce)
-    CallOracleF  ap-CEA arg cont ce = CallOracle arg λ r → cont r ce
+  ap-CE : CryptoExpr (A → B) → CryptoExpr A → CryptoExpr B
+  ap-CE = fold-CE ap-CEA
 
-    ap-CE : CryptoExpr (A → B) → CryptoExpr A → CryptoExpr B
-    ap-CE = fold-CE ap-CEA
+  bind-CEA : CryptoExprAlg A ((A → CryptoExpr B) → CryptoExpr B)
+  ReturnF      bind-CEA a ce        = ce a
+  UniformF     bind-CEA n cont ce   = Uniform n λ v → cont v ce
+  GetAdvStateF bind-CEA cont ce     = GetAdvState λ st → cont st ce
+  SetAdvStateF bind-CEA st cont ce  = SetAdvState st (cont ce)
+  InitOracleF  bind-CEA st cont ce  = InitOracle st (cont ce)
+  CallOracleF  bind-CEA arg cont ce = CallOracle arg λ r → cont r ce
 
-    bind-CEA : CryptoExprAlg A ((A → CryptoExpr B) → CryptoExpr B)
-    ReturnF      bind-CEA a ce        = ce a
-    UniformF     bind-CEA n cont ce   = Uniform n λ v → cont v ce
-    GetAdvStateF bind-CEA cont ce     = GetAdvState λ st → cont st ce
-    SetAdvStateF bind-CEA st cont ce  = SetAdvState st (cont ce)
-    InitOracleF  bind-CEA st cont ce  = InitOracle st (cont ce)
-    CallOracleF  bind-CEA arg cont ce = CallOracle arg λ r → cont r ce
+  bind-CE : CryptoExpr A → (A → CryptoExpr B) → CryptoExpr B
+  bind-CE = fold-CE bind-CEA
 
-    bind-CE : CryptoExpr A → (A → CryptoExpr B) → CryptoExpr B
-    bind-CE = fold-CE bind-CEA
+instance
+  ApplicativeCE : Applicative CryptoExpr
+  pure  {{ApplicativeCE}} = Return
+  _<*>_ {{ApplicativeCE}} = ap-CE
+  MonadCE : Monad CryptoExpr
+  _>>=_ {{MonadCE}} = bind-CE
 
-  instance
-    ApplicativeCE : Applicative CryptoExpr
-    pure  {{ApplicativeCE}} = Return
-    _<*>_ {{ApplicativeCE}} = ap-CE
-    MonadCE : Monad CryptoExpr
-    _>>=_ {{MonadCE}} = bind-CE
-
-  example-ce : CryptoExpr Bool
-  example-ce = do
-    v <- uniform-CE 1
-    w <- uniform-CE 1
-    return $ isYes (v == w)
-
-  postulate
-    M : Set → Set
-    instance
-      FunctorM     : Functor M
-      ApplicativeM : Applicative M
-      MonadM       : Monad M
-    uniform : (n : Nat) → M (BitVec n)
-    setAdvState : AdvState → M ⊤
-    getAdvState : M AdvState
-  
-  record OracleImpl : Set₁ where
-    field
-      InitImpl : OracleState → M ⊤
-      CallImpl : OracleArg → M OracleResult
-  
-  module _ (OI : OracleImpl) where
-    open OracleImpl OI
-    eval-CEA : ∀{A} → CryptoExprAlg A (M A)
-    ReturnF      eval-CEA a     = return a
-    UniformF     eval-CEA n m   = uniform n >>= m
-    GetAdvStateF eval-CEA m     = getAdvState >>= m
-    SetAdvStateF eval-CEA st m  = setAdvState st >> m
-    InitOracleF  eval-CEA st m  = InitImpl st >> m
-    CallOracleF  eval-CEA arg m = CallImpl arg >>= m
-    
-    eval-CE : ∀{A} → CryptoExpr A → M A
-    eval-CE = fold-CE eval-CEA
   
   postulate
     _≡D_ : ∀{A}{{_ : Eq A}} → M A → M A → Set
@@ -182,23 +117,10 @@ module _ {CS} where
       EnumerationBitVec        : ∀{n} → Enumeration (BitVec n) 
       EnumerationUnit          : Enumeration ⊤
       EnumerationAdvState      : Enumeration AdvState
-      EnumerationOracleState   : Enumeration OracleState
+      EnumerationOracleState   : Enumeration OracleInit
       EnumerationOracleArg     : Enumeration OracleArg
       EnumerationOracleResult  : Enumeration OracleResult
-    -- We need a proof the list is non-empty, but eh. For Nat we can always take 0.
-    maximum : List Nat → Nat
     any : List Bool → Bool
-
-  oracleUses-CEA : ∀{A} → CryptoExprAlg A Nat
-  ReturnF       oracleUses-CEA a = zero
-  UniformF      oracleUses-CEA n cont = maximum (map cont (Enumerate it))
-  GetAdvStateF  oracleUses-CEA cont = maximum (map cont (Enumerate it)) 
-  SetAdvStateF  oracleUses-CEA st ce = ce
-  InitOracleF   oracleUses-CEA st ce = 1 + ce
-  CallOracleF   oracleUses-CEA arg cont = 1 + maximum (map cont (Enumerate it)) 
-
-  oracleUses-CE : ∀{A} → CryptoExpr A → Nat
-  oracleUses-CE = fold-CE oracleUses-CEA
 
   usesState-CEA : ∀{A} → CryptoExprAlg A Bool
   ReturnF       usesState-CEA a = false
@@ -249,15 +171,18 @@ module _ {CS} where
                   → total-diff f g ≤ q
 
     module _ (OI₁ OI₂ : OracleImpl) where
+      open CryptoExpr
+      open BoundOracleUse
       open OracleImpl
-      change-oracle-CE : ∀{A}{{_ : Enumeration A}}(ce : CryptoExpr A)(q : Q)
+      change-oracle-CE : ∀{A b k}{{_ : Enumeration A}}(ce : CryptoExpr A)(q : Q)
                        → total-diff (InitImpl OI₁) (InitImpl OI₂) ≤ q
                        → total-diff (CallImpl OI₁) (CallImpl OI₂) ≤ q
-                       → M-diff (eval-CE OI₁ ce) (eval-CE OI₂ ce) ≤ embed (oracleUses-CE ce) * q
-      change-oracle-CE (Return x₁) q pfi pfc = {!!}
-      change-oracle-CE (Uniform n x₁) q pfi pfc = {!!}
-      change-oracle-CE (GetAdvState x₁) q pfi pfc = {!!}
-      change-oracle-CE (SetAdvState x₁ ce) q pfi pfc = {!!}
-      change-oracle-CE (InitOracle x₁ ce) q pfi pfc = {!!}
-      change-oracle-CE (CallOracle x₁ x₂) q pfi pfc = {!!}
+                       → BoundOracleUse b k ce
+                       → M-diff (eval-CE OI₁ ce) (eval-CE OI₂ ce) ≤ embed k * q + {!!} -- a little for init
+      change-oracle-CE (Return a) q pfi pfc bou = {!!}
+      change-oracle-CE (Uniform n cont) q pfi pfc bou = {!!}
+      change-oracle-CE (GetAdvState cont) q pfi pfc bou = {!!}
+      change-oracle-CE (SetAdvState st ce) q pfi pfc bou = {!!}
+      change-oracle-CE (InitOracle st ce) q pfi pfc bou = {!!}
+      change-oracle-CE (CallOracle arg cont) q pfi pfc bou = {!!}
 
