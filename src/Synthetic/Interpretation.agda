@@ -1,8 +1,15 @@
+{-# OPTIONS --type-in-type #-}
 open import Synthetic.CryptoState
-module Synthetic.Implementation (CS : CryptoState)
+module Synthetic.Interpretation (CS : CryptoState) where
 
 open import ThesisPrelude
+open import Synthetic.CommandStructure
 open import Synthetic.CryptoExpr CS
+open import Utility.Vector.Definition
+
+open CryptoState CS
+open FM CryptoExprCS
+open CommandStructure
 
 postulate
   M : Set → Set
@@ -21,13 +28,13 @@ record OracleImpl : Set₁ where
 
 module _ (OI : OracleImpl) where
   open OracleImpl OI
-  eval-CEA : ∀{A} → CryptoExprAlg A (M A)
-  ReturnF      eval-CEA a     = return a
-  UniformF     eval-CEA n m   = uniform n >>= m
-  GetAdvStateF eval-CEA m     = getAdvState >>= m
-  SetAdvStateF eval-CEA st m  = setAdvState st >> m
-  InitOracleF  eval-CEA st m  = InitImpl st >> m
-  CallOracleF  eval-CEA arg m = CallImpl arg >>= m
+  eval-Alg : MonadicCommandAlgebra M
+  eval-Alg (Uniform n) = uniform n
+  eval-Alg GetAdvState = getAdvState
+  eval-Alg (SetAdvState st) = setAdvState st
+  eval-Alg (InitOracle st) = InitImpl st
+  eval-Alg (CallOracle arg) = CallImpl arg
   
   eval-CE : ∀{A} → CryptoExpr A → M A
-  eval-CE = fold-CE eval-CEA
+  eval-CE = fold-monadic-algebra eval-Alg
+
