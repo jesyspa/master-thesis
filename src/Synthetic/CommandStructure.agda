@@ -68,6 +68,7 @@ module _ {C} where
   smart-constructor : (c : Command) → FreeMonad (Response c)
   smart-constructor c = Invoke-FM c Return-FM
 
+
 module FM C where
   open FMBegin C public 
   open CommandStructure C
@@ -82,6 +83,15 @@ module FM C where
 
   fold-monadic-algebra : ∀{M A}{{_ : Monad M}} → MonadicCommandAlgebra M → FreeMonad A → M A
   fold-monadic-algebra alg = fold-algebra (demonadise-algebra alg) return
+
+module _ {C₁ C₂} where
+  open CmdMorphism
+  open FM
+  fmap-CS-MAlg : CmdMorphism C₁ C₂ → MonadicCommandAlgebra C₁ (FreeMonad C₂)
+  fmap-CS-MAlg m c = Invoke-FM (CommandF m c) λ r → Return-FM (ResponseF m r)
+
+  fmap-CS-FM : ∀{A} → CmdMorphism C₁ C₂ → FreeMonad C₁ A → FreeMonad C₂ A
+  fmap-CS-FM m = fold-monadic-algebra C₁ (fmap-CS-MAlg m)
 
 module _ (F : Set → Set) where
   open CommandStructure
@@ -103,6 +113,13 @@ module _ {C M}{{_ : Monad M}}(cm : CmdMorphism C (Forget M)) where
   Conjugate (Return-FM a) = return a
   Conjugate (Invoke-FM c cont) with CommandF c | graphAt CommandF c
   ... | B , mb | ingraph refl = mb >>= λ r → Conjugate (cont (ResponseF r)) 
+
+module _ {C M}{{_ : Monad M}}(f : ∀{A} → FreeMonad C A → M A) where
+  open CommandStructure
+  open CmdMorphism
+  Conjugate′ : CmdMorphism C (Forget M)
+  CommandF  Conjugate′ c = Response C c , f (smart-constructor c)
+  ResponseF Conjugate′ r = r
 
 Cong-Interp : ∀{C₁ C₂ A} → Interpretation C₁ C₂ → FreeMonad C₁ A → FreeMonad C₂ A
 Cong-Interp interp = Conjugate interp
