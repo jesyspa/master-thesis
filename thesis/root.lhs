@@ -36,6 +36,7 @@
 
     \tableofcontents
 
+    %include chapters/foreword.lhs
     %include chapters/01-introduction.lhs
     %include chapters/02-games.lhs
     %include chapters/03-interpretation.lhs
