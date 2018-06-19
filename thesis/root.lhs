@@ -39,6 +39,7 @@
     %include chapters/01-introduction.lhs
     %include chapters/02-games.lhs
     %include chapters/03-interpretation.lhs
+    %include chapters/int01-command-structures.lhs
     %include chapters/04-proofs.lhs
     %include chapters/05-indexed-monads.lhs
     %include chapters/06-interaction-structures.lhs

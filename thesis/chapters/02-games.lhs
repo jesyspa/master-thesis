@@ -110,10 +110,8 @@ etc.
 \section{Specification of Oracles}
 
 Oracles are a difficulty because they support slightly different operations than
-the challenger and adversary.  We can define a similar syntax for specifying
-them as we did with challengers and adversaries, but this would involve some
-significant code duplication.  We will see in
-\autoref{chp:interaction-structures} how to do this nicely.
-
-TODO: I really don't know whether introducing this syntax for oracles is a good
-idea.  It would make some things easier later, but it feels very heavy.
+the challenger and adversary.  We define similar syntax for them, with
+operations like |Uniform|, |SetOracleState|, and |GetOracleState|.  (We use
+|Uniform| for both oracles and games, though in Agda we must come up with
+separate names.)  The whole definition is a straightforward repetition of the
+previous.
