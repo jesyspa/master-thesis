@@ -71,6 +71,9 @@ bindFM : FreeMonad A -> (A -> FreeMonad B) -> FreeMonad B
 bindFM m f = foldalgebra idAlg f m
 \end{code}
 
+Much of this can be found in McBride's paper Turing-Completeness Totally Free.
+A funny thing he mentions there is that this next transformation follows by the
+Yoneda lemma.  Of course it does.
 We can also fold over the structure in a different way, using the monadic
 structure:
 \begin{code}
@@ -145,11 +148,21 @@ latter.  Pity they need type in type.
 
 Ignoring the previous section, we can now define what it means for a command
 structure to interpret another command structure.  Well, it means we've got a
-|MonadicCommandAlgebra| in that structure's free monad.
+|MonadicCommandAlgebra| in that structure's free monad.  Semantically, this
+means that we can simulate the first command structure with sequences of
+commands from the second.  This is exactly what we want when we say we express
+some interface in terms of some basic language.
 
 Note that the coproduct here gives us a nice way of talking about two interfaces
-together.  We can now `plug' interfaces together nicely.  This can be used to
-define the adversary and oracle in a much more straightforward way.
+together.  This means that we specify what operations each player can perform
+and what the base language is in which they may be implemented.  We can then
+construct a telescope of players, each implemented in terms of the base
+operations and previous players.  Finally, we combine the implementations to get
+a single implementation of all the interfaces in terms of the union of the base
+languages.
+
+This is a bit nasty to write out in Agda, but is a very neat way of modelling
+things semantically, if I say so myself.
 
 \section{Proofs of Equality}
 
