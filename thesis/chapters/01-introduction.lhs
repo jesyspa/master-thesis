@@ -1,4 +1,5 @@
 \chapter{Introduction}
+\label{chp:introduction}
 
 This thesis is structured as follows: we start by demonstrating how games can be
 used in cryptography, then show how these can be represented and reasoned about
@@ -96,6 +97,25 @@ A2 OTPINDCPAADV ct = do
 This approach is straightforward, but makes every adversary specification ad-hoc.
 We can show that given access to an encryption oracle, the adversary has a
 winning strategy against the one-time pad.
+
+\section{Concrete and Asymptotic Security}
+
+It is actually rather rare for an algorithm to be perfectly secure: in most
+cases, if the adversary gets very lucky they can factorise our large prime, find
+our discrete logarithm, etc..  However, these schemes can still be practically
+useful if we can bound the probability that this happens.  Two useful classes of
+such bounds are concrete and asymptotic bounds.
+
+A concrete bound is when we show that the adversary's advantage has a specific
+upper bound.
+
+An asymptotic bound is when we show that the adversary's advantage is vanishing
+as a function of some security parameter.
+
+TODO: At some point (not here) we should note that these things often require
+polynomial-time adversaries and that that isn't a constraint we can enforce in
+the system as it stands.  Maybe mention something about how this can be
+nevertheless `enforced' using postulates?
 
 \section{Example: PRFs (?)}
 

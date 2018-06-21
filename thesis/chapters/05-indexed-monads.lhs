@@ -79,7 +79,7 @@ got the value.  For example, in an interaction structure, we do not know the
 state a command will take us to, but we discover it once we get the result.
 This gives rise to a generalisation of the Atkey trick:
 \begin{code}
-data DepAtkey (A : Set)(f : A → S) : S -> Set where
+data DepAtkey (A : Set)(f : A -> S) : S -> Set where
   DepV : (a : A){s : S} -> (hip : s == f a) -> DepAtkey A f s
 \end{code}
 

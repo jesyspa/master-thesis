@@ -11,44 +11,55 @@ see chapter \autoref{chp:interaction-structures}.
 
 \section{Free Monads}
 
-We represent games by free monads.\footnote{Why they are called `free monads'
-will be discussed later.}  There are a number of types we must parametrise over:
-|AdvState|, |OracleInit|, |OracleArg|, |OracleResult|.  Once we've fixed that,
-we can define:
+We start by introducing a language for stateful probabilistic computations.  We
+represent these computations syntactically using a free monad.  We parametrise
+our construction over the type of the state.
+
 \begin{code}
-data CryptoExpr : Set -> Set where
-  Return       : A                                                 -> CryptoExpr A
-  Uniform      : (n : Nat)    -> (BitVec n      ->  CryptoExpr A)  -> CryptoExpr A
-  GetAdvState  :              -> (AdvState      ->  CryptoExpr A)  -> CryptoExpr A
-  SetAdvState  : AdvState     ->                    CryptoExpr A   -> CryptoExpr A
-  InitOracle   : OracleInit   ->                    CryptoExpr A   -> CryptoExpr A
-  CallOracle   : OracleArg    -> (OracleResult  ->  CryptoExpr A)  -> CryptoExpr A
+data CryptoExpr (ST : Set): Set -> Set where
+  Return    : A                                             -> CryptoExpr ST A
+  Uniform   : (n : Nat)  -> (BitVec n ->  CryptoExpr ST A)  -> CryptoExpr ST A
+  GetState  :            -> (ST       ->  CryptoExpr ST A)  -> CryptoExpr ST A
+  SetState  : ST         ->               CryptoExpr ST A   -> CryptoExpr ST A
 \end{code}
 
 We can define a monad structure on this.  The instances look as follows (the
 other cases are essentially the same):
 \begin{code}
-fmapCE : (A -> B) -> CryptoExpr A -> CryptoExpr B
+fmapCE : (A -> B) -> CryptoExpr ST A -> CryptoExpr ST B
 fmapCE f (Return a)        = Return (f a)
-fmapCE f (Uniform n cont)  = Uniform n (\ v -> fmapCE f (cont v))
+fmapCE f (Uniform n cont)  = Uniform n \ v -> fmapCE f (cont v)
 
-bindCE : CryptoExpr A -> (A -> CryptoExpr B) -> CryptoExpr B
+bindCE : CryptoExpr ST A -> (A -> CryptoExpr ST B) -> CryptoExpr ST B
 bindCE f (Return a)        = f a
-bindCE f (Uniform n cont)  = Uniform n (\ v -> bindCE (cont v) f)
+bindCE f (Uniform n cont)  = Uniform n \ v -> bindCE (cont v) f
 \end{code}
 
 In order to make this easier to use, we can define smart constructors (other
 cases again similar):
 \begin{code}
-uniformCE : (n : Nat) -> CryptoExpr (BitVec n)
+uniformCE : (n : Nat) -> CryptoExpr ST (BitVec n)
 uniformCE n = Uniform n Return
 
-setAdvStateCE : AdvState -> CryptoExpr top
-setAdvStateCE st = SetAdvState st (Return tt)
+setStateCE : ST -> CryptoExpr ST top
+setStateCE st = SetState st (Return tt)
 \end{code}
 
-This allows us to write simple games, but note that it does not allow us to
-specify oracles.  We will look at this in the next chapter.
+This allows us to write simple games such as the OTP game from
+\autoref{chp:introduction}.  However, note that the state here is shared by all
+players.  This is bad, since it means that if we give the adversary access to an
+oracle, it will be able to also read the oracle's state.
+
+\section{Using Oracles}
+
+Oracles can be implemented in the language we have here.  Adversaries can use
+the language, but also need it extended with two new operations.  There is no
+easy way of doing that; we really need to repeat the construction, but we omit
+here as it is clear.  Later we will see how we can generalise.
+
+There is now an evaluation function that takes a game in the language with
+oracle calls and an oracle implementation and puts together a game in the
+language we started with.
 
 \section{Constraints on Adversaries}
 
@@ -87,7 +98,7 @@ the game to perform any actions.
 Proof search on these things: we could, potentially, do something like:
 \begin{code}
 hasBOU : Bool -> Nat -> CryptoExpr A -> Bool
-hasBOUsound : IsTrue (hasBOU b k ce) -> BoundedOracleUse b k ce
+hasBOUsound : IsTrue (hasBOU b k ce) -> BoundOracleUse b k ce
 \end{code}
 
 Now, given a concrete term |ce| we can use the evaluation mechanism of Agda
@@ -102,7 +113,7 @@ check an exponential number of cases when |Uniform| is used.  This makes it
 impractical for real cases.  Finally, we typically are not dealing with a
 concrete |CryptoExpr|: rather, it is parametrised by the security parameter.
 This means we have to prove |IsTrue (hasBOU b k ce)| by hand, which is no easier
-than just proving |BoundedOracleUse b k ce|.
+than just proving |BoundOracleUse b k ce|.
 
 Similar consraints can be imposed on e.g. not using randomness, not using state,
 etc.
