@@ -69,23 +69,23 @@ or use it too many times.   We can require a proof that the adversary satisfies
 these constraints as follows:
 
 \begin{code}
-data BoundOracleUse : Bool -> Nat -> CryptoExpr A -> Set1 where
-  ReturnBOU       : (a : A) -> BoundOracleUse b k (Return a)
+data BoundedOracleUse : Bool -> Nat -> CryptoExpr A -> Set1 where
+  ReturnBOU       : (a : A) -> BoundedOracleUse b k (Return a)
   UniformBOU      : (cont : BitVec n -> CryptoExpr A)
-                  -> (forall v -> BoundOracleUse b k (cont v))
-                  -> BoundOracleUse b k (Uniform n cont)
+                  -> (forall v -> BoundedOracleUse b k (cont v))
+                  -> BoundedOracleUse b k (Uniform n cont)
   GetAdvStateBOU  : (cont : AdvState -> CryptoExpr A)
-                  -> (forall  st -> BoundOracleUse b k (cont st))
-                  -> BoundOracleUse b k (GetAdvState cont)
+                  -> (forall  st -> BoundedOracleUse b k (cont st))
+                  -> BoundedOracleUse b k (GetAdvState cont)
   SetAdvStateBOU  : (ce : CryptoExpr A)
-                  -> BoundOracleUse b k ce
-                  -> BoundOracleUse b k (SetAdvState st ce)
+                  -> BoundedOracleUse b k ce
+                  -> BoundedOracleUse b k (SetAdvState st ce)
   InitOracleBOU   : (ce : CryptoExpr A)
-                  -> BoundOracleUse false k ce
-                  -> BoundOracleUse true k (InitOracle st ce)
+                  -> BoundedOracleUse false k ce
+                  -> BoundedOracleUse true k (InitOracle st ce)
   CallOracleBOU   : (cont : OracleResult -> CryptoExpr A)
-                  -> (forall  r -> BoundOracleUse b k (cont r))
-                  -> BoundOracleUse b (suc k) (CallOracle arg cont)
+                  -> (forall  r -> BoundedOracleUse b k (cont r))
+                  -> BoundedOracleUse b (suc k) (CallOracle arg cont)
 \end{code}
 
 Note that in the |InitOracleBOU| case we require the continuation to have no
@@ -98,12 +98,12 @@ the game to perform any actions.
 Proof search on these things: we could, potentially, do something like:
 \begin{code}
 hasBOU : Bool -> Nat -> CryptoExpr A -> Bool
-hasBOUsound : IsTrue (hasBOU b k ce) -> BoundOracleUse b k ce
+hasBOUsound : IsTrue (hasBOU b k ce) -> BoundedOracleUse b k ce
 \end{code}
 
 Now, given a concrete term |ce| we can use the evaluation mechanism of Agda
 itself to convince it that |IsTrue (hasBou b k ce)| is |top| and thus that we
-can pass |tt| to get a proof.
+can pass |true| to get a proof.
 
 There are a few problems with this.  First of all, this does not work in full
 generality: we need to assume that the types |OracleInit|, |OracleResult|, etc. are
@@ -113,16 +113,10 @@ check an exponential number of cases when |Uniform| is used.  This makes it
 impractical for real cases.  Finally, we typically are not dealing with a
 concrete |CryptoExpr|: rather, it is parametrised by the security parameter.
 This means we have to prove |IsTrue (hasBOU b k ce)| by hand, which is no easier
-than just proving |BoundOracleUse b k ce|.
+than just proving |BoundedOracleUse b k ce|.
 
 Similar consraints can be imposed on e.g. not using randomness, not using state,
-etc.
+etc.  We will see how this can be handled in a different way in
+\autoref{chp:indexed-monads}.
 
-\section{Specification of Oracles}
 
-Oracles are a difficulty because they support slightly different operations than
-the challenger and adversary.  We define similar syntax for them, with
-operations like |Uniform|, |SetOracleState|, and |GetOracleState|.  (We use
-|Uniform| for both oracles and games, though in Agda we must come up with
-separate names.)  The whole definition is a straightforward repetition of the
-previous.

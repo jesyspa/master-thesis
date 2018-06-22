@@ -1,4 +1,5 @@
 \chapter{Indexed Monads}
+\label{chp:indexed-monads}
 
 We have seen that certain properties, such as the number of oracle calls that an
 adversary is allowed to make, would best be bounded on the level of the monad.

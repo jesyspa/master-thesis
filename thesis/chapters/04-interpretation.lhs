@@ -1,4 +1,5 @@
 \chapter{Interpreting Games}
+\label{chp:interpretation}
 
 Now that we have a syntax for games, we can define an interpretation of games.
 The fundamental idea is that we can regard a game, that is a term of type

@@ -1,4 +1,45 @@
-\chapter{Proof Techniques}
+\chapter{The Logic of Games}
+
+Now that we can represent games and impose conditions on them, we can define a
+logic for reasoning about their relations to one another.  In
+\autoref{chp:interpretation} we will give semantics to this logic that are
+sound.
+
+We define two relations: |==D| and |==eD| on |CryptoExpr A|.  Intuitively, |==D|
+represents that two games cannot be distinguished (ever) while |==eD| represents
+that two games cannot be distinguished with difference greater than $\epsilon$.
+In particular, |==D| is equivalent to |==eD| (although it's not equally easy to
+work with in Agda).
+
+\section{Indistinguishability}
+
+There is an indistinguishability relation, denoted |==D|.  The following laws
+hold:
+\begin{itemize}
+    \item |==D| is an equivalence relation.
+    \item |>>=| preserves this relation (note that |fmap| follows).
+    \item |return true| and |return false| are not indistinguishable.
+    \item If both |dx| and |db| do not write to state, or if one writes to state
+    and the other does not read from state,
+\begin{code}
+    dx >>= \ a -> dy >>= \ b -> f a b
+\end{code}
+        is indistinguishable from
+\begin{code}
+    dy >>= \ b -> dx >>= \ a -> f a b
+\end{code}
+    \item If for every |a| and |b|, |f a| is indistinguishable from |f b|, then
+    |dx >>= f| is indistinguishable from |f TODO|.
+    \item TODO: Think of more.
+\end{itemize}
+
+Some consequences?
+
+\section{$\epsilon$-Indistinguishability}
+
+More laws.
+
+\section{Tactics}
 
 Now that we have a way of relating games, we want to look at some equivalences
 between games that are important for proving things in practice.
