@@ -37,7 +37,7 @@ module FMBegin C where
   
   fold-algebra : ∀{A R} → CommandAlgebra R → (A → R) → FreeMonad A → R
   fold-algebra alg f (Return-FM a) = f a
-  fold-algebra alg f (Invoke-FM c cont) = alg c (λ r → fold-algebra alg f (cont r))
+  fold-algebra alg f (Invoke-FM c cont) = alg c λ r → fold-algebra alg f (cont r)
 
   id-Alg : ∀{R} → CommandAlgebra (FreeMonad R)
   id-Alg = Invoke-FM
@@ -75,8 +75,14 @@ module FM C where
   MonadicCommandAlgebra : (Set → Set) → Set
   MonadicCommandAlgebra M = (c : Command) → M (Response c) 
 
+  MonadicCommandAlgebra′ : (Set → Set) → Set₁
+  MonadicCommandAlgebra′ M = ∀{X}(c : Command) → (Response c → X) → M X
+
   id-MAlg : MonadicCommandAlgebra FreeMonad
   id-MAlg = smart-constructor
+
+  id-MAlg′ : MonadicCommandAlgebra′ FreeMonad
+  id-MAlg′ c cont = Invoke-FM c (Return-FM ∘′ cont)
 
   demonadise-algebra : ∀{A M}{{_ : Monad M}} → MonadicCommandAlgebra M → CommandAlgebra (M A)
   demonadise-algebra alg c cont = alg c >>= cont
