@@ -1,10 +1,9 @@
-module Synthetic.CryptoState where
+module Synthetic.OracleData where
 
 open import ThesisPrelude
 
-record CryptoState : Set₁ where
+record OracleData : Set₁ where
   field
-    AdvState     : Set
     OracleInit   : Set
     OracleArg    : Set
     OracleResult : Set

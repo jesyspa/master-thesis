@@ -14,3 +14,16 @@ head (x ∷ _) = x
 
 head1 : ∀{l} {A : Set l} → Vec A 1 → A
 head1 = head {n = zero}
+
+vconcat : ∀{l}{A : Set l}{n k} → Vec A n → Vec A k → Vec A (n + k)
+vconcat [] ys = ys
+vconcat (x ∷ xs) ys = x ∷ vconcat xs ys
+
+vtake : ∀{l}{A : Set l} n {k} → Vec A (n + k) → Vec A n
+vtake zero v = []
+vtake (suc n) (x ∷ v) = x ∷ vtake n v
+
+vsplit : ∀{l}{A : Set l} n {k} → Vec A (n + k) → Vec A n × Vec A k
+vsplit zero xs = [] , xs
+vsplit (suc n) (x ∷ xs) with vsplit n xs
+...| l , r = x ∷ l , r

@@ -41,9 +41,11 @@ module _ {A : Set}{Cf : A → CmdStruct} where
   CommandF  (proj-CS a) cf = cf a
   ResponseF (proj-CS a) r = a , r
 
+{-
   postulate
     -- I have feeling something like this may be needed to show pair-uniq-CS.
     proj-ResponseF-Inj : ∀ a → Injective (λ r → ResponseF (proj-CS a) {{!!}} r)
+    -}
 
   inj-CS : ∀ a  → CmdMorphism (Cf a) (Σ-CS Cf)
   CommandF  (inj-CS a) c = a , c
@@ -61,6 +63,7 @@ module _ {A : Set}{Cf : A → CmdStruct} where
     CommandEq  (pair-corr-CS a) c = refl
     ResponseEq (pair-corr-CS a) r = refl
 
+{-
     pair-uniq-CS : ∀ m → pair-corr-Pred m → m ≡C pair-CS
     CommandEq  (pair-uniq-CS m cor) c = dep-fun-ext _ _ λ a → CommandEq (cor a) c
     ResponseEq (pair-uniq-CS m cor) {c} (a , r) =
@@ -68,6 +71,7 @@ module _ {A : Set}{Cf : A → CmdStruct} where
         ≡⟨ {!!} ⟩
       ResponseF pair-CS (transport (Response (Π-CS Cf)) (dep-fun-ext _ _ λ a → CommandEq (cor a) c) (a , r))
       ∎
+      -}
 
   module _ {C}(pf : ∀ a → CmdMorphism (Cf a) C) where
     match-CS : CmdMorphism (coproduct-CS Cf) C
@@ -92,12 +96,22 @@ module _ C₁ C₂ where
   binproduct-CS : CmdStruct
   binproduct-CS = product-CS bincase
 
+  bincoproduct-CS : CmdStruct
+  bincoproduct-CS = coproduct-CS bincase
+
 module _ {C₁ C₂ C}(m₁ : CmdMorphism C C₁)(m₂ : CmdMorphism C C₂) where
   binpaircase : (b : Bool) → CmdMorphism C (bincase C₁ C₂ b)
   binpaircase = dep-choice (CmdMorphism C) m₁ m₂
 
   binpair-CS : CmdMorphism C (binproduct-CS C₁ C₂)
   binpair-CS = pair-CS binpaircase
+
+module _ {C₁ C₂ C}(m₁ : CmdMorphism C₁ C)(m₂ : CmdMorphism C₂ C) where
+  binmatchcase : (b : Bool) → CmdMorphism (bincase C₁ C₂ b) C
+  binmatchcase = dep-choice (flip CmdMorphism C) m₁ m₂
+          
+  binmatch-CS : CmdMorphism (bincoproduct-CS C₁ C₂) C
+  binmatch-CS = match-CS binmatchcase
 
 module _ {C₁ C₂}(m₁ m₂ : CmdMorphism C₁ C₂) where
   equalizer-CS : CmdStruct

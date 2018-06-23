@@ -34,7 +34,7 @@ module FMBegin C where
   
   CommandAlgebra : Set → Set
   CommandAlgebra R = (c : Command) → (Response c → R) → R
-  
+
   fold-algebra : ∀{A R} → CommandAlgebra R → (A → R) → FreeMonad A → R
   fold-algebra alg f (Return-FM a) = f a
   fold-algebra alg f (Invoke-FM c cont) = alg c λ r → fold-algebra alg f (cont r)
@@ -42,6 +42,10 @@ module FMBegin C where
   id-Alg : ∀{R} → CommandAlgebra (FreeMonad R)
   id-Alg = Invoke-FM
 
+  module _ {R}(f : Command → R)(op : R → R → R) where
+    augment-algebra : CommandAlgebra R → CommandAlgebra R
+    augment-algebra alg c cont = op (f c) (alg c cont)
+  
 module _ {C} where
   open CommandStructure C
   open FMBegin C
