@@ -5,39 +5,71 @@ logic for reasoning about their relations to one another.  In
 \autoref{chp:interpretation} we will give semantics to this logic that are
 sound.
 
-We define two relations: |==D| and |==eD| on |CryptoExpr A|.  Intuitively, |==D|
+We define two relations: |==E| and |==eE| on |CryptoExpr A|.  Intuitively, |==E|
 represents that two games cannot be distinguished (ever) while |==eD| represents
 that two games cannot be distinguished with difference greater than $\epsilon$.
-In particular, |==D| is equivalent to |==eD| (although it's not equally easy to
-work with in Agda).
+In particular, |==E| is equivalent to |==eE| when $\epsilon = 0$ (although it's
+not equally easy to work with in Agda).
 
 \section{Indistinguishability}
 
-There is an indistinguishability relation, denoted |==D|.  The following laws
+There is an indistinguishability relation on realtions, denoted |==E|.  The following laws
 hold:
 \begin{itemize}
     \item |==D| is an equivalence relation.
-    \item |>>=| preserves this relation (note that |fmap| follows).
+    \item |>>=| preserves this relation (that |fmap| does follows).
     \item |return true| and |return false| are not indistinguishable.
+    \item Base operations preserve indistinguishability.
     \item If both |dx| and |db| do not write to state, or if one writes to state
     and the other does not read from state,
 \begin{code}
     dx >>= \ a -> dy >>= \ b -> f a b
 \end{code}
-        is indistinguishable from
+    is indistinguishable from
 \begin{code}
     dy >>= \ b -> dx >>= \ a -> f a b
 \end{code}
     \item If for every |a| and |b|, |f a| is indistinguishable from |f b|, then
-    |dx >>= f| is indistinguishable from |f TODO|.
-    \item TODO: Think of more.
+    |dx >>= f| is indistinguishable from |f a| for any |a|.
+    \item For any bijection |f|, |fmap f (uniform n)| is indistinguishable from
+    |uniform n|.
+    \item
+\begin{code}
+    uniform n >>= \ v -> uniform m >>= \ w -> f (v ++ w)
+\end{code}
+    is indistinguishable from
+\begin{code}
+    uniform (n+m) >>= f
+\end{code}
+    \item
+\begin{code}
+    getState >>= \ s -> getState >>= \ t -> f s t
+\end{code}
+    is indistinguishable from
+\begin{code}
+    getState >>= \ s -> f s s
+\end{code}
+    \item |setState s >> setState t >> ce| is indistinguishable from |setState t
+    >> ce|.
+    \item |setState s >> getState >>= \ t -> f t| is indistinguishable from
+    |setState s >> f s|.
 \end{itemize}
 
-Some consequences?
+Some consequences?  Yes, I'd say:
+\begin{itemize}
+    \item Any sequence of operations can be reordered into a get, followed by
+    uniforms, followed by a set, followed by a return.  
+\end{itemize}
 
 \section{$\epsilon$-Indistinguishability}
 
-More laws.
+There is an $\epsilon$-Indistinguishability relationship for every $\epsilon \ge
+0$..  Typesetting it is terrible.  It has the following properties:
+\begin{itemize}
+    \item The relation is reflexive and symmetric.
+    \item |==e1D| implies |==e2D| whenever $\epsilon_1 \le \epsilon_2$.
+    \item 
+\end{itemize}
 
 \section{Tactics}
 

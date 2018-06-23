@@ -195,7 +195,15 @@
 %format (VAL (a))       = "\llbracket {" a "} \rrbracket"
 
 %% Things annoying to :Align
+%format ==E = "\F{$\equiv^E$}"
+%format ==eE = "\F{$\equiv_\epsilon^E$}"
+%format ==e1E = "\F{$\equiv_{\epsilon_1}^E$}"
+%format ==e2E = "\F{$\equiv_{\epsilon_2}^E$}"
+%format ==eeE = "\F{$\equiv_{\epsilon_1 + \epsilon_2}^E$}"
 %format ==D = "\F{$\equiv^D$}"
 %format ==eD = "\F{$\equiv_\epsilon^D$}"
+%format ==e1D = "\F{$\equiv_{\epsilon_1}^D$}"
+%format ==e2D = "\F{$\equiv_{\epsilon_2}^D$}"
+%format ==eeD = "\F{$\equiv_{\epsilon_1 + \epsilon_2}^D$}"
 %format eq (a) (b) = "{" a "}\mathbin{\F{==}}{" b "}"
 %format congbind = "\F{cong-\textgreater\!\!\textgreater\!=}"
