@@ -46,6 +46,18 @@ postulate
 
   non-trivial : _≡E_ {Bool} (return true) (return false) → ⊥
 
+  reorder-uniform-base : ∀{A n}(c : Command CryptoExprCS)
+                       → (cont : Response CryptoExprCS c → BitVec n → CryptoExpr A)
+                       → Invoke-FM c (λ r → Invoke-FM (Uniform n) (cont r)) ≡E Invoke-FM (Uniform n) λ v → Invoke-FM c (λ r → cont r v)
+  reorder-getstate-base : ∀{A n}(c : Command CryptoExprCS)
+                        → NotAWrite c
+                        → (cont : Response CryptoExprCS c → BitVec n → CryptoExpr A)
+                        → Invoke-FM c (λ r → Invoke-FM (Uniform n) (cont r)) ≡E Invoke-FM (Uniform n) λ v → Invoke-FM c (λ r → cont r v)
+  reorder-setstate-base : ∀{A n}(c : Command CryptoExprCS)
+                        → NotAWrite c → NotARead c
+                        → (cont : Response CryptoExprCS c → BitVec n → CryptoExpr A)
+                        → Invoke-FM c (λ r → Invoke-FM (Uniform n) (cont r)) ≡E Invoke-FM (Uniform n) λ v → Invoke-FM c (λ r → cont r v)
+
   reorder-uniform : ∀{A B} n (ce : CryptoExpr A)
                   → (cont : A → BitVec n → CryptoExpr B)
                   → (ce >>= λ a → Invoke-FM (Uniform n) (cont a)) ≡E Invoke-FM (Uniform n) λ v → ce >>= λ a → cont a v
@@ -107,9 +119,17 @@ postulate
   merge-uniform : ∀{A} n k (f : BitVec (n + k) → CryptoExpr A)
                 → Invoke-FM (Uniform n) (λ v → Invoke-FM (Uniform k) λ w → f (vconcat v w))
                   ≡E Invoke-FM (Uniform (n + k)) f
+  unmerge-uniform : ∀{A} n k (f : BitVec n → BitVec k → CryptoExpr A)
+                  → Invoke-FM (Uniform n) (λ v → Invoke-FM (Uniform k) λ w → f v w)
+                    ≡E Invoke-FM (Uniform (n + k)) (λ v → let l , r = vsplit n v in f l r)
+  trivial-uniform : ∀{A n} (ce : CryptoExpr A)
+                  → Invoke-FM (Uniform n) (const ce) ≡E ce
+  -- This can probably be derived from the above.
   extend-uniform : ∀{A} n k (f : BitVec n → CryptoExpr A)
                  → Invoke-FM (Uniform (n + k)) (λ v → f (vtake n v)) ≡E Invoke-FM (Uniform n) f
 
+  trivial-getstate : ∀{A}(ce : CryptoExpr A)
+                   → Invoke-FM GetState (const ce) ≡E ce
   join-getstate : ∀{A}(f : ST → ST → CryptoExpr A)
                 → Invoke-FM GetState (λ st → Invoke-FM GetState λ st′ → f st st′)
                   ≡E Invoke-FM GetState (λ st → f st st)

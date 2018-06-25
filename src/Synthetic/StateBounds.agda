@@ -7,6 +7,14 @@ open import Synthetic.CommandStructure
 open import Synthetic.CryptoExpr ST
 open import Utility.Vector.Definition
 
+data NotAWrite : CryptoExprCmd → Set where
+  Uniform-NAW : ∀{n} → NotAWrite (Uniform n)
+  GetState-NAW : NotAWrite GetState
+
+data NotARead : CryptoExprCmd → Set where
+  Uniform-NAR : ∀{n} → NotARead (Uniform n)
+  SetState-NAR : ∀{st} → NotARead (SetState st)
+
 data NoWrites : ∀{A} → CryptoExpr A → Set₁ where
   Return-NW   : ∀{A}(a : A) → NoWrites (Return-FM a) 
   Uniform-NW  : ∀{A} n (cont : BitVec n → CryptoExpr A)
