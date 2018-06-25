@@ -1,6 +1,7 @@
 module Utility.Vector.Functions where
 
 open import ThesisPrelude
+open import Utility.Num
 
 vall : ∀{n} → Vec Bool n → Bool
 vall = vfoldr _&&_ true
@@ -22,6 +23,11 @@ vconcat (x ∷ xs) ys = x ∷ vconcat xs ys
 vtake : ∀{l}{A : Set l} n {k} → Vec A (n + k) → Vec A n
 vtake zero v = []
 vtake (suc n) (x ∷ v) = x ∷ vtake n v
+
+vtake′ : ∀{l}{A : Set l} n {k} → n ≤ k → Vec A k → Vec A n
+vtake′ n {k} (diff i eq) v = vtake n (transport (Vec _) eq′ v)
+  where eq′ : k ≡ n + i
+        eq′ = suc-Inj eq ⟨≡⟩ auto
 
 vsplit : ∀{l}{A : Set l} n {k} → Vec A (n + k) → Vec A n × Vec A k
 vsplit zero xs = [] , xs

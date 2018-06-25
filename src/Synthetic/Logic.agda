@@ -127,6 +127,8 @@ postulate
   -- This can probably be derived from the above.
   extend-uniform : ∀{A} n k (f : BitVec n → CryptoExpr A)
                  → Invoke-FM (Uniform (n + k)) (λ v → f (vtake n v)) ≡E Invoke-FM (Uniform n) f
+  extend-uniform′ : ∀{A} n k (pf : n ≤ k) (f : BitVec n → CryptoExpr A)
+                  → Invoke-FM (Uniform k) (λ v → f (vtake′ n pf v)) ≡E Invoke-FM (Uniform n) f
 
   trivial-getstate : ∀{A}(ce : CryptoExpr A)
                    → Invoke-FM GetState (const ce) ≡E ce
