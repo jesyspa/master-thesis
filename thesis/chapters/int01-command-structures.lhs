@@ -1,4 +1,5 @@
 \chapter{Intermezzo: Command Structures}
+\label{chp:command-structures}
 % TODO: Maybe make this nameless at some point?
 
 As we mentioned in chapter 2, the definitions of |CryptoExpr| and |OracleExpr|
