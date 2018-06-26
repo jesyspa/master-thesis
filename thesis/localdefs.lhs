@@ -66,6 +66,7 @@
 %format initOracleCE     = "\F{initOracle-CE}"
 %format callOracleCE     = "\F{callOracle-CE}"
 %format OracleExpr       = "\D{OracleExpr}"
+%format CryptoOracleExpr = "\D{CryptoOracleExpr}"
 %format setOracleStateCE = "\F{setOracleState-CE}"
 %format getOracleStateCE = "\F{getOracleState-CE}"
 %format uniform          = "\F{uniform}"
@@ -91,12 +92,17 @@
 %format BoundedOracleUse = "\D{BoundedOracleUse}"
 %format ReturnBOU        = "\RF{ReturnBOU}"
 %format UniformBOU       = "\RF{UniformBOU}"
-%format GetAdvStateBOU   = "\RF{GetAdvStateBOU}"
-%format SetAdvStateBOU   = "\RF{SetAdvStateBOU}"
+%format GetStateBOU      = "\RF{GetStateBOU}"
+%format SetStateBOU      = "\RF{SetStateBOU}"
 %format InitOracleBOU    = "\RF{InitOracleBOU}"
 %format CallOracleBOU    = "\RF{CallOracleBOU}"
 %format hasBOU           = "\F{has-BOU?}"
 %format hasBOUsound      = "\F{has-BOU?-Sound}"
+%format Stateless        = "\D{Stateless}"
+%format ReturnS          = "\F{ReturnS}"
+%format UniformS         = "\F{UniformS}"
+%format isStateless      = "\F{isStateless?}"
+%format isStatelessSound = "\F{isStateless?-Sound}"
 
 %% Games
 %format G1           = "G\textsubscript{1}"
@@ -136,6 +142,8 @@
 %format graphAt     = "\F{graphAt}"
 %format ingraph     = "\F{ingraph}"
 %format IsTrue      = "\F{IsTrue}"
+%format eval        = "\F{eval}"
+%format allbitvecs  = "\F{all-bitvecs}"
 
 %% Indexed monads
 %format IxFunctor      = "\D{IxFunctor}"

@@ -14,6 +14,7 @@ operations we expect from games: generating a uniformly random bitvector, and
 reading and writing the state.  We then show how this language can be extended
 to support oracle use and how we can impose constraints on such use.
 
+\todo{Where do these ideas come from?}
 
 \section{Free Monads}
 
@@ -87,7 +88,6 @@ record EncScheme : Set1 where
   field
     keygen : forall {ST} -> CryptoExpr ST A
     enc : forall {ST} -> K -> PT -> CryptoExpr ST CT
-    dec : forall {ST} -> K -> CT -> CryptoExpr ST PT
 
 record EAVAdversary (ST : Set) : Set where
   field
@@ -173,92 +173,131 @@ since this allows us to embed the computations performed by the oracle into the
 rest of the game.
 \begin{code}
 embedState : CryptoExpr T A -> CryptoExpr (S * T) A
-embedState (ReturnFM a) = ReturnFM a
-embedState (InvokeFM (Uniform n) cont)
-  = InvokeFM (Uniform n) \ v -> embedState (cont v)
-embedState (InvokeFM  GetState cont)
-  = InvokeFM GetState \ st -> embedState (cont (snd st))
-embedState (InvokeFM (SetState st) cont)
+embedState (Return a) = Return a
+embedState (Uniform n cont) = Uniform n \ v -> embedState (cont v)
+embedState (GetState cont) = GetState \ st -> embedState (cont (snd st))
+embedState (SetState st cont)
   = modify (second $ const st) >>= \ _ -> embedState (cont tt)
 \end{code}
 
 We now fix an oracle implementation with state type |OST| and define the gluing
 as follows.
 \begin{code}
-eval : CryptoOracleExpr AST A -> CryptoExpr (AST * OST) A
-eval (ReturnFM a) = ReturnFM a
-eval (InvokeFM (false  , Uniform n) cont)       = InvokeFM (Uniform n) \ v -> eval (cont v)
-eval (InvokeFM (false  , GetState) cont)        = InvokeFM GetState \ st -> eval (cont (fst st))
-eval (InvokeFM (false  , SetState st) cont)     = modify (first $ const st) >>= \ st -> eval (cont tt)
-eval (InvokeFM (true   , InitOracle st) cont)   = embedState (Impl st) >>= \ _ -> eval (cont tt)
-eval (InvokeFM (true   , CallOracle arg) cont)  = embedState (Call arg) >>= \ r -> eval (cont r)
+eval : OracleExpr AST A -> CryptoExpr (AST * OST) A
+eval (Return a) = Return a
+eval (Uniform n cont)       = Uniform n \ v -> eval (cont v)
+eval (GetState cont)        = GetState \ st -> eval (cont (fst st))
+eval (SetState st cont)     = modify (first $ const st) >>= \ st -> eval (cont tt)
+eval (InitOracle st cont)   = embedState (Impl st) >>= \ _ -> eval (cont tt)
+eval (CallOracle arg cont)  = embedState (Call arg) >>= \ r -> eval (cont r)
 \end{code}
 
-Oracles can be implemented in the language we have here.  Adversaries can use
-the language, but also need it extended with two new operations.  There is no
-easy way of doing that; we really need to repeat the construction, but we omit
-here as it is clear.  Later we will see how we can generalise.
+This gives us a syntax for representing both oracles and adversaries and a way
+of putting such a syntactic description back into a single description of a
+game.
 
-There is now an evaluation function that takes a game in the language with
-oracle calls and an oracle implementation and puts together a game in the
-language we started with.
+This presentation is good on paper, and so we will continue to use it throughout
+this thesis.  If we need to, we can extend the oracle with more operations by
+adding corresponding fields to |OracleImpl| and constructors to |OracleExpr|.
+Unfortunately, while this addition is simple conceptually, performing it in
+practice leads to considerable code duplication.  We will see how this can be
+avoided in \autoref{chp:command-structures}.
+
 
 \section{Constraints on Adversaries}
 
-We have seen that for some games, we want to require that adversaries are
-restricted in some way, for example to not be allowed to initialise the oracle,
-or use it too many times.   We can require a proof that the adversary satisfies
-these constraints as follows:
+We can now express all the games we want to, and we tackle the opposite problem:
+how can we restrict the space of games, for example to restrict the class of
+adversaries that we are considering?
+
+Let us start by considering a simpler example: suppose we want to require that
+a |CryptoExpr ST A| does not read or write from the state; in other words,
+restrict the operations to only |Return| and |Uniform|.  We can express a
+predicate on games that is only true for those that only use those two commands:
+\begin{code}
+data Stateless : CryptoExpr ST A -> Set1 where
+  ReturnS   : forall a -> Stateless (Return a)
+  UniformS  : forall n
+            -> {cont : BitVec n -> CryptoExpr ST A}
+            -> (forall v -> Stateless (cont v))
+            -> Stateless (Uniform n cont)
+\end{code}
+
+This is where the syntactic representation of games pays off: since we have not
+yet interpreted the operations, we can mimic the structure of |CryptoExpr|,
+including only the cases we wish to allow.  Note that we can extend our
+|CryptoExpr| datatype with new constructors, but we will not be able to
+construct |Stateless| proofs for them unless we add the corresponding
+constructors to |Stateless| as well.
+
+We can also use this technique to bound the number of times an adversary queries
+the oracle, and restrict the adversary from reinitialising the oracle.  In this
+case, we have a relation between games |ce|, natural numbers |k|, and booleans
+|b|, representing that game |ce| queries the oracle at most |k| times and does
+not initialise the oracle if |b| is false.  We can encode this in Agda as
+follows:
 
 \begin{code}
-data BoundedOracleUse : Bool -> Nat -> CryptoExpr A -> Set1 where
-  ReturnBOU       : (a : A) -> BoundedOracleUse b k (Return a)
-  UniformBOU      : (cont : BitVec n -> CryptoExpr A)
-                  -> (forall v -> BoundedOracleUse b k (cont v))
-                  -> BoundedOracleUse b k (Uniform n cont)
-  GetAdvStateBOU  : (cont : AdvState -> CryptoExpr A)
-                  -> (forall  st -> BoundedOracleUse b k (cont st))
-                  -> BoundedOracleUse b k (GetAdvState cont)
-  SetAdvStateBOU  : (ce : CryptoExpr A)
-                  -> BoundedOracleUse b k ce
-                  -> BoundedOracleUse b k (SetAdvState st ce)
-  InitOracleBOU   : (ce : CryptoExpr A)
-                  -> BoundedOracleUse false k ce
-                  -> BoundedOracleUse true k (InitOracle st ce)
-  CallOracleBOU   : (cont : OracleResult -> CryptoExpr A)
-                  -> (forall  r -> BoundedOracleUse b k (cont r))
-                  -> BoundedOracleUse b (suc k) (CallOracle arg cont)
+data BoundedOracleUse (ST : Set) : Bool -> Nat -> OracleExpr A -> Set1 where
+  ReturnBOU      : forall a -> BoundedOracleUse b k (Return a)
+  UniformBOU     : {cont : BitVec n -> OracleExpr A}
+                 -> (forall v -> BoundedOracleUse b k (cont v))
+                 -> BoundedOracleUse b k (Uniform n cont)
+  GetStateBOU    : {cont : ST -> OracleExpr A}
+                 -> (forall  st -> BoundedOracleUse b k (cont st))
+                 -> BoundedOracleUse b k (GetState cont)
+  SetStateBOU    : {ce : OracleExpr A}
+                 -> BoundedOracleUse b k ce
+                 -> BoundedOracleUse b k (SetState st ce)
+  InitOracleBOU  : {ce : OracleExpr A}
+                 -> BoundedOracleUse false k ce
+                 -> BoundedOracleUse true k (InitOracle st ce)
+  CallOracleBOU  : {cont : OracleResult -> OracleExpr A}
+                 -> (forall  r -> BoundedOracleUse b k (cont r))
+                 -> BoundedOracleUse b (suc k) (CallOracle arg cont)
 \end{code}
 
 Note that in the |InitOracleBOU| case we require the continuation to have no
-|InitOracleBOU| calls, thus forcing initialisation to happen exactly once, and
+|InitOracleBOU| calls, thus forcing initialisation to happen at most once, and
 in |CallOracleBOU|, we decrease the number of allowed calls to the oracle by
 one.  Note that this is only a restriction on what the game is \emph{allowed} to
 do: since the |ReturnBOU| case does not restrict |b| or |k|, we do not require
-the game to perform any actions.
+the game to perform any actions.  If we wanted to, we could achieve the latter
+effect by changing the |ReturnBOU| constructor to always give |BoundedOracleUse
+false 0 (Return a)|.
 
-Proof search on these things: we could, potentially, do something like:
+If all the response types involved are finite, we can enumerate all the possible
+command-response sequences and thereby decide whether a game satisfies a
+property formulated this way.  In the case of |Stateless|, this is possible
+since the only responses that we are interested in are of type |BitVec n|, which
+is certainly finite.  Suppose then that we have an enumeration |allbitvecs n| of
+|BitVec n|.  Then we can define such a decider as follows.
 \begin{code}
-hasBOU : Bool -> Nat -> CryptoExpr A -> Bool
-hasBOUsound : IsTrue (hasBOU b k ce) -> BoundedOracleUse b k ce
+isStateless : CryptoExpr ST A -> Bool
+isStateless (Return a) = true
+isStateless (Uniform n cont)
+  = all (map (\ v -> isStateless (cont v)) (allbitvecs n)
+isStateless (GetState _) = false 
+isStateless (SetState _ _) = false 
 \end{code}
 
-Now, given a concrete term |ce| we can use the evaluation mechanism of Agda
-itself to convince it that |IsTrue (hasBOU b k ce)| is |top| and thus that we
-can pass |true| to get a proof.
+We can express soundness of |isStateless| in Agda by defining a function
+\begin{code}
+isStatelessSound : IsTrue (isStateless ce) -> Stateless ce
+\end{code}
+which gives a proof of |Stateless ce| for any |ce| such that |isStateless ce|
+evaluates to true.  The proof of this relies on some details of working with
+lists that we would rather not get into here.\todo{Appendix?}
 
-There are a few problems with this.  First of all, this does not work in full
-generality: we need to assume that the types |OracleInit|, |OracleResult|, etc. are
-all finite, since otherwise we must enumerate an infinite domain.  Secondly, and
-more problematically in practice, even given this assumption this code must
-check an exponential number of cases when |Uniform| is used.  This makes it
-impractical for real cases.  Finally, we typically are not dealing with a
-concrete |CryptoExpr|: rather, it is parametrised by the security parameter.
-This means we have to prove |IsTrue (hasBOU b k ce)| by hand, which is no easier
-than just proving |BoundedOracleUse b k ce|.
+At first glance, this seems like a useful feature as we can now use
+|isStatelessSound true| instead of constructing a proof explicitly, at least
+when the term |ce| is closed.  However, this proof search algorithm has to
+iterate over every possible |BitVec n|, since it has no way to inspect the
+continuation directly.  As such, even on simple cases such as |isStateless
+(uniform n)|, the algorithm will take $O(2^n)$ time to run, making it unusable
+in practice.
 
-Similar consraints can be imposed on e.g. not using randomness, not using state,
-etc.  We will see how this can be handled in a different way in
-\autoref{chp:indexed-monads}.
-
-
+However, these predicates are still very useful when we want to restrict the
+behaviour of an adversary, since in that case we can take such a proof as a
+parameter.  We will see another way of imposing such constraints in
+\autoref{chp:indexed-monads}.\todo{Conclusion?}
