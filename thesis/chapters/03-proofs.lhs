@@ -1,25 +1,41 @@
 \chapter{The Logic of Games}
 
-Now that we can represent games and impose conditions on them, we can define a
-logic for reasoning about their relations to one another.  In
-\autoref{chp:interpretation} we will give semantics to this logic that are
-sound.
+Now that we can represent games, we can start the development of a notion of
+indistinguishability between them.  In this chapter, we will introduce a
+relation between games and specify the axioms that it must satisfy, giving rise
+to a logic of games.  In \autoref{chp:interpretation}, we will show that this
+logic is sound by constructing a model of it.
 
-We define two relations: |==E| and |==eE| on |CryptoExpr A|.  Intuitively, |==E|
-represents that two games cannot be distinguished (ever) while |==eD| represents
-that two games cannot be distinguished with difference greater than $\epsilon$.
-In particular, |==E| is equivalent to |==eE| when $\epsilon = 0$ (although it's
-not equally easy to work with in Agda).
+The intuition we want to capture is that two games with outcome |A| are
+indistinguishable when the probability of sampling any |a : A| is equal for
+both.  Additionally, since this notion is very strong, we also want to relate
+games that are not indistinguishable but that differ by at most some $\epsilon$.
+The latter is a generalisation of the former, since we get it as a special case
+when $\epsilon = 0$.
+
+Note: In the syntactic setting we are working in right now, we can formulate our
+conditions with few assumptions on the types involved; in particular, the result
+types of games can be anything in |Set|.  However, once we start looking at
+interpretations, this becomes problematic: the intuitive relation we will want
+to impose on interpretation of games can only be formulated under some
+assumptions.  \todo{What can we do about this?}
+
+Note: Also, we will need rational numbers for all this.  Their construction is
+not relevant to the problem, so we defer it to \autoref{chp:rationals}.
 
 \section{Indistinguishability}
 
-There is an indistinguishability relation on realtions, denoted |==E|.  The following laws
-hold:
+The indistinguishability relation, denoted |==E|, is the least relation on games
+that satisfies the following axioms:
 \begin{itemize}
-    \item |==D| is an equivalence relation.
-    \item |>>=| preserves this relation (that |fmap| does follows).
-    \item |return true| and |return false| are not indistinguishable.
-    \item Base operations preserve indistinguishability.
+    \item |==E| is an equivalence relation;
+    \item If |f, g : BitVec n -> CryptoExpr A| such that |forall v -> f v ==E g
+    v|, then |Uniform n f ==E Uniform n g|.
+    \item If |f, g : ST -> CryptoExpr A| such that |forall v -> f v ==E g
+    v|, then |Uniform n f ==E Uniform n g|.
+    \item If |f, g : BitVec n -> CryptoExpr A| such that |forall v -> f v ==E g
+    v|, then |Uniform n f ==E Uniform n g|.
+    \item If 
     \item If both |dx| and |db| do not write to state, or if one writes to state
     and the other does not read from state,
 \begin{code}

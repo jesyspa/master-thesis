@@ -1,4 +1,5 @@
 \chapter{Rationals in Agda}
+\label{chp:rationals}
 
 Throughout the thesis we assume that we have a type of rationals that satisfies
 the properties we are interested in.  Is this choice significant?
