@@ -1,12 +1,13 @@
 {-# OPTIONS --type-in-type #-}
 open import Probability.Class
 open import Probability.PropsClass
-module Synthetic.EpsilonLogic (ST Q : Set){{PQ : Probability Q}} where
+open import Synthetic.Enumeration
+module Synthetic.EpsilonLogic (ST Q : Set){{PQ : Probability Q}}{{EST : Enumeration ST}} where
 
 open import ThesisPrelude
-open import Synthetic.Enumeration
 open import Synthetic.CommandStructure
 open FM
+open import Synthetic.EnumerationInstances
 open import Synthetic.CryptoExpr ST
 open import Synthetic.CryptoExprHelpers
 open import Synthetic.StateBounds ST
@@ -47,8 +48,13 @@ syntax ≈EApprox x qf le = x ≈E⟨ le ⟩ᵃ qf
 ≈EApprox : ∀{A}{q p}(x : CryptoExpr A){y} → x ≈E[ q ] y → q ≤ p → x ≈E[ p ] y
 x ≈E⟨ le ⟩ᵃ qf = weaken-≈E qf le
 
-_∎≈E : ∀{A}(ce : CryptoExpr A) → ce ≡E ce
-ce ∎≈E = refl-≡E
+_∎≈E : ∀{A}(ce : CryptoExpr A) → ce ≈E[ zro ] ce
+ce ∎≈E = refl-≈E
+
+ResponseEnumeration : ∀ c → Enumeration (Response CryptoExprCS c)
+ResponseEnumeration (Uniform n)   = it
+ResponseEnumeration  GetState     = it
+ResponseEnumeration (SetState st) = it
 
 {-
 
