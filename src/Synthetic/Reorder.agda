@@ -6,7 +6,10 @@ open import ThesisPrelude
 open import Synthetic.CommandStructure
 open import Synthetic.EnumerationInstances
 open import Synthetic.CryptoExpr ST
+open FM CryptoExprCS
+open import Synthetic.StateBounds ST
 open import Synthetic.Logic ST
+open import Synthetic.LogicDerived ST
 open import Utility.Vector.Definition
 open import Utility.Vector.Functions
 open import Utility.List.Elem.Definition
@@ -135,11 +138,11 @@ canonic-form-Sound (Return-FM a) =
   canonic-form′ (const zero) (λ st _ → st) (λ _ _ → a)
     ≡E⟨ refl-≡E ⟩
   (Invoke-FM GetState λ st → Invoke-FM (Uniform zero) λ _ → Invoke-FM (SetState st) λ _ → Return-FM a )
-    ≡E⟨ congE-invoke _ _ _ (λ st → trivial-uniform _) ⟩
+    ≡E⟨ cong≡E-invoke _ (λ st → trivial-uniform _) ⟩ʳ
   (Invoke-FM GetState λ st → Invoke-FM (SetState st) λ _ → Return-FM a )
     ≡E⟨ relate-getset _ ⟩
   (Invoke-FM GetState λ st → Return-FM a )
-    ≡E⟨ trivial-getstate _ ⟩
+    ≡E⟨ trivial-getstate _ ⟩ʳ
   Return-FM a
   ∎E
 canonic-form-Sound (Invoke-FM (Uniform n) cont) =
@@ -152,7 +155,7 @@ canonic-form-Sound (Invoke-FM (Uniform n) cont) =
    in
    Invoke-FM (SetState (get-final-state st (cont l) wer r)) λ _ →
    Return-FM (get-result st (cont l) wer r))
-    ≡E⟨ congE-invoke _ _ _ (λ st → unmerge-uniform _ _ _)  ⟩ʳ
+    ≡E⟨ cong≡E-invoke _ (λ st → unmerge-uniform _ _ _)  ⟩ʳ
   (Invoke-FM GetState λ st →
    Invoke-FM (Uniform n) λ l →
    Invoke-FM (Uniform (maximumOf (λ w → get-randomness′ (cont w) st))) λ r →
@@ -166,44 +169,44 @@ canonic-form-Sound (Invoke-FM (Uniform n) cont) =
    let r′ = vtake′ (get-randomness′ (cont l) st) (maximumOf-Max (λ w → get-randomness′ (cont w) st) l) r in
    Invoke-FM (SetState (get-final-state′ (cont l) st r′)) λ _ →
    Return-FM (get-result′ (cont l) st r′))
-    ≡E⟨ (congE-invoke _ _ _ λ st →
-         congE-invoke _ _ _ λ l →
-         extend-uniform′ _ _ (maximumOf-Max (λ w → get-randomness′ (cont w) st) l) _) ⟩
+    ≡E⟨ (cong≡E-invoke _ λ st →
+         cong≡E-invoke _ λ l →
+         extend-uniform′ (maximumOf-Max (λ w → get-randomness′ (cont w) st) l) _) ⟩ʳ
   (Invoke-FM GetState λ st →
    Invoke-FM (Uniform n) λ l →
    Invoke-FM (Uniform (get-randomness′ (cont l) st)) λ r →
    Invoke-FM (SetState (get-final-state′ (cont l) st r)) λ _ →
    Return-FM (get-result′ (cont l) st r))
-    ≡E⟨ reorder-uniform-base _ _ ⟩
+    ≡E⟨ reorder-onewrite-base _ _ Uniform-NAR Uniform-NAW _ ⟩
   Invoke-FM (Uniform n) (λ l → canonic-form (cont l))
-    ≡E⟨ congE-invoke _ _ _ (λ l → canonic-form-Sound (cont l)) ⟩
+    ≡E⟨ cong≡E-invoke _ (λ l → canonic-form-Sound (cont l)) ⟩
   Invoke-FM (Uniform n) cont
   ∎E
 canonic-form-Sound (Invoke-FM  GetState cont) =
   canonic-form (Invoke-FM GetState cont)
     ≡E⟨ join-getstate _ ⟩ʳ
   Invoke-FM GetState (λ st → canonic-form (cont st))
-    ≡E⟨ congE-invoke _ _ _ (λ st → canonic-form-Sound (cont st)) ⟩
+    ≡E⟨ cong≡E-invoke _ (λ st → canonic-form-Sound (cont st)) ⟩
   Invoke-FM GetState cont
   ∎E
 canonic-form-Sound (Invoke-FM (SetState st) cont) =
   canonic-form (Invoke-FM (SetState st) cont)
-    ≡E⟨ trivial-getstate _ ⟩
+    ≡E⟨ trivial-getstate _ ⟩ʳ
   (Invoke-FM (Uniform (get-randomness′ (cont tt) st)) λ v →
    Invoke-FM (SetState (get-final-state′ (cont tt) st v)) λ _ →
    Return-FM (get-result′ (cont tt) st v))
-    ≡E⟨ congE-invoke _ _ _ (λ v → join-setstate _ _ _) ⟩ʳ
+    ≡E⟨ cong≡E-invoke _ (λ v → join-setstate _ _ _) ⟩ʳ
   (Invoke-FM (Uniform (get-randomness′ (cont tt) st)) λ v →
    Invoke-FM (SetState st) λ t →
    Invoke-FM (SetState (get-final-state′ (cont t) st v)) λ _ →
    Return-FM (get-result′ (cont t) st v))
-    ≡E⟨ reorder-uniform-base _ _ ⟩ʳ
+    ≡E⟨ reorder-onewrite-base _ _ Uniform-NAR Uniform-NAW _ ⟩ʳ
   (Invoke-FM (SetState st) λ t →
    Invoke-FM (Uniform (get-randomness′ (cont t) st)) λ v →
    Invoke-FM (SetState (get-final-state′ (cont t) st v)) λ _ →
    Return-FM (get-result′ (cont t) st v))
     ≡E⟨ relate-setget st _ ⟩ʳ
   Invoke-FM (SetState st) (λ t → canonic-form (cont t))
-    ≡E⟨ congE-invoke _ _ _ (λ { tt → canonic-form-Sound (cont tt) }) ⟩
+    ≡E⟨ cong≡E-invoke _ (λ { tt → canonic-form-Sound (cont tt) }) ⟩
   Invoke-FM (SetState st) cont
   ∎E

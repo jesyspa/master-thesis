@@ -44,3 +44,18 @@ module _ {l : Level} {n : Nat} where
   instance
     FunctorPropsVec : FunctorProps
     FunctorPropsVec = record { fmap-ext = fmap-ext-vec ; fmap-id = fmap-id-vec ; fmap-comp = fmap-comp-vec }
+
+vtake-vconcat-inv : ∀{l}{A : Set l}{n k}(v : Vec A n)(w : Vec A k)
+                  → v ≡ vtake n (vconcat v w)
+vtake-vconcat-inv [] w = refl
+vtake-vconcat-inv (x ∷ v) w rewrite sym (vtake-vconcat-inv v w) = refl
+
+vsplit-vconcat-invˡ : ∀{l}{A : Set l}{n k}(v : Vec A n)(w : Vec A k)
+                   → v ≡ let l , r = vsplit n (vconcat v w) in l
+vsplit-vconcat-invˡ [] w = refl
+vsplit-vconcat-invˡ (x ∷ v) w rewrite sym (vsplit-vconcat-invˡ v w) = refl
+
+vsplit-vconcat-invʳ : ∀{l}{A : Set l}{n k}(v : Vec A n)(w : Vec A k)
+                   → w ≡ let l , r = vsplit n (vconcat v w) in r
+vsplit-vconcat-invʳ [] w = refl
+vsplit-vconcat-invʳ (x ∷ v) w rewrite sym (vsplit-vconcat-invʳ v w) = refl

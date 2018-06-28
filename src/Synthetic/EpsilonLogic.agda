@@ -56,12 +56,12 @@ ResponseEnumeration (Uniform n)   = it
 ResponseEnumeration  GetState     = it
 ResponseEnumeration (SetState st) = it
 
-{-
-
 postulate
-  congE-invoke : ∀{A} c (comt cont : Response CryptoExprCS c → CryptoExpr A)
-               → (∀ r → comt r ≡E cont r)
-               → Invoke-FM c comt ≡E Invoke-FM c cont
+  cong≈E-invoke : ∀{A} c q {comt cont : Response CryptoExprCS c → CryptoExpr A}
+                → (∀ r → comt r ≈E[ q ] cont r)
+                → Invoke-FM c comt ≈E[ q ] Invoke-FM c cont
+
+{-
   congE->>=ˡ : ∀{A B}(ce cf : CryptoExpr A)(f : A → CryptoExpr B)
              → ce ≡E cf → (ce >>= f) ≡E (cf >>= f)
   congE->>=ʳ : ∀{A B}(ce : CryptoExpr A)(f g : A → CryptoExpr B)
