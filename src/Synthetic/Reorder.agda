@@ -14,6 +14,7 @@ open import Utility.Vector.Definition
 open import Utility.Vector.Functions
 open import Utility.List.Elem.Definition
 open import Utility.List.Elem.Map
+open import Utility.Num
 
 open CommandStructure
 open Enumeration {{...}}
@@ -60,34 +61,35 @@ get-randomness′ (Invoke-FM (Uniform n) cont)   st = n + maximumOf (λ v → ge
 get-randomness′ (Invoke-FM  GetState cont)     st = get-randomness′ (cont st) st
 get-randomness′ (Invoke-FM (SetState st) cont) _  = get-randomness′ (cont tt) st
 
-data EnoughRandomness : ∀{A} → ST → Nat → CryptoExpr A → Set₁ where
-  Return-ER   : ∀{A n st} (a : A) → EnoughRandomness st n (Return-FM a)
-  Uniform-ER  : ∀{A n k st} 
-              → {cont : BitVec n → CryptoExpr A}
-              → ((v : BitVec n) → EnoughRandomness st k (cont v))
-              → EnoughRandomness st (n + k) (Invoke-FM (Uniform n) cont)
-  GetState-ER : ∀{A n st} 
-              → {cont : ST → CryptoExpr A}
-              → (er : EnoughRandomness st n (cont st))
-              → EnoughRandomness st n (Invoke-FM GetState cont)
-  SetState-ER : ∀{A n st st′} 
-              → {cont : ⊤ → CryptoExpr A}
-              → (er : EnoughRandomness st′ n (cont tt))
-              → EnoughRandomness st n (Invoke-FM (SetState st′) cont)
+EnoughRandomness : ∀{A} → ST → Nat → CryptoExpr A → Set₁
+EnoughRandomness st k (Return-FM a) = ⊤
+EnoughRandomness st k (Invoke-FM (Uniform n)    cont) = Σ (k ≤ n) λ le → ∀ v → EnoughRandomness st (≤N-get-diff le) (cont v)
+EnoughRandomness st k (Invoke-FM  GetState      cont) = EnoughRandomness st k (cont st)
+EnoughRandomness st k (Invoke-FM (SetState st′) cont) = EnoughRandomness st′ k (cont tt)
+
+add-lem : (n k : Nat) → n ≤ n + k
+add-lem n k = auto
+
+compare≤ : ∀(n k : Nat) → Dec (n ≤ k)
+compare≤ n k with compare n k
+compare≤ n .(suc (i + n)) | less (diff! i) = yes (diff! (suc i))
+compare≤ n .n | equal refl = yes (diff! zero)
+compare≤ .(suc (i + k)) k | greater (diff! i) = no λ { (diff j eq) → refute eq }
 
 postulate
   Weaken-ER : ∀{A n k st} → (n ≤ k) → {ce : CryptoExpr A}
             → EnoughRandomness st n ce
             → EnoughRandomness st k ce
 
-get-final-state : ∀{A k} st (ce : CryptoExpr A) → EnoughRandomness st k ce → BitVec k → ST
-get-final-state st (Return-FM _) (Return-ER _) v = st
-get-final-state st (Invoke-FM (Uniform n) cont) (Uniform-ER er) v
-  = let l , r = vsplit n v
-    in get-final-state st (cont l) (er l) r
-get-final-state st (Invoke-FM  GetState cont) (GetState-ER er) v = get-final-state st (cont st) er v
-get-final-state _  (Invoke-FM (SetState st′) cont) (SetState-ER er) v = get-final-state st′ (cont tt) er v
+get-final-state : ∀{A k} st (ce : CryptoExpr A) → .(EnoughRandomness st k ce) → BitVec k → ST
+get-final-state st (Return-FM _) _ v = st
+get-final-state st (Invoke-FM (Uniform n) cont) er v
+  = let l , r = vsplit′ {!!} v
+    in get-final-state st (cont l) {!!} r
+get-final-state st (Invoke-FM  GetState cont) er v = get-final-state st (cont st) er v
+get-final-state _  (Invoke-FM (SetState st′) cont) er v = get-final-state st′ (cont tt) er v
 
+{-
 get-randomness′-Sound : ∀{A} st (ce : CryptoExpr A) → EnoughRandomness st (get-randomness′ ce st) ce
 get-randomness′-Sound st (Return-FM a) = Return-ER a
 get-randomness′-Sound st (Invoke-FM (Uniform n) cont) = Uniform-ER λ v → Weaken-ER (maximumOf-Max _ v) (get-randomness′-Sound st (cont v))
@@ -210,3 +212,5 @@ canonic-form-Sound (Invoke-FM (SetState st) cont) =
     ≡E⟨ cong≡E-invoke _ (λ { tt → canonic-form-Sound (cont tt) }) ⟩
   Invoke-FM (SetState st) cont
   ∎E
+
+-}

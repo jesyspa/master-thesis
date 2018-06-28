@@ -33,3 +33,6 @@ vsplit : ∀{l}{A : Set l} n {k} → Vec A (n + k) → Vec A n × Vec A k
 vsplit zero xs = [] , xs
 vsplit (suc n) (x ∷ xs) with vsplit n xs
 ...| l , r = x ∷ l , r
+
+vsplit′ : ∀{l}{A : Set l}{n k} → (le : n ≤ k) → Vec A k → Vec A n × Vec A (≤N-get-diff le)
+vsplit′ (diff k eq) xs rewrite ≤N-get-eq (diff k eq) = vsplit _ xs

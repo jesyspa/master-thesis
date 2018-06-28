@@ -15,6 +15,12 @@ suc-Inj : Injective Nat.suc
 suc-Inj {zero} {.zero} refl = refl
 suc-Inj {suc x} {.(suc x)} refl = refl
 
+≤N-get-diff : ∀{n k : Nat} → n ≤ k → Nat
+≤N-get-diff (diff i eq) = i
+
+≤N-get-eq : ∀{n k : Nat} → (le : n ≤ k) → k ≡ n + ≤N-get-diff le
+≤N-get-eq (diff i refl) = auto
+
 {-
 zero-not-suc : (n : Nat) → ¬ (zero ≡ Nat.suc n)
 zero-not-suc zero ()

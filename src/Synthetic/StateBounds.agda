@@ -25,9 +25,23 @@ data NoWrites : ∀{A} → CryptoExpr A → Set₁ where
               → (∀ r → NoWrites (cont r))
               → NoWrites (Invoke-FM c cont)
 
+getNAWInvoke-NW : ∀{A c}{cont : Response CryptoExprCS c → CryptoExpr A}
+               → NoWrites (Invoke-FM c cont) → NotAWrite c
+getNAWInvoke-NW (Invoke-NW c naw ncont) = naw
+getNWInvoke-NW : ∀{A c}{cont : Response CryptoExprCS c → CryptoExpr A}
+              → NoWrites (Invoke-FM c cont) → ∀ r → NoWrites (cont r)
+getNWInvoke-NW (Invoke-NW c naw ncont) = ncont
+
 data NoReads : ∀{A} → CryptoExpr A → Set₁ where
   Return-NR   : ∀{A}(a : A) → NoReads (Return-FM a) 
   Invoke-NR   : ∀{A} c {cont : Response CryptoExprCS c → CryptoExpr A}
               → NotARead c
               → (∀ r → NoReads (cont r))
               → NoReads (Invoke-FM c cont)
+
+getNARInvoke-NR : ∀{A c}{cont : Response CryptoExprCS c → CryptoExpr A}
+               → NoReads (Invoke-FM c cont) → NotARead c
+getNARInvoke-NR (Invoke-NR c naw ncont) = naw
+getNRInvoke-NR : ∀{A c}{cont : Response CryptoExprCS c → CryptoExpr A}
+              → NoReads (Invoke-FM c cont) → ∀ r → NoReads (cont r)
+getNRInvoke-NR (Invoke-NR c naw ncont) = ncont
