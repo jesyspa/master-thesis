@@ -10,6 +10,7 @@ open import Synthetic.CryptoExprHelpers
 open import Synthetic.StateBounds ST
 open import Utility.Vector.Definition
 open import Utility.Vector.Functions
+open import Algebra.Function
 
 open CommandStructure
 
@@ -64,6 +65,10 @@ postulate
                   ≡E Invoke-FM (Uniform (n + k)) f
   trivial-uniform : ∀{A n} (ce : CryptoExpr A)
                   → ce ≡E Invoke-FM (Uniform n) (const ce)
+  uniform-bijection : ∀{A n}(f : BitVec n → BitVec n)(bf : Bijective f)
+                    → (cont : BitVec n → CryptoExpr A)
+                    → Invoke-FM (Uniform n) cont ≡E Invoke-FM (Uniform n) (λ v → cont (f v))
+
   trivial-getstate : ∀{A}(ce : CryptoExpr A)
                    → ce ≡E Invoke-FM GetState (const ce)
   join-getstate : ∀{A}(f : ST → ST → CryptoExpr A)
@@ -78,3 +83,4 @@ postulate
   relate-getset : ∀{A}(f : ST → CryptoExpr A)
                 → Invoke-FM GetState (λ st → Invoke-FM (SetState st) (const $ f st))
                   ≡E Invoke-FM GetState f
+
