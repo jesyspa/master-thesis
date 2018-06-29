@@ -3,6 +3,7 @@ module Utility.Vector.Props where
 open import ThesisPrelude hiding (List)
 open import Utility.Vector.Functions
 open import Algebra.Function
+open import Utility.Num
 
 componentwise-equality : ∀ {A : Set} {n : Nat} (x y : A) (xs ys : Vec A n)
                        → Dec (x ≡ y) → Dec (xs ≡ ys)
@@ -59,3 +60,9 @@ vsplit-vconcat-invʳ : ∀{l}{A : Set l}{n k}(v : Vec A n)(w : Vec A k)
                    → w ≡ let l , r = vsplit n (vconcat v w) in r
 vsplit-vconcat-invʳ [] w = refl
 vsplit-vconcat-invʳ (x ∷ v) w rewrite sym (vsplit-vconcat-invʳ v w) = refl
+
+postulate
+  vsplit-vtake-fst : ∀{l}{A : Set l} n j k
+                   → (v : Vec A (n + j + k))
+                   → (eq : n + j + k ≡ (n + (j + k)))
+                   → fst (vsplit n (transport (Vec A) eq v)) ≡ fst (vsplit n (vtake  (n + j) {k = k} v))
