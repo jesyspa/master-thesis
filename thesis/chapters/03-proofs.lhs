@@ -1,5 +1,20 @@
 \chapter{The Logic of Games}
 
+%% Chapter structure:
+% Explain that we want to syntactically define a logic and why.
+% Define this logic.  In particular:
+% * Define ==E
+% * Define ==eE
+% * Define how this extends to adversaries.
+% QUESTION: Do we define ==E separately at all, or do we special case it?
+% QUESTION: What is the universal property of ==eE w.r.t. uniform?
+% Show some consequences of this logic.
+% * Canonic form theorem (Get/Uniform/Set)
+% * Cannoic form with oracle theorem (Get/Uniform/Oracle*/Set)
+% * Identical until bad theorem
+% QUESTION: How do we formulate identical until bad?
+% Work out PRF example in this system.
+
 Now that we can represent games, we can start the development of a notion of
 indistinguishability between them.  In this chapter, we will introduce a
 relation between games and specify the axioms that it must satisfy, giving rise
@@ -25,94 +40,54 @@ not relevant to the problem, so we defer it to \autoref{chp:rationals}.
 
 \section{Indistinguishability}
 
-The indistinguishability relation, denoted |==E|, is the least relation on games
-that satisfies the following axioms:
+We define an indistinguishability relation on games that encodes the axioms we
+impose on our interpretation of distributions.  The following list summarizes
+these axioms in English.  For a handling of the implementation in Agda, see
+\autoref{chp:code}.
 \begin{itemize}
     \item |==E| is an equivalence relation;
-    \item If |f, g : BitVec n -> CryptoExpr A| such that |forall v -> f v ==E g
-    v|, then |Uniform n f ==E Uniform n g|.
-    \item If |f, g : ST -> CryptoExpr A| such that |forall v -> f v ==E g
-    v|, then |Uniform n f ==E Uniform n g|.
-    \item If |f, g : BitVec n -> CryptoExpr A| such that |forall v -> f v ==E g
-    v|, then |Uniform n f ==E Uniform n g|.
-    \item If 
-    \item If both |dx| and |db| do not write to state, or if one writes to state
-    and the other does not read from state,
-\begin{code}
-    dx >>= \ a -> dy >>= \ b -> f a b
-\end{code}
-    is indistinguishable from
-\begin{code}
-    dy >>= \ b -> dx >>= \ a -> f a b
-\end{code}
-    \item If for every |a| and |b|, |f a| is indistinguishable from |f b|, then
-    |dx >>= f| is indistinguishable from |f a| for any |a|.
-    \item For any bijection |f|, |fmap f (uniform n)| is indistinguishable from
-    |uniform n|.
-    \item
-\begin{code}
-    uniform n >>= \ v -> uniform m >>= \ w -> f (v ++ w)
-\end{code}
-    is indistinguishable from
-\begin{code}
-    uniform (n+m) >>= f
-\end{code}
-    \item
-\begin{code}
-    getState >>= \ s -> getState >>= \ t -> f s t
-\end{code}
-    is indistinguishable from
-\begin{code}
-    getState >>= \ s -> f s s
-\end{code}
-    \item |setState s >> setState t >> ce| is indistinguishable from |setState t
-    >> ce|.
-    \item |setState s >> getState >>= \ t -> f t| is indistinguishable from
-    |setState s >> f s|.
+    \item |==E| is preserved by |>>=|;
+    \item |==E| is closed under the state laws;
+    \item |==E| allows for reordering of uniform and state calls;
+    \item |==E| allows for merging of uniform calls;
+    \item |==E| allows for extension of uniform calls;
+    \item |==E| is closed under application of bijections to uniform
+    distributions.
 \end{itemize}
 
-Some consequences?  Yes, I'd say:
-\begin{itemize}
-    \item Any sequence of operations can be reordered into a get, followed by
-    uniforms, followed by a set, followed by a return.  
-\end{itemize}
+Note that as is common with equational theories, we only specify what equalities
+must hold, but do not specify that any terms may not be indistinguishable.  We
+will consider the latter question in more detail in
+\autoref{chp:interpretation}.
+
+We will now look at some consequences of this equational theory.
+
+\begin{theorem}
+    Every |ce : CryptoExpr ST A| is equivalent to a |CryptoExpr ST A| of the
+    form
+    \begin{code}
+        GetState \ st ->
+        Uniform (f st) \ v ->
+        SetState (g st v) \ _ ->
+        Return (h st v)
+    \end{code}
+\end{theorem}
+
+Note that we do not assume that the state type |ST| is finite or has decidable
+equality.  Given such an assumption, we could reverse the order of the
+|GetState| and |SetState| call.
+
+The proof is in the code.
 
 \section{$\epsilon$-Indistinguishability}
 
-There is an $\epsilon$-Indistinguishability relationship for every $\epsilon \ge
+There is an $\epsilon$-indistinguishability relationship for every $\epsilon \ge
 0$..  Typesetting it is terrible.  It has the following properties:
 \begin{itemize}
     \item The relation is reflexive and symmetric.
     \item |==e1D| implies |==e2D| whenever $\epsilon_1 \le \epsilon_2$.
     \item 
 \end{itemize}
-
-\section{Tactics}
-
-Now that we have a way of relating games, we want to look at some equivalences
-between games that are important for proving things in practice.
-
-\section{Reordering}
-
-In the simplest case, we want to note that certain operations are commutative.
-In particular, if a computation does not depend on a random value, we can get
-that randomness later:
-\begin{code}
-uniforminterchange  : (uniformCE n >>= \ a -> ce >>= \ b -> f a b)
-                    ==D (ce >>= \ b -> uniformCE n >>= \ a -> f a b)
-\end{code}
-
-More interestingly, if there are no |OracleInit| operations involved, we can
-reorder operations in general to achieve the following order: |GetAdvState|,
-|Uniform|, |OracleCall|, |SetAdvState|.\footnote{Morally, this is true, but
-check it's also truly true.}  Additionally, we can use |GetAdvState| and
-|SetAdvState| exactly once.  We can similarly combine adjacent uses of
-|Uniform|.
-
-This allows us to perform the kind of rewriting we do in the PRF proof where we
-unroll the adversary into a sequence of calls to the oracle.  Note that in that
-example we can also eliminate |GetAdvState| (since we know the initial state)
-and |SetAdvState| (since the state is then projected away).
 
 \section{Identical Until Bad}
 

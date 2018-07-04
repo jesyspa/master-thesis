@@ -31,9 +31,10 @@ data CryptoExpr (ST : Set) : Set -> Set where
   SetState  : ST         ->  (top       ->  CryptoExpr ST A)  -> CryptoExpr ST A
 \end{code}
 
-In the |SetState| case, we could choose to use |CryptoExpr ST A| as the type of
-the handler, since it is equivalent to |top -> CryptoExpr ST A|.  We choose not
-to do this for the sake of uniformity.
+For each of the constructors except |Return|, we can regard the constructor as
+specifying a command to execute and then providing a handler for the
+corresponding response.  We will formalise this intuition in
+\autoref{chp:command-structures}.
 
 This definition gives rise to a monad |CryptoExpr ST|.  The definitions of
 |fmap| and |>>=| are as follows.  We only give the |Return| and |Uniform| cases,
