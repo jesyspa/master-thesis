@@ -45,9 +45,7 @@ $\epsilon$.  The following properties must hold of this relation:
 \begin{itemize}
     \item |==eE| is reflexive and symmetric.
     \item If |a ==e1E b| and |b ==e2E c| then |a ==eeE c|.
-%{
     \item |==1E| relates every two games;
-%}
     \item |==eE| is preserved by |>>=|;
     \item |==eE| is closed under the state laws;
     \item |==eE| is closed under the reordering of uniform and state operations;
@@ -55,7 +53,9 @@ $\epsilon$.  The following properties must hold of this relation:
     operations;
     \item |==eE| is closed under the merging of uniform operations;
     \item |==eE| is closed under application of bijections to uniform
-    distributions.\todo{strengthen this}
+    distributions.
+    \item |uniform >>= a ==eE uniform >>= b| if we show |a v ==eE b v| for every
+    |v : BitVec n|.\todo{express this as an average}
 \end{itemize}
 
 Note that as is common with equational theories, we only specify what equalities
