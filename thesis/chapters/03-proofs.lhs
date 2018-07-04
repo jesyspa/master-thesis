@@ -3,11 +3,11 @@
 %% Chapter structure:
 % Explain that we want to syntactically define a logic and why.
 % Define this logic.  In particular:
-% * Define ==E
 % * Define ==eE
-% * Define how this extends to adversaries.
-% QUESTION: Do we define ==E separately at all, or do we special case it?
 % QUESTION: What is the universal property of ==eE w.r.t. uniform?
+% * Define how this extends to adversaries.
+% * Define ==E as a special case
+% Motivate the ==eE equalities 
 % Show some consequences of this logic.
 % * Canonic form theorem (Get/Uniform/Set)
 % * Cannoic form with oracle theorem (Get/Uniform/Oracle*/Set)
@@ -38,27 +38,87 @@ assumptions.  \todo{What can we do about this?}
 Note: Also, we will need rational numbers for all this.  Their construction is
 not relevant to the problem, so we defer it to \autoref{chp:rationals}.
 
-\section{Indistinguishability}
+\section{$\epsilon$-Indistinguishability}
 
-We define an indistinguishability relation on games that encodes the axioms we
-impose on our interpretation of distributions.  The following list summarizes
-these axioms in English.  For a handling of the implementation in Agda, see
-\autoref{chp:code}.
+We define a relation |==eE| between games indexed by a non-negative rational
+$\epsilon$.  The following properties must hold of this relation:
 \begin{itemize}
-    \item |==E| is an equivalence relation;
-    \item |==E| is preserved by |>>=|;
-    \item |==E| is closed under the state laws;
-    \item |==E| allows for reordering of uniform and state calls;
-    \item |==E| allows for merging of uniform calls;
-    \item |==E| allows for extension of uniform calls;
-    \item |==E| is closed under application of bijections to uniform
-    distributions.
+    \item |==eE| is reflexive and symmetric.
+    \item If |a ==e1E b| and |b ==e2E c| then |a ==eeE c|.
+%{
+    \item |==1E| relates every two games;
+%}
+    \item |==eE| is preserved by |>>=|;
+    \item |==eE| is closed under the state laws;
+    \item |==eE| is closed under the reordering of uniform and state operations;
+    \item |==eE| is closed under the insertion of uniform and state read
+    operations;
+    \item |==eE| is closed under the merging of uniform operations;
+    \item |==eE| is closed under application of bijections to uniform
+    distributions.\todo{strengthen this}
 \end{itemize}
 
 Note that as is common with equational theories, we only specify what equalities
 must hold, but do not specify that any terms may not be indistinguishable.  We
 will consider the latter question in more detail in
 \autoref{chp:interpretation}.
+
+A special case of this relation arises when $\epsilon = 0$.  We denote this
+relation |==E|.
+
+There are a number of interesting properties worth mentioning.
+
+\begin{theorem}
+    |==E| is an equivalence relation.
+\end{theorem}
+
+\begin{theorem}
+    |==e1E| is a subrelation of |==e2E| if $\epsilon_1 \le \epsilon_2$.
+\end{theorem}
+
+It is not quite obvious that |==eE| should in fact be preserved under |>>=| and
+should be closed under application of SPECIAL functions to uniform
+distributions\todo{specify what}.  However, we can show that this holds for
+mathematical distributions.
+
+\begin{theorem}
+    \todo{We need to introduce normal distributions somewhere.}
+    Let $X, Y$ be distributions over some set $A$ and let $Z$ be an $A$-indexed
+    family of distributions over some set $B$.  If
+    \[ \sum_{a \in A} \abs{X(a) - Y(a)} \le \epsilon \]
+    then
+    \[ \sum_{b \in B} \abs{XZ(b) - YZ(b)} \le \epsilon. \]
+\end{theorem}
+
+\begin{proof}
+    Writing out the definition, for any $b \in B$, \[ \abs{XZ(b) - YZ(b)} =
+    \abs{\sum_{a \in A} (X(a) - Y(a))(Z_a(b))}.\]  By the triangle inequality,
+    \[ \sum_{b \in B} \abs{XZ(b) - YZ(b)}
+        \le \sum_{b \in B}\sum_{a \in A} \abs{X(a) - Y(a)}\abs{Z_a(b)}. \]
+    Since each $Z_a$ is a probability distribution, $\sum_{b \in B}\abs{Z_a(b)}
+    = 1$, hence
+    \[ \sum_{b \in B} \abs{XZ(b) - YZ(b)}
+        \le \sum_{a \in A} \abs{X(a) - Y(a)} \le \epsilon. \]
+\end{proof}
+
+\begin{theorem}
+    Let $X$ be a distribution over some set $A$ and let $Y, Z$ be $A$-indexed
+    families of distributions over some set $B$.  If for every $a \in A$,
+    \[ \sum_{b \in B} \abs{Y_a(b) - Z_a(b)} \le \epsilon \]
+    then
+    \[ \sum_{b \in B} \abs{XY(b) - XZ(b)} \le \epsilon. \]
+\end{theorem}
+
+\begin{proof}
+    Writing out the definition, for any $b \in B$, \[ \abs{XY(b) - XZ(b) } =
+    \abs{\sum_{a \in A} X(a)(Y_a(b) - Z_a(b))}. \]  As above, by the triangle
+    inequality we get
+    \[ \sum_{b \in B} \abs{XY(b) - XZ(b)} \le
+        \sum_{b \in B}\sum_{a \in A} \abs{X(a)}\abs{Y_a(b) - Z_a(b)} \]
+    and now using the assumption and the fact $X$ is a distribution we get
+    \[ \sum_{b \in B} \abs{XY(b) - XZ(b)} \le
+        \sum_{a \in A} \abs{X(a)}\epsilon \le \epsilon. \]
+\end{proof}
 
 We will now look at some consequences of this equational theory.
 

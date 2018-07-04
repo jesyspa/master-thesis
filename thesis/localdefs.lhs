@@ -230,6 +230,7 @@
 %format ==e1E = "\F{$\equiv_{\epsilon_1}^E$}"
 %format ==e2E = "\F{$\equiv_{\epsilon_2}^E$}"
 %format ==eeE = "\F{$\equiv_{\epsilon_1 + \epsilon_2}^E$}"
+%format ==1E = "\F{$\equiv_1^E$}"
 %format ==D = "\F{$\equiv^D$}"
 %format ==eD = "\F{$\equiv_\epsilon^D$}"
 %format ==e1D = "\F{$\equiv_{\epsilon_1}^D$}"
