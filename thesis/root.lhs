@@ -15,6 +15,7 @@
 %include localdefs.lhs
 
 \newcommand{\abs}[1]{\mid\! #1 \!\mid}
+\newcommand{\norm}[1]{\mid\mid\! #1 \!\mid\mid}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}

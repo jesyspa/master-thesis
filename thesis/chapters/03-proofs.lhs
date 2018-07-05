@@ -38,6 +38,103 @@ assumptions.  \todo{What can we do about this?}
 Note: Also, we will need rational numbers for all this.  Their construction is
 not relevant to the problem, so we defer it to \autoref{chp:rationals}.
 
+\section{Properties of Distributions}
+
+Before we introduce the logic, we will prove that the laws we will impose hold
+in standard probability theory.
+
+List of notation:
+\begin{itemize}
+    \item The set of bitstrings of length $n$ is denoted $2^n$.
+    \item We regard distributions over a set $A$ as functions $A \to
+    \mathbb{R}$ giving the probability of sampling that element.  This is
+    possible since all distributions we are interested in are discrete.
+    \item We denote the uniform distribution over $2^n$ by $U_n$.
+    \item Given a distribution $X$ over a set $A$ and an $A$-indexed family of
+    distributions $Y$ over a set $B$, we use $XY$ to denote the combined
+    distribution obtained by sampling an $a$ from $X$ and then sampling a $b$
+    from $Y_a$.  Equivalently, given a $b \in B$, we define
+    \[ XY(b) = \sum_{a \in A} X(a)Y_a(b). \]
+    \item Given distributions $X, Y$ over a set $A$, we define the distance
+    $\norm{X - Y}$ between these distributions as
+    \[
+        \norm{X - Y} = \frac{1}{2} \sum{a \in A} \abs{X(a) - Y(a)}
+    \]
+\end{itemize}
+
+We now look at some consequences of this.
+
+\begin{theorem}
+    For every two probability distributions $X, Y$ over some set $A$,
+    \[ \norm{X - Y} \le 1. \]
+\end{theorem}
+
+\begin{proof}
+    Since $X$ and $Y$ are distributions, they take values in $[0, 1]$ and sum to
+    $1$.  It follows with the triangle inequality that
+    \[
+        \frac{1}{2} \sum_{a \in A} \abs{X(a) - Y(a)}
+            \le \frac{1}{2} \left(\sum_{a \in A} \abs{X(a)} + \sum_{a \in A}
+                \abs{Y(a)}\right)
+            \le 1.
+    \]
+\end{proof}
+
+\begin{theorem}
+    Let $X, Y$ be distributions over some set $A$ and let $Z$ be an $A$-indexed
+    family of distributions over some set $B$.  Then
+    \[ \norm{XZ - YZ} \le \norm{X - Y}. \]
+\end{theorem}
+
+\begin{proof}
+    Writing out the definition, for any $b \in B$, \[ \abs{XZ(b) - YZ(b)} =
+    \abs{\sum_{a \in A} (X(a) - Y(a))(Z_a(b))}.\]  By the triangle inequality,
+    \[ \sum_{b \in B} \abs{XZ(b) - YZ(b)}
+        \le \sum_{b \in B}\sum_{a \in A} \abs{X(a) - Y(a)}\abs{Z_a(b)}. \]
+    Since each $Z_a$ is a probability distribution, $\sum_{b \in B}\abs{Z_a(b)}
+    = 1$, hence
+    \[ \sum_{b \in B} \abs{XZ(b) - YZ(b)}
+        \le \sum_{a \in A} \abs{X(a) - Y(a)}. \]
+\end{proof}
+
+\begin{theorem}
+    Let $X$ be a distribution over some set $A$ and let $Y, Z$ be $A$-indexed
+    families of distributions over some set $B$.  If there is a $g : A \to
+    \mathbb{R}$ such that for every $a \in A$,
+    \[ \norm{Y_a - Z_a} \le g(a) \]
+    then
+    \[ \norm{XY - XZ} \le \sum_{a \in A} X(a)g(a). \]
+\end{theorem}
+
+\begin{proof}
+    Writing out the definition, for any $b \in B$, \[ \abs{XY(b) - XZ(b) } =
+    \abs{\sum_{a \in A} X(a)(Y_a(b) - Z_a(b))}. \]  As above, by the triangle
+    inequality we get
+    \[ \sum_{b \in B} \abs{XY(b) - XZ(b)} \le
+        \sum_{b \in B}\sum_{a \in A} \abs{X(a)}\abs{Y_a(b) - Z_a(b)} \]
+    and now using the assumption and the fact $X$ is a distribution we get
+    \[ \sum_{b \in B} \abs{XY(b) - XZ(b)} \le
+        \sum_{a \in A} X(a)g(a). \]
+\end{proof}
+
+This has two useful consequences.
+
+\begin{corollary}
+    Let $X$ be a distribution over some set $A$ and let $Y, Z$ be $A$-indexed
+    families of distributions over some set $B$.  If there is an $\epsilon$ such
+    that $\norm{Y_a - Z_a} \le \epsilon$ for every $a \in A$, then
+    \[ \norm{XY - XZ} \le \epsilon. \]
+\end{corollary}
+
+\begin{corollary}
+    Let $n \in \mathbb{N}$ and let $X, Y$ be $2^n$-indexed families of
+    probability distributions over some type $A$.  Then if there is a $g : 2^n \to
+    \mathbb{R}$ such that $\norm{X_v - Y_v} \le g(v)$, then
+    \[
+        \norm{U_nX - U_nY} \le \frac{1}{2^n} \sum_{v \in 2^n} g(v).
+    \]
+\end{corollary}
+
 \section{$\epsilon$-Indistinguishability}
 
 We define a relation |==eE| between games indexed by a non-negative rational
@@ -54,8 +151,8 @@ $\epsilon$.  The following properties must hold of this relation:
     \item |==eE| is closed under the merging of uniform operations;
     \item |==eE| is closed under application of bijections to uniform
     distributions.
-    \item |uniform >>= a ==eE uniform >>= b| if we show |a v ==eE b v| for every
-    |v : BitVec n|.\todo{express this as an average}
+    \item |uniform >>= a ==eE uniform >>= b| if we show |a v ==gvE b v| for every
+    |v : BitVec n| and $\epsilon \ge \frac{1}{2^n}\sum_v g(v)$.
 \end{itemize}
 
 Note that as is common with equational theories, we only specify what equalities
@@ -76,50 +173,6 @@ There are a number of interesting properties worth mentioning.
     |==e1E| is a subrelation of |==e2E| if $\epsilon_1 \le \epsilon_2$.
 \end{theorem}
 
-It is not quite obvious that |==eE| should in fact be preserved under |>>=| and
-should be closed under application of SPECIAL functions to uniform
-distributions\todo{specify what}.  However, we can show that this holds for
-mathematical distributions.
-
-\begin{theorem}
-    \todo{We need to introduce normal distributions somewhere.}
-    Let $X, Y$ be distributions over some set $A$ and let $Z$ be an $A$-indexed
-    family of distributions over some set $B$.  If
-    \[ \sum_{a \in A} \abs{X(a) - Y(a)} \le \epsilon \]
-    then
-    \[ \sum_{b \in B} \abs{XZ(b) - YZ(b)} \le \epsilon. \]
-\end{theorem}
-
-\begin{proof}
-    Writing out the definition, for any $b \in B$, \[ \abs{XZ(b) - YZ(b)} =
-    \abs{\sum_{a \in A} (X(a) - Y(a))(Z_a(b))}.\]  By the triangle inequality,
-    \[ \sum_{b \in B} \abs{XZ(b) - YZ(b)}
-        \le \sum_{b \in B}\sum_{a \in A} \abs{X(a) - Y(a)}\abs{Z_a(b)}. \]
-    Since each $Z_a$ is a probability distribution, $\sum_{b \in B}\abs{Z_a(b)}
-    = 1$, hence
-    \[ \sum_{b \in B} \abs{XZ(b) - YZ(b)}
-        \le \sum_{a \in A} \abs{X(a) - Y(a)} \le \epsilon. \]
-\end{proof}
-
-\begin{theorem}
-    Let $X$ be a distribution over some set $A$ and let $Y, Z$ be $A$-indexed
-    families of distributions over some set $B$.  If for every $a \in A$,
-    \[ \sum_{b \in B} \abs{Y_a(b) - Z_a(b)} \le \epsilon \]
-    then
-    \[ \sum_{b \in B} \abs{XY(b) - XZ(b)} \le \epsilon. \]
-\end{theorem}
-
-\begin{proof}
-    Writing out the definition, for any $b \in B$, \[ \abs{XY(b) - XZ(b) } =
-    \abs{\sum_{a \in A} X(a)(Y_a(b) - Z_a(b))}. \]  As above, by the triangle
-    inequality we get
-    \[ \sum_{b \in B} \abs{XY(b) - XZ(b)} \le
-        \sum_{b \in B}\sum_{a \in A} \abs{X(a)}\abs{Y_a(b) - Z_a(b)} \]
-    and now using the assumption and the fact $X$ is a distribution we get
-    \[ \sum_{b \in B} \abs{XY(b) - XZ(b)} \le
-        \sum_{a \in A} \abs{X(a)}\epsilon \le \epsilon. \]
-\end{proof}
-
 We will now look at some consequences of this equational theory.
 
 \begin{theorem}
@@ -139,15 +192,35 @@ equality.  Given such an assumption, we could reverse the order of the
 
 The proof is in the code.
 
-\section{$\epsilon$-Indistinguishability}
+\section{Indistinguishability with Oracles}
 
-There is an $\epsilon$-indistinguishability relationship for every $\epsilon \ge
-0$..  Typesetting it is terrible.  It has the following properties:
-\begin{itemize}
-    \item The relation is reflexive and symmetric.
-    \item |==e1D| implies |==e2D| whenever $\epsilon_1 \le \epsilon_2$.
-    \item 
-\end{itemize}
+In order to speak of indistinguishability with oracles we need to keep track of
+the oracle implementation.  Let's say we have a type |GameImpl OST AST A| that
+consists of an oracle implementation with state |OST| and a |CryptoExpr AST A|.
+We have seen how this can be glued together into a single |CryptoExpr (AST *
+OST) A|.
+
+This gives rise to a |==OE| relation between |GameImpl|s.  We could just reason
+about it directly, but it is convenient to add some assumptions.
+
+\begin{theorem}
+    Changing the oracle implementation to one that is fully indistinguishable
+    preserves indistinguishability.
+\end{theorem}
+
+\begin{corollary}
+    Every |GameImpl| is indistinguishable from one where the oracle
+    implementations are in canonic form.
+\end{corollary}
+
+\begin{theorem}
+    Something something canonic form.
+\end{theorem}
+
+\begin{theorem}
+    If the number of oracle calls is bounded by $k$
+\end{theorem}
+
 
 \section{Identical Until Bad}
 
