@@ -16,6 +16,7 @@ open import Utility.Vector.Definition
 open import Utility.Vector.Functions
 
 open CommandStructure
+open Enumeration {{...}}
 
 syntax approx-eq ε ce cf = ce ≈E[ ε ] cf
 postulate
@@ -69,3 +70,10 @@ cong≈E->>=ʳ : ∀{A B q}(ce : CryptoExpr A)(f g : A → CryptoExpr B)
 cong≈E->>=ʳ (Return-FM a) f g pf = pf a
 cong≈E->>=ʳ (Invoke-FM c cont) f g pf = cong≈E-invoke c λ r → cong≈E->>=ʳ (cont r) f g pf
 
+
+postulate
+  uniform-diff : ∀{A n}(comt cont : BitVec n → CryptoExpr A)
+               → (εf : BitVec n → Q) → (ε : Q)
+               → (∀ v → comt v ≈E[ εf v ] cont v)
+               → sum (map εf Enumerate) ≤ ε
+               → Invoke-FM (Uniform n) comt ≈E[ ε ] Invoke-FM (Uniform n) cont
