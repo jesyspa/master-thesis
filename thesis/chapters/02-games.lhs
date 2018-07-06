@@ -1,4 +1,5 @@
 \chapter{Representing Games}
+\label{chp:games}
 
 \todo{Why?}
 The games we considered in \autoref{chp:introduction} are sequences of

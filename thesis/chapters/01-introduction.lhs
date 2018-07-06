@@ -15,11 +15,6 @@ formalise.  This means that it should cover not only the basic question of what
 a game is and how we reason about it, but also introduce the notion of an
 oracle.
 
-Depending on how far I get in terms of defining a language for games, I can use
-that here to express the proofs in a more formal way.  (Depends also on how
-intuitive it becomes: if it needs extensive introduction itself, this won't
-work.)
-
 \section{Motivation for Games}
 
 In cryptography, we often wish to prove that a certain function does not exist.
@@ -41,10 +36,76 @@ adversary has no active participation and so any adversary will have equal
 probability of winning (and thus advantage 0).  For more complicated games, we
 derive the upper bound by relating them to such simpler games.
 
+\section{Games as Programs}
+
+A game is a sequence of operations performed by the players, where later actions
+may depend on the results of earlier actions.  We can regard this as an
+imperative program, where the actions correspond to instructions, and we can use
+the usual functional programming technique of encoding imperative programs using
+monads to obtain a representation in Agda.
+
+In \autoref{chp:games} we will look into the details of how these games can be
+represented.  For now, let us assume that we have a |CryptoExpr ST A| type, 
+monadic in |A|, with the following operations:
+\begin{code}
+uniform    : (n : Nat)  ->  CryptoExpr ST A (BitVec n)
+coin       :                CryptoExpr ST Bool
+setState   : ST         ->  CryptoExpr ST top
+getState   :                CryptoExpr ST ST
+\end{code}
+
+This type represents a stateful computation with a source of randomness, and
+lets us generate uniform bitvectors, flip a coin, set the state, and read from
+the state.
+
+We can now define what an encryption scheme and an adversary are in this
+context.  These are parametrised over the types of the keys, plaintext messages,
+ciphertext messages, and adversary state.
+
+\begin{code}
+record EncScheme (K PT CT : Set) : Set1 where
+  field
+    keygen  : forall {st} dot CryptoExpr st K
+    enc     : forall {st} dot K -> PT -> CryptoExpr st CT
+
+record EAVAdversary (PT CT ST : Set) : Set1 where
+  field
+    A1  : CryptoExpr ST (PT * PT)
+    A2  : CT -> CryptoExpr ST Bool
+\end{code}
+
+We will now introduce the game itself.
+
+\begin{code}
+EAVIND  : EncScheme K PT CT -> EAVAdversary PT CT ST
+        -> CryptoExpr ST Bool
+\end{code}
+
+Now, given any encryption scheme and adversary, we have a specific stateful
+non-deterministic program that we can reason about.
+
 \section{Example: One-Time Pad (IND-EAV)}
 
-This section can be taken almost entirely from the proposal, except that I want
-to phrase it in Agda this time.
+Let us see how we can reason about a game like the one demonstrated in the
+previous section.  We start by introducing our encryption scheme.  Fix an |n :
+Nat|.  The scheme we use is known as the One-Time Pad, and it allows us
+to encrypt $n$-bit messages using an $n$-bit key.  To generate the key, we take
+an $n$-bit vector uniformly at random.  To encrypt some message $m$ with a key
+$k$, we take the bitwise XOR.
+
+\begin{code}
+generateKeyOTP : forall {st} dot CryptoExpr st (BitVec n) 
+generateKeyOTP = uniform n
+
+encryptOTP : forall {st} dot BitVec n -> BitVec n -> CryptoExpr st (BitVec n)
+encryptOTP xkey msg = return (xor key msg)
+\end{code}
+
+This gives rise to an encryption scheme.
+
+We can now fill in these definitions into |EAVIND|.
+
+Then a sequence of games follows that I can't bear to write out right now.
 
 \section{Oracles}
 
@@ -60,9 +121,6 @@ As such, the adversary is given a special command that calls the oracle with an
 argument and gives a result, but the adversary cannot know how this command is
 implemented.  The challenger is given access to a command that sets the oracle
 state.
-
-Note that unlike the challenger and adversary, we currently do not specify the
-behaviour of the oracle within the system: we only say what it does informally.
 
 \section{Example: One-Time Pad (IND-CPA)}
 
