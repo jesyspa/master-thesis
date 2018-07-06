@@ -1,4 +1,5 @@
 \chapter{Indexed Monads}
+\label{chp:indexed-monads}
 
 We have seen that certain properties, such as the number of oracle calls that an
 adversary is allowed to make, would best be bounded on the level of the monad.
@@ -45,6 +46,56 @@ use than the join:
 
 Note that flipping the arguments we get |(a => F b) -> (F a => F b)|.
 
+\section{Indexed Monad Morphisms}
+
+There is a notion of a morphism between two monads on a category.  This is
+great, since it gives some laws that functions like |evalCE| from chapter 3 must
+follow.  However, in the indexed case things are a bit harder: suppose that our
+indexed monads are indexed over different categories, what then?
+
+It turns out there are in fact several choices of morphisms and each gives a
+category (though we kind of need Kan extensions to do that nicely).
+
+\section{The Atkey Construction}
+
+The advantage of indexed monads is that we can restrict what kind of actions can
+be performed.  However, at face value, the type of bind is very restrictive: we
+must be able to proceed no matter what state we end up in.  This is often not
+what we want, since we may know what state we will actually arrive at.
+
+In order to encode this we make an indexed type which is inhabited in exactly
+one state, namely the one we care about.  This is called the Atkey trick.
+\begin{code}
+data Atkey (A : Set) : S -> S -> Set where
+  V : A -> Atkey A s s
+\end{code}
+
+In the state in which we will arrive, we get the result of the type we chose.
+In every other state, the type of results is empty, and so there are no cases to
+handle.
+
+However, this is sometimes not quite powerful enough for our purposes.  We
+sometimes don't know exactly what state we will end up in, but would know if we
+got the value.  For example, in an interaction structure, we do not know the
+state a command will take us to, but we discover it once we get the result.
+This gives rise to a generalisation of the Atkey trick:
+\begin{code}
+data DepAtkey (A : Set)(f : A -> S) : S -> Set where
+  DepV : (a : A){s : S} -> (hip : s == f a) -> DepAtkey A f s
+\end{code}
+
+Now once we receive the value, we know what state we are in and do not have to
+handle that value in any other states.
+
+Interestingly, this can also be expressed as a Kan extension:
+\begin{code}
+KanAtkey : (A : Set)(f : A -> S) -> S -> Set
+KanAtkey A f = Lan f (const A)
+\end{code}
+
+In words, this takes the left Kan extension of the |const A : A -> Set| functor
+along |f : A -> S|, giving a functor |S -> Set|.
+
 \section{Examples}
 
 We can use the index to track how many oracle queries the adversary can make by
@@ -75,3 +126,10 @@ stores a type and a value of that type.
 Sometimes, we want to speak about maps between indexed monads with different
 index sets.  There are surprisingly many ways to do this, and it's probably
 worth mentioning at least the main ones.
+
+\section{Other ideas}
+
+I think that indexed monads should be able to capture IND-CCA's requirement that
+the adversary not decrypt the ciphertext it is given by the challenger.  This
+would be an interesting illustration, since this seems to be tracked dynamically
+otherwise.

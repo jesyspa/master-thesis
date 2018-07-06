@@ -8,12 +8,14 @@
 \usepackage{hyperref}
 \usepackage{todonotes}
 \usepackage[margin=4cm]{geometry}
+\usepackage{appendix}
 
 %include polycode.fmt
 %include agda.lhs
 %include localdefs.lhs
 
 \newcommand{\abs}[1]{\mid\! #1 \!\mid}
+\newcommand{\norm}[1]{\mid\mid\! #1 \!\mid\mid}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -35,13 +37,22 @@
 
     \tableofcontents
 
+    %include chapters/foreword.lhs
     %include chapters/01-introduction.lhs
     %include chapters/02-games.lhs
     %include chapters/03-proofs.lhs
+    %include chapters/int01-command-structures.lhs
     %include chapters/04-interpretation.lhs
     %include chapters/05-indexed-monads.lhs
     %include chapters/06-interaction-structures.lhs
     %include chapters/07-crypto-language.lhs
+
+    \begin{appendices}
+        %include chapters/ap01-finite-sets.lhs
+        %include chapters/ap02-rationals.lhs
+        %include chapters/ap03-distributions.lhs
+        %include chapters/ap04-code.lhs
+    \end{appendices}
 
     \nocite{*}
     \bibliography{thesis}
