@@ -22,6 +22,7 @@
 %format OracleResult     = "\D{OracleResult}"
 %format OracleInit       = "\D{OracleInit}"
 %format Adversary        = "\D{Adversary}"
+%format OTP              = "\D{OTP}"
 
 %% Constructors
 %format encscheme    = "\IC{enc-scheme}"
@@ -115,8 +116,8 @@
 %format OTPINDCPAADV = "\F{OTP-IND-CPA-ADV}"
 
 %% Encryption Schemes
-%format generateKeyOTP = "\F{generateKeyOTP}"
-%format encryptOPT     = "\F{encryptOTP}"
+%format keygenOTP   = "\F{keygenOTP}"
+%format encryptOTP  = "\F{encryptOTP}"
 
 %% Dist features
 %format coin = "\F{coin}"

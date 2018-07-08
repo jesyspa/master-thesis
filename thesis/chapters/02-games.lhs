@@ -113,7 +113,7 @@ INDEAV adv = do
   m1 , m2 <- A1 adv
   k <- keygen enc
   b <- coin
-  ct <- encrypt enc (if b then m1 else m2)
+  ct <- encrypt enc k (if b then m1 else m2)
   b' <- A2 adv ct
   return $ isYes (eq b b')
 \end{code}

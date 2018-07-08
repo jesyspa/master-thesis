@@ -222,6 +222,17 @@ about it directly, but it is convenient to add some assumptions.
 \end{theorem}
 
 
+\section{Result-Indistinguishability}
+
+When we are judging whether an adversary has really managed to gain an advantage
+in the game, we want to see whether the result of the game is indistinguishable
+from a coin flip, not whether the accompanying state changes differ.  Moreover,
+we are interested in the result only starting from a particular state.  This is
+especially relevant for the oracle, whose state is opaque to the challenger and
+adversary.
+
+TODO: Write out a logic for reasoning about this.
+
 \section{Identical Until Bad}
 
 This is something I still need to work on.  Given two games and some predicate

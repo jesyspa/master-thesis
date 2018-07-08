@@ -83,7 +83,7 @@ INDEAV enc adv = do
   m1 , m2 <- A1 adv
   k <- keygen enc
   b <- coin
-  ct <- encrypt enc (if b then m1 else m2)
+  ct <- encrypt enc k (if b then m1 else m2)
   b' <- A2 adv ct
   return $ isYes (eq b b')
 \end{code}
@@ -105,18 +105,80 @@ an $n$-bit vector uniformly at random.  To encrypt some message $m$ with a key
 $k$, we take the bitwise XOR.
 
 \begin{code}
-generateKeyOTP : (FORALL st) -> CryptoExpr st (BitVec n) 
-generateKeyOTP = uniform n
+keygenOTP : (FORALL st) -> CryptoExpr st (BitVec n) 
+keygenOTP = uniform n
 
 encryptOTP : (FORALL st) -> BitVec n -> BitVec n -> CryptoExpr st (BitVec n)
 encryptOTP key msg = return (xor key msg)
+
+OTP : EncScheme
+keygen   OTP  =  keygenOTP
+encrypt  OTP  =  encryptOTP
 \end{code}
 
-This gives rise to an encryption scheme.
+We have now specified a game, and can rewrite it to show that no matter the
+adversary chosen, it is indistinguishable from a coin flip.  Let us start by
+writing out the game, filling in the definition of the encryption scheme:
+\begin{code}
+INDEAVOTP1 adv = do
+  m1 , m2 <- A1 adv
+  k <- uniform n
+  b <- coin
+  ct <- return $ xor k (if b then m1 else m2)
+  b' <- A2 adv ct
+  return $ isYes (eq b b')
+\end{code}
 
-We can now fill in these definitions into |INDEAV|.
+First of all, we note that |k| and |b| are independent random variables and may
+thus be reversed.  By the monad laws, a bind followed by a return can be written
+as an |fmap|.  This gives us the following code:
+\begin{code}
+INDEAVOTP2 adv = do
+  m1 , m2 <- A1 adv
+  b <- coin
+  ct <- fmap (\ k -> xor k (if b then m1 else m2)) (uniform n)
+  b' <- A2 adv ct
+  return $ isYes (eq b b')
+\end{code}
 
-Then a sequence of games follows that I can't bear to write out right now.
+We can show that |\ k -> xor k m| is a bijection for any |m : BitVec n|, and
+since applying a bijection to a uniform distribution produces another uniform
+distribution, we may omit the |fmap|, giving us the following game:
+\begin{code}
+INDEAVOTP3 adv = do
+  m1 , m2 <- A1 adv
+  b <- coin
+  ct <- uniform n
+  b' <- A2 adv ct
+  return $ isYes (eq b b')
+\end{code}
+
+We now see that |b| and |b'| are independent random variables and can reorder
+these, as well.  We can also once more rewrite a bind followed by a return as an
+application of |fmap|:
+\begin{code}
+INDEAVOTP4 adv = do
+  m1 , m2 <- A1 adv
+  ct <- uniform n
+  b' <- A2 adv ct
+  fmap (\ b -> isYes (eq b b')) coin
+\end{code}
+
+Finally, we can show that |\ b -> isYes (eq b b'))| to be a bijection as well,
+giving us the last game in the sequence:
+\begin{code}
+INDEAVOTP5 adv = do
+  m1 , m2 <- A1 adv
+  ct <- uniform n
+  b' <- A2 adv ct
+  coin
+\end{code}
+
+Since the outcome of |INDEAVOTP5| is independent of |adv|, it is
+indistinguishable from |coin|.  We have thus shown that |OTP| is secure against
+an eavesdropper attack.
+
+\todo{Analyse this proof?}
 
 \section{Oracles}
 
@@ -168,52 +230,36 @@ INDCPA  : EncScheme K PT CT -> Adversary PT CT ST
 INDCPA enc adv = do
   m1 , m2 <- A1 adv
   k <- keygen enc
-  initOracle k
+  oracleInit k
   b <- coin
-  ct <- encrypt enc (if b then m1 else m2)
+  ct <- encrypt enc k (if b then m1 else m2)
   b' <- A2 adv ct
   return $ isYes (eq b b')
 \end{code}
 
-Since the |initOracle| call happens only after |A1 adv|, the adversary cannot
+Since the |oracleInit| call happens only after |A1 adv|, the adversary cannot
 effectively use the oracle when choosing the messages.  In particular, we will
-show that any adversary is indistinguishable from one which does \emph{not} make
-use of |callOracle| in |A1|.
-
-
+show that any adversary is indistinguishable from one which does not make any
+use of |oracleCall| in |A1|.
 
 \section{Example: One-Time Pad (IND-CPA)}
 
-For example, the following is the IND-CPA game of the One-Time Pad and the
-adversary that wins it.  We fix the security parameter $N$.
+Let us now show that the One-Time Pad scheme presented above is not secure with
+respect to this new IND-CPA game.  As before, we fix an |n : Nat| and set |K =
+CT = PT = BitVec n|.  We assume |n > 0|, since otherwise there exists only one
+message of type |PT|.  Our adversary does not need to store any state, so we
+choose |ST = top|.
 
+We can now define our adversary as follows:
 \begin{code}
-AdvState = BitVec N * BitVec N
-record Adversary : Set where
-  field
-    A1 : CryptoExpr (BitVec N * BitVec N)
-    A2 : BitVec N -> CryptoExpr Bool
-
-OTPINDCPA : Adversary -> CryptoExpr Bool
-OTPINDCPA adv = do
-  key <- uniformCE N
-  initOracleCE key
-  msgs <- A1 adv
-  b <- coinCE
-  let ct = vxor key (if b then snd msgs else fst msgs)
-  b' <- A2 adv ct
-  return $ isYes (b == b')
-
 OTPINDCPAADV : Adversary
-A1 OTPINDCPAADV = return (allzero N , allone N)
+A1 OTPINDCPAADV = return (allzero n , allone n)
 A2 OTPINDCPAADV ct = do
-  r <- callOracleCE (allone N)
+  r <- callOracle (allzero n)
   return $ isYes (ct == r)
 \end{code}
 
-This approach is straightforward, but makes every adversary specification ad-hoc.
-We can show that given access to an encryption oracle, the adversary has a
-winning strategy against the one-time pad.
+TODO: Write out consequences.
 
 \section{Concrete and Asymptotic Security}
 
