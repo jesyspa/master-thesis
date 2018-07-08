@@ -242,6 +242,20 @@ effectively use the oracle when choosing the messages.  In particular, we will
 show that any adversary is indistinguishable from one which does not make any
 use of |oracleCall| in |A1|.
 
+In this case, just specifying |INDCPA| is not sufficient to define the game,
+since we must also define how the oracle is implemented.  The oracle state, in
+this case, is |K|, since the oracle must store the encryption key used.  The
+definitions are then as follows:
+\begin{code}
+oracleInitImpl : K -> CryptoExpr K top
+oracleInitImpl = setState
+
+oracleCallImpl : PT -> CryptoExpr K CT
+oracleCallImpl pt = do
+  k <- getState
+  encrypt enc k pt
+\end{code}
+
 \section{Example: One-Time Pad (IND-CPA)}
 
 Let us now show that the One-Time Pad scheme presented above is not secure with
@@ -252,14 +266,79 @@ choose |ST = top|.
 
 We can now define our adversary as follows:
 \begin{code}
-OTPINDCPAADV : Adversary
-A1 OTPINDCPAADV = return (allzero n , allone n)
-A2 OTPINDCPAADV ct = do
+INDCPAOTPADV : Adversary
+A1 INDCPAOTPADV = return (allzero n , allone n)
+A2 INDCPAOTPADV ct = do
   r <- callOracle (allzero n)
-  return $ isYes (ct == r)
+  return $ isYes (eq ct r)
 \end{code}
 
-TODO: Write out consequences.
+In addition to the adversary, we must now track the definition of the oracle as
+we go through the game.  In this case, we keep the same oracle definition
+throughout our reasoning, but as we will see later, there are game-based proofs
+where a change in the definition of the oracle is an essential part of the
+proof.  We will look at the details in \autoref{chp:games}.
+
+
+Let us write out |INDCPA| with |OTP| and |INDCPAOTPADV| filled in.  Note that we
+can also fill in the implementation of the oracle, since we will not change it
+in the future.  The purpose of separating this implementation was to restrict
+the class of adversaries by ruling out adversaries that inspect the oracle.
+Since we have chosen an adversary already, this purpose has been achieved, and
+we do not need to retain the separation any further.  The resulting code is as
+follows:
+\begin{code}
+INDCPAOTP1 = do
+  m1 , m2 <- return $ allzero n , allone n
+  k <- uniform n
+  setOracleState k
+  b <- coin
+  ct <- return $ xor k (if b then m1 else m2)
+  k' <- getOracleState
+  b' <- return $ isYes (eq ct (xor k' (allzero n)))
+  return $ isYes (eq b b')
+\end{code}
+
+We use |setOracleState| instead of |setState| here to disambiguate whose
+state we are talking about.  Since |k| is the last value stored in the oracle
+state, we know |k = k'|.  We can also inline the definitions of |m1| and |m2|.
+This gives us the following game, indistinguishable from the previous:
+\begin{code}
+INDCPAOTP2 = do
+  k <- uniform n
+  b <- coin
+  ct <- return $ xor k (if b then allzero n else allone n)
+  b' <- return $ isYes (eq ct (xor k (allzero n)))
+  return $ isYes (eq b b')
+\end{code}
+
+Since the last three operations are all returns, we can merge them into a single
+operation (by the monad laws):
+\begin{code}
+INDCPAOTP3 = do
+  k <- uniform n
+  b <- coin
+  missingline
+\end{code}
+% DOesn't compile for some reason:
+% return $ isYes (eq  b (isYes (eq (xor k (if b then allzero n else allone n)) (xor k (allzero n)))))
+We know that |xor k| is an injective function, so |eq (xor k v) (xor k w)| holds
+iff |eq v w| holds.  We can thus simplify the above to the following:
+\begin{code}
+INDCPAOTP4 = do
+  k <- uniform n
+  b <- coin
+  missingline
+\end{code}
+% idem: 
+% return $ isYes (eq  b (isYes (eq (if b then allzero n else allone n) (allzero n))))
+
+If |b| is |true|, then we compare |allzero n| to |allzero n| and get |true|, so
+the expression as a whole is |true|.  On the other hand, if |b| is |false|, we
+compare |allone n| to |allzero Nn| and get |fales|, so the expression as a whole
+is |true| as well.  It follows that this game always yields |true|, and is thus
+indistinguishable from |return true|.  It follows that this adversary has a
+guaranteed winning strategy.
 
 \section{Concrete and Asymptotic Security}
 
