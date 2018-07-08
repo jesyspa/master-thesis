@@ -14,8 +14,8 @@
 %include agda.lhs
 %include localdefs.lhs
 
-\newcommand{\abs}[1]{\mid\! #1 \!\mid}
-\newcommand{\norm}[1]{\mid\mid\! #1 \!\mid\mid}
+\newcommand{\abs}[1]{\left|| #1 \right||}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}

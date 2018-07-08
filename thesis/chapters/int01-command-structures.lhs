@@ -90,7 +90,7 @@ demonadisealgebra : MonadicCommandAlgebra M -> CommandAlgebra (M A)
 demonadisealgebra alg c cont = alg c >>= cont
 
 foldmonadicalgebra : MonadicCommandAlgebra M -> FreeMonad A -> M A
-foldmonadicalgebra alg = foldalgebra (domonadisealgebra alg) return
+foldmonadicalgebra alg = foldalgebra (demonadisealgebra alg) return
 \end{code}
 
 This suggests the reason for the name free monad: given a monadic interpretation
