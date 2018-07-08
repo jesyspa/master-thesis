@@ -29,7 +29,7 @@
 %format simplecpaadv = "\IC{simple-cpa-adv}"
 
 %% Record fields
-%format enc            = "\RF{enc}"
+%format encrypt        = "\RF{encrypt}"
 %format keygen         = "\RF{keygen}"
 %format A1             = "\RF{A\textsubscript{1}}"
 %format A2             = "\RF{A\textsubscript{2}}"
@@ -71,13 +71,13 @@
 %format getOracleStateCE = "\F{getOracleState-CE}"
 %format uniform          = "\F{uniform}"
 %format coin             = "\F{coin}"
-%format setState         = "\F{setState}"
-%format getState         = "\F{getState}"
+%format setState         = "\F{set-state}"
+%format getState         = "\F{get-state}"
 %format modify           = "\F{modify}"
 %format setAdvState      = "\F{setAdvState}"
 %format getAdvState      = "\F{getAdvState}"
-%format initOracle       = "\F{initOracle}"
-%format callOracle       = "\F{callOracle}"
+%format initOracle       = "\F{init-oracle}"
+%format callOracle       = "\F{call-oracle}"
 %format setOracleState   = "\F{setOracleState}"
 %format getOracleState   = "\F{getOracleState}"
 %format embedState       = "\F{embed}"
@@ -108,10 +108,15 @@
 %format G1           = "G\textsubscript{1}"
 %format G2           = "G\textsubscript{2}"
 %format INDEAV       = "\F{IND-EAV}"
+%format INDCPA       = "\F{IND-CPA}"
 %format simpleINDEAV = "\F{simple-IND-EAV}"
 %format simpleINDCPA = "\F{IND-CPA}"
 %format OTPINDCPA    = "\F{OTP-IND-CPA}"
 %format OTPINDCPAADV = "\F{OTP-IND-CPA-ADV}"
+
+%% Encryption Schemes
+%format generateKeyOTP = "\F{generateKeyOTP}"
+%format encryptOPT     = "\F{encryptOTP}"
 
 %% Dist features
 %format coin = "\F{coin}"
@@ -218,6 +223,7 @@
 %format rangle = "\rangle"
 
 %% Misc stuff
+%format (FORALL (a))  = "\forall\{{"a"}\}\!"
 %format (plus (a) (b))  = "{" a "}\mathbin{\F{+}}{" b "}"
 %format (times (a) (b)) = "{" a "}\mathbin{\F{$\cdot$}}{" b "}"
 %format oplus (a) (b) = "{" a "}\mathbin{\F{$\oplus$}}{" b "}"

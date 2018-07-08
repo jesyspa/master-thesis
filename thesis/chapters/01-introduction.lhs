@@ -65,10 +65,10 @@ ciphertext messages, and adversary state.
 \begin{code}
 record EncScheme (K PT CT : Set) : Set1 where
   field
-    keygen  : forall {st} dot CryptoExpr st K
-    enc     : forall {st} dot K -> PT -> CryptoExpr st CT
+    keygen   : (FORALL st) -> CryptoExpr st K
+    encrypt  : (FORALL st) -> K -> PT -> CryptoExpr st CT
 
-record EAVAdversary (PT CT ST : Set) : Set1 where
+record Adversary (PT CT ST : Set) : Set1 where
   field
     A1  : CryptoExpr ST (PT * PT)
     A2  : CT -> CryptoExpr ST Bool
@@ -77,12 +77,23 @@ record EAVAdversary (PT CT ST : Set) : Set1 where
 We will now introduce the game itself.
 
 \begin{code}
-EAVIND  : EncScheme K PT CT -> EAVAdversary PT CT ST
+INDEAV  : EncScheme K PT CT -> Adversary PT CT ST
         -> CryptoExpr ST Bool
+INDEAV enc adv = do
+  m1 , m2 <- A1 adv
+  k <- keygen enc
+  b <- coin
+  ct <- encrypt enc (if b then m1 else m2)
+  b' <- A2 adv ct
+  return $ isYes (eq b b')
 \end{code}
 
 Now, given any encryption scheme and adversary, we have a specific stateful
-non-deterministic program that we can reason about.
+non-deterministic program that we can reason about.  If that program can be
+shown to be indistinguishable from a coin flip, then the encryption scheme is
+secure against that adversary.  On the other hand, if the program can be shown
+to be indistinguishable from |return true|, then we have found an adversary that
+breaks this encryption scheme.
 
 \section{Example: One-Time Pad (IND-EAV)}
 
@@ -94,39 +105,87 @@ an $n$-bit vector uniformly at random.  To encrypt some message $m$ with a key
 $k$, we take the bitwise XOR.
 
 \begin{code}
-generateKeyOTP : forall {st} dot CryptoExpr st (BitVec n) 
+generateKeyOTP : (FORALL st) -> CryptoExpr st (BitVec n) 
 generateKeyOTP = uniform n
 
-encryptOTP : forall {st} dot BitVec n -> BitVec n -> CryptoExpr st (BitVec n)
-encryptOTP xkey msg = return (xor key msg)
+encryptOTP : (FORALL st) -> BitVec n -> BitVec n -> CryptoExpr st (BitVec n)
+encryptOTP key msg = return (xor key msg)
 \end{code}
 
 This gives rise to an encryption scheme.
 
-We can now fill in these definitions into |EAVIND|.
+We can now fill in these definitions into |INDEAV|.
 
 Then a sequence of games follows that I can't bear to write out right now.
 
 \section{Oracles}
 
-Sometimes, we want to give the adversary access to some extra computation they
-may perform.  This is typically called an oracle.  For example, the adversary
-may be given access to the encryption function.  We could give the adversary the
-function explicitly.  However, some oracles are stateful: for example, they may
-use a pseudo-random number generator, or store the queries already performed by
-the adversary.  As such, we should not allow the adversary to get or set this
-state, and want to force the adversary to use the oracle only as a black box.
+The above lets us reason about adversaries expressed in terms of the basic
+language of non-determinsitic stateful computation.  This is useful by itself,
+but by restricting adversaries to this language, we are only considering the
+weakest kind of adversary possible.  If we want to strengthen our results, we
+need to develop a way of expressing adversaries that may have access to
+computations that cannot be expressed in this language directly.
 
-As such, the adversary is given a special command that calls the oracle with an
-argument and gives a result, but the adversary cannot know how this command is
-implemented.  The challenger is given access to a command that sets the oracle
-state.
+To give an example, a straightforward strengthening of the |INDEAV| game is to
+give the adversary access to the encryption function used by the challenger.
+Since this computation depends on the key\footnote{Which the adversary should
+\emph{not} have access to!}, this cannot be expressed directly as a
+non-deterministic stateful computation by the adversary.
+
+A function provided to the adversary in this opaque way is called an
+\emph{oracle}.  Oracles have all the power that the challenger and adversary
+have: they may generate random bitstrings and may read and write a state.
+However, the other players cannot inspect the code or state of the oracle.  This
+lets us precisely control the power of the adversary by adjusting the
+information provided by the oracle.
+
+For the moment, we will assume that there are two operations provided by the
+oracle: a way to initialise the oracle state with some value of type
+|OracleInit|, and a way to query the oracle function using an |OracleArg|
+argument to get an  |OracleResult| response.  The types in question will depend
+on the game being played.  We can represent this in code by assumpting that
+|CryptoExpr| supports an additional two operations:
+\begin{code}
+oracleInit  : (FORALL st) ->  OracleInit  -> CryptoExpr st top
+oracleCall  : (FORALL st) ->  OracleArg   -> CryptoExpr st OracleResult
+\end{code}
+
+Note that the state of the oracle is not represented in |st|: otherwise, the
+adversary could use |getState| to inspect the oracle state.  We will for now
+leave the oracle state hidden, and look at how it can be implemented in
+\autoref{chp:games}.  We assume that only the challenger can use |oracleInit|
+and only the adversary can use |oracleCall|.
+
+We can now express a game that expresses a stronger security condition than
+IND-EAV.  This is called IND-CPA, indistinguishability under chosen plaintext
+attack.  The definition of an encryption scheme and an adversary remain
+unchanged, so we only need to specify the game.  In this case, |OracleInit = K|,
+|OracleArg = PT|, and |OracleResult = CT|.
+\begin{code}
+INDCPA  : EncScheme K PT CT -> Adversary PT CT ST
+        -> CryptoExpr ST Bool
+INDCPA enc adv = do
+  m1 , m2 <- A1 adv
+  k <- keygen enc
+  initOracle k
+  b <- coin
+  ct <- encrypt enc (if b then m1 else m2)
+  b' <- A2 adv ct
+  return $ isYes (eq b b')
+\end{code}
+
+Since the |initOracle| call happens only after |A1 adv|, the adversary cannot
+effectively use the oracle when choosing the messages.  In particular, we will
+show that any adversary is indistinguishable from one which does \emph{not} make
+use of |callOracle| in |A1|.
+
+
 
 \section{Example: One-Time Pad (IND-CPA)}
 
 For example, the following is the IND-CPA game of the One-Time Pad and the
-adversary that wins it.  We fix the security parameter |N|.  (This is the same
-example as in the introduction; do we want to keep both?)
+adversary that wins it.  We fix the security parameter $N$.
 
 \begin{code}
 AdvState = BitVec N * BitVec N
