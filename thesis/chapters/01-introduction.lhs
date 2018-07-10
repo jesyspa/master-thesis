@@ -10,10 +10,11 @@ the computations we are interested in.  Finally, we give an overview of how
 these developments could be combined in order to provide a language for
 reasoning about games.
 
+\todo{Write this out}
 The goal of this chapter is to introduce the problem that we are trying to
 formalise.  This means that it should cover not only the basic question of what
 a game is and how we reason about it, but also introduce the notion of an
-oracle.
+oracle and the various weaker notions of security.
 
 \section{Motivation for Games}
 
@@ -96,6 +97,7 @@ to be indistinguishable from |return true|, then we have found an adversary that
 breaks this encryption scheme.
 
 \section{Example: One-Time Pad (IND-EAV)}
+\label{sec:intro-otp-eav}
 
 Let us see how we can reason about a game like the one demonstrated in the
 previous section.  We start by introducing our encryption scheme.  Fix an |n :
@@ -340,30 +342,151 @@ is |true| as well.  It follows that this game always yields |true|, and is thus
 indistinguishable from |return true|.  It follows that this adversary has a
 guaranteed winning strategy.
 
-\section{Concrete and Asymptotic Security}
+\section{Weaker Notions of Security}
 
-It is actually rather rare for an algorithm to be perfectly secure: in most
-cases, if the adversary gets very lucky they can factorise our large prime, find
-our discrete logarithm, etc..  However, these schemes can still be practically
-useful if we can bound the probability that this happens.  Two useful classes of
-such bounds are concrete and asymptotic bounds.
+Having introduced oracles to allow for the strengthening of our security
+conditions, let us consider the ways in which these conditions can be weakened.
+A strong motivation to look for such a weakening arises in public key
+cryptography, where the adversary is given access to the public key, which is
+sufficient to encrypt messages, while the challenger retains the private key,
+which is used for their decryption.  The public key can often be computed from
+the private key.
 
-A concrete bound is when we show that the adversary's advantage has a specific
-upper bound.
+In this setting, the adversary may be able to do better than random by guessing
+a private key and checking whether the public key corresponds to it.  If it
+does, the adversary can decrypt the ciphertext and so definitely choose the
+right message, while if it doesn't, he can select one at random.  If the
+probability of guessing the private key correctly is $p$, then the probability
+of choosing the right message is $p + \frac{1-p}{2} = \frac{1+p}{2}$, which is
+slightly more than $\frac{1}{2}$.  It follows that the resulting game cannot be
+indistinguishable from a coin flip.
 
-An asymptotic bound is when we show that the adversary's advantage is vanishing
-as a function of some security parameter.
+A good first step to work around this problem is to extend the notion of
+indistinguishability to identify terms that are equal up to some error
+$\epsilon$.  In the above example, we can choose $\epsilon = \frac{p}{2}$ and
+show that our game is $\epsilon$-indistinguishable from a coin flip.  We will
+explore this weaker logic in \autoref{sec:epsilon-indistinguishability}.
 
-TODO: At some point (not here) we should note that these things often require
-polynomial-time adversaries and that that isn't a constraint we can enforce in
-the system as it stands.  Maybe mention something about how this can be
-nevertheless `enforced' using postulates?
+However, note that this alone does not resolve the situation, since the
+adversary can increase its chances of guessing the private key simply by trying
+more times, potentially enumerating every possible private key to find the
+correct one.  However, while this would certainly be enough to break the
+encryption, such an adversary would take take time exponential in the length of
+the key.
 
-\section{Example: PRFs (?)}
+We thus extend our system in a further two ways.  First of all, we should be
+able to bound the resources available to an adversary.  This includes the usual
+resources of time and space, but also the number of oracle calls an adversary
+can make and the bits of randomness an adversary can use.  Secondly, we should
+consider not only the advantage of an adversary against a single game, but also
+against a family of games indexed by a security parameter.  We will look at
+these notions in \autoref{sec:security-assumptions} and
+\autoref{sec:asymptotic-indistinguishability}.
 
-We can show that we can extend the input size of a pseudo-random function and
-get a new pseudorandom function.  This is a good example to cover because it
-uses a lot of the topics we are interested in: oracles, transitions based on
-failure events, adversary action reordering, oracle substitutions, bounds on
-oracle uses.  It works well as motivation for why we want to study these things
-later on.
+Finally, many proofs in cryptography rely on assumptions that a certain problem
+cannot be efficiently solved.  For example, many public key cryptography schemes
+rely on the computational difficulty of prime factorisation.  However, we do not
+yet have a proof that no efficient algorithm exists.  It is thus important that
+our system allow for the use of such assumptions without requiring the user to
+prove them.  It turns out that this is strongly related to the problem of
+restricting the class of adversaries, and so we will also discuss it in
+\autoref{sec:security-assumptions}.
+
+\section{Generalised Games}
+
+So far, we have considered a single game at a time and shown it to be
+($\epsilon$-)indistinguishable to a coin flip.  A straightforward generalisation
+is to take two games, both parametrised by the same adversary, and ask whether
+they are ($\epsilon$-)indistinguishable.
+
+We can phrase the previous games we have regarded in this context.  For example,
+given some encryption scheme |enc| and an adversary |adv|, the statement that
+|INDEAV enc adv| is indistinguishable from a coin flip is implied by the
+statement that the following two games are indistinguishable:
+\begin{code}
+INDEAV1 enc adv = do
+  m , _ <- A1 adv
+  k <- keygen enc
+  ct <- encrypt adv k m
+  A2 adv ct
+
+INDEAV2 enc adv = do
+  _ , m <- A1 adv
+  k <- keygen enc
+  ct <- encrypt adv k m
+  A2 adv ct
+\end{code}
+
+As before, fixing |enc|, the advantage of the adversary is the least $\epsilon$
+such that these games are $\epsilon$-indistinguishable for every adversary.
+
+\todo{Put this in a proof block?  Cut it out?}
+Suppose that |INDEAV1 enc adv| and |INDEAV2 enc adv| are
+$\epsilon$-indistinguishable.  We wish to show that |INDEAV enc adv| is
+$\epsilon$-indistinguishable from a coin flip.  We note that by reordering
+independent instructions, we can show that |INDEAV enc adv| is indistinguishable
+from
+\begin{code}
+do
+  b <- coin
+  b' <- if b then INDEAV1 enc adv else INDEAV2 enc adv
+  return $ isYes (eq b b')
+\end{code}
+
+Since |INDEAV1 enc adv| and |INDEAV2 enc adv| are $\epsilon$-indistinguishable,
+this is $\epsilon$-indistinguishable from
+\begin{code}
+do
+  b <- coin
+  b' <- INDEAV1 enc adv
+  return $ isYes (eq b b')
+\end{code}
+which is indistinguishable from a coin flip by the same argument as in
+\autoref{sec:intro-otp-eav}.
+
+Clasically, we can prove the converse by showing that |INDEAV1 enc adv| and
+|INDEAV2 enc adv| are indistinguishable from Bernoulli distributions and showing
+that the difference between the parameters of these distributions is bounded.
+However, this is harder to do constructively.
+
+By rephrasing statements about games in this way, we gain composability.  In
+particular, if we wish to use a result in a further proof, it is much easier to
+do so if we have shown that two games are $\epsilon$-indistinguishability,
+rather than if we have shown that a game is $\epsilon$-indistinguishable from a
+coin flip.
+
+\section{Example: Pseudo-Random Functions}
+
+Let us now consider an example that uses the notions we have introduced in this
+chapter.  We would like to show that given a family of pseudorandom functions,
+we can create a new family of pseudorandom functions with greater input length
+by using a suitable family of hash functions.  The proof is an adaptation of the
+proof given by Shoup in~\cite{gameexamples}.
+
+Let $S$ be a finite set, $i$ and $j$ be positive integers and let
+$\mathcal{F}$ be an $S$-indexed family of functions $F_s : \{0, 1\}^i \to \{0,
+1\}^j$.  Let $\Gamma_{i, j}$ be the set of all functions $\{0,
+1\}^i \to \{0, 1\}^j$.  We say the family $\mathcal{F}$ is pseudo-random
+if it is hard to distingiuish a function taken at random from $\mathcal{F}$ from
+a function taket at random from $\Gamma_{i, j}$.  Formally, this is
+expressed by saying that for some negligible $\epsilon$ and any adversary |A :
+(BitVec i -> BitVec j) -> Bool|, the following two games are
+$\epsilon$-indistinguishable:
+\begin{code}
+PRFpseudo = do
+  s <- random S
+  A (F s)
+
+PRFrandom = do
+do
+  f <- random Gammaij
+  A f
+\end{code}
+
+TODO:
+\begin{itemize}
+  \item Rewrite this to access the function as an oracle.
+  \item Define what a universal hash function is.
+  \item Express a way to track a variable number of items
+  \item Express a failure event step
+\end{itemize}

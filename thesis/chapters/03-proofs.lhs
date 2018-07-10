@@ -136,6 +136,7 @@ This has two useful consequences.
 \end{corollary}
 
 \section{$\epsilon$-Indistinguishability}
+\label{sec:epsilon-indistinguishability}
 
 We define a relation |==eE| between games indexed by a non-negative rational
 $\epsilon$.  The following properties must hold of this relation:
@@ -259,13 +260,17 @@ Problems and questions:
     probability are all focused in the area which we have already bounded?
 \end{itemize}
 
-\section{Security Assumptions}
+\section{Security Assumptions and Polynomial Adversaries}
+\label{sec:security-assumptions}
 
 Sometimes we want to assume that some property holds: for example, that our hash
 function is hard to break.  How does this fit into the system?
 
 I guess typically this is just an assumption that two games are similar, but how
 can this be phrased well without reference to the evaluation?
+
+\section{Asymptotic Indistinguishability}
+\label{sec:asymptotic-indistinguishability}
 
 \section{Example: PRF, Formalised}
 
