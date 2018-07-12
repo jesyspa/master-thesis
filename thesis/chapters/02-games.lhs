@@ -1,4 +1,5 @@
 \chapter{Representing Games}
+\label{chp:games}
 
 \todo{Why?}
 The games we considered in \autoref{chp:introduction} are sequences of
@@ -107,13 +108,12 @@ use of it, though the equivalent program could of course be written using |>>=|
 explicitly.
 
 \begin{code}
-open EncScheme enc
-INDEAV : forall{ST} -> EAVAdversary ST -> CryptoExpr ST Bool
+INDEAV : EAVAdversary ST -> CryptoExpr ST Bool
 INDEAV adv = do
-  k <- keygen
   m1 , m2 <- A1 adv
+  k <- keygen enc
   b <- coin
-  ct <- enc (if b then m1 else m2)
+  ct <- encrypt enc k (if b then m1 else m2)
   b' <- A2 adv ct
   return $ isYes (eq b b')
 \end{code}

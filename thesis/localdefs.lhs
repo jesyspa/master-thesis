@@ -22,6 +22,7 @@
 %format OracleResult     = "\D{OracleResult}"
 %format OracleInit       = "\D{OracleInit}"
 %format Adversary        = "\D{Adversary}"
+%format OTP              = "\D{OTP}"
 
 %% Constructors
 %format encscheme    = "\IC{enc-scheme}"
@@ -29,7 +30,7 @@
 %format simplecpaadv = "\IC{simple-cpa-adv}"
 
 %% Record fields
-%format enc            = "\RF{enc}"
+%format encrypt        = "\RF{encrypt}"
 %format keygen         = "\RF{keygen}"
 %format A1             = "\RF{A\textsubscript{1}}"
 %format A2             = "\RF{A\textsubscript{2}}"
@@ -57,29 +58,19 @@
 %format fmapCE           = "\F{fmap-CE}"
 %format bindCE           = "\F{bind-CE}"
 %format evalCE           = "\F{eval-CE}"
-%format uniformCE        = "\F{uniform-CE}"
-%format coinCE           = "\F{coin-CE}"
-%format setStateCE       = "\F{setState-CE}"
-%format getStateCE       = "\F{getState-CE}"
-%format setAdvStateCE    = "\F{setAdvState-CE}"
-%format getAdvStateCE    = "\F{getAdvState-CE}"
-%format initOracleCE     = "\F{initOracle-CE}"
-%format callOracleCE     = "\F{callOracle-CE}"
 %format OracleExpr       = "\D{OracleExpr}"
 %format CryptoOracleExpr = "\D{CryptoOracleExpr}"
-%format setOracleStateCE = "\F{setOracleState-CE}"
-%format getOracleStateCE = "\F{getOracleState-CE}"
 %format uniform          = "\F{uniform}"
 %format coin             = "\F{coin}"
-%format setState         = "\F{setState}"
-%format getState         = "\F{getState}"
+%format setState         = "\F{set-state}"
+%format getState         = "\F{get-state}"
 %format modify           = "\F{modify}"
-%format setAdvState      = "\F{setAdvState}"
-%format getAdvState      = "\F{getAdvState}"
-%format initOracle       = "\F{initOracle}"
-%format callOracle       = "\F{callOracle}"
-%format setOracleState   = "\F{setOracleState}"
-%format getOracleState   = "\F{getOracleState}"
+%format setAdvState      = "\F{set-adv-state}"
+%format getAdvState      = "\F{get-adv-state}"
+%format initOracle       = "\F{init-oracle}"
+%format callOracle       = "\F{call-oracle}"
+%format setOracleState   = "\F{set-oracle-state}"
+%format getOracleState   = "\F{get-oracle-state}"
 %format embedState       = "\F{embed}"
 
 %format OracleImpl      = "\D{OracleImpl}"
@@ -108,10 +99,15 @@
 %format G1           = "G\textsubscript{1}"
 %format G2           = "G\textsubscript{2}"
 %format INDEAV       = "\F{IND-EAV}"
+%format INDCPA       = "\F{IND-CPA}"
 %format simpleINDEAV = "\F{simple-IND-EAV}"
 %format simpleINDCPA = "\F{IND-CPA}"
 %format OTPINDCPA    = "\F{OTP-IND-CPA}"
 %format OTPINDCPAADV = "\F{OTP-IND-CPA-ADV}"
+
+%% Encryption Schemes
+%format keygenOTP   = "\F{keygenOTP}"
+%format encryptOTP  = "\F{encryptOTP}"
 
 %% Dist features
 %format coin = "\F{coin}"
@@ -218,6 +214,7 @@
 %format rangle = "\rangle"
 
 %% Misc stuff
+%format (FORALL (a))  = "\forall\{{"a"}\}\!"
 %format (plus (a) (b))  = "{" a "}\mathbin{\F{+}}{" b "}"
 %format (times (a) (b)) = "{" a "}\mathbin{\F{$\cdot$}}{" b "}"
 %format oplus (a) (b) = "{" a "}\mathbin{\F{$\oplus$}}{" b "}"

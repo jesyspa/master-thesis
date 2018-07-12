@@ -136,6 +136,7 @@ This has two useful consequences.
 \end{corollary}
 
 \section{$\epsilon$-Indistinguishability}
+\label{sec:epsilon-indistinguishability}
 
 We define a relation |==eE| between games indexed by a non-negative rational
 $\epsilon$.  The following properties must hold of this relation:
@@ -222,6 +223,17 @@ about it directly, but it is convenient to add some assumptions.
 \end{theorem}
 
 
+\section{Result-Indistinguishability}
+
+When we are judging whether an adversary has really managed to gain an advantage
+in the game, we want to see whether the result of the game is indistinguishable
+from a coin flip, not whether the accompanying state changes differ.  Moreover,
+we are interested in the result only starting from a particular state.  This is
+especially relevant for the oracle, whose state is opaque to the challenger and
+adversary.
+
+TODO: Write out a logic for reasoning about this.
+
 \section{Identical Until Bad}
 
 This is something I still need to work on.  Given two games and some predicate
@@ -248,13 +260,17 @@ Problems and questions:
     probability are all focused in the area which we have already bounded?
 \end{itemize}
 
-\section{Security Assumptions}
+\section{Security Assumptions and Polynomial Adversaries}
+\label{sec:security-assumptions}
 
 Sometimes we want to assume that some property holds: for example, that our hash
 function is hard to break.  How does this fit into the system?
 
 I guess typically this is just an assumption that two games are similar, but how
 can this be phrased well without reference to the evaluation?
+
+\section{Asymptotic Indistinguishability}
+\label{sec:asymptotic-indistinguishability}
 
 \section{Example: PRF, Formalised}
 
