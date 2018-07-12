@@ -2,12 +2,18 @@
 \label{chp:command-structures}
 % TODO: Maybe make this nameless at some point?
 
-As we mentioned in chapter 2, the definitions of |CryptoExpr| and |OracleExpr|
-are very similar and we don't want to write them (and all the associated
-instances) out explicitly.  Fortunately, we don't have to!  In this chapter
-we'll show a little of what can be done.  Most of the work will be done in
-\autoref{chp:interaction-structures}.  This chapter can be skipped if the reader
-is only interested in the cryptographic content.
+As we mentioned in \autoref{chp:games}, the definitions of |CryptoExpr| and
+|OracleExpr| are very similar and we don't want to write them (and all the
+associated instances) out explicitly.  Fortunately, we don't have to!  In this
+chapter we'll show how we can generate monads for representing expressions based
+on the set of operations that these monads should support.
+
+This chapter may be of interest for the practical implementation of a language
+for reasoning about games, but is of no great interest theoretically.  The
+notions presented are not new; they can be found in (TURING COMPLETENESS TOTALLY
+FREE).  The purpose of this chapter is to serve as a prelude and motivation for
+\autoref{chp:interaction-structures}, where we will study a more general version
+of this construction.
 
 \section{Definition}
 
@@ -23,9 +29,12 @@ record CommandStructure : Set1 where
     Response  : Command -> Set
 \end{code}
 
-We will abbreviate it as |CmdStruct|.
+We will abbreviate this type as |CmdStruct|.
 
-These structures form a category with the following morphisms:
+Given two command structures |C1| and |C2|, we can speak of |C2| simulating |C1|
+if for every command |c| of |C1| there is a corresponding command |c'| of |C2|,
+and every response to |c'| (in |C2|) can be mapped back to a response to |c| in
+|C1|.  We can express this in Agda.
 \begin{code}
 record CmdMorphism (C1 C2 : CmdStruct) : Set where
   field
@@ -33,20 +42,31 @@ record CmdMorphism (C1 C2 : CmdStruct) : Set where
     ResponseF  : Response C2 (CommandF c) -> Response C1 c
 \end{code}
 
-We can show this category has arbitrary products and coproducts.  We can show
-that the product functor preserves arbitrary coproducts, but we haven't been
-able to find an exponential object.
+This gives rise to a category of command structures, so we can study its
+categorical structure.  This category turns out to have products and
+coproducts over families indexed by a decidable set.  In practice, we only care
+about the finite case.
+\begin{code}
+Product and coproduct placeholder
+Question: general or nullary + binary?
+\end{code}
+
+The products and coproducts can be intuitively interpreted as follows: a command
+in the product specifies a command for each component of the product, but only
+one is executed, and its response is returned.  The command of a coproduct is a
+command for one of the components, and it is always executed and gives its
+response.
 
 \section{Free Monads}
 
-Every command structure |C| gives rise to a monad as follows:
+Given a command structure |C|, the corresponding expression monad should have
+a constructor for |Return| and a constructor for each command, taking a
+continuation for its response.  We can encode this structure directly in Agda.
 \begin{code}
 data FreeMonad : Set -> Set where
   ReturnFM : A -> FreeMonad A
   InvokeFM : (c : Command C) -> (Response c -> FreeMonad A) -> FreeMonad A
 \end{code}
-
-We will see the motivation for the name later.
 
 We can fold over these free monads in a uniform way:
 \begin{code}
