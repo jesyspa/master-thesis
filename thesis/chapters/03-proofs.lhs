@@ -1,20 +1,5 @@
 \chapter{The Logic of Games}
 
-%% Chapter structure:
-% Explain that we want to syntactically define a logic and why.
-% Define this logic.  In particular:
-% * Define ==eE
-% QUESTION: What is the universal property of ==eE w.r.t. uniform?
-% * Define how this extends to adversaries.
-% * Define ==E as a special case
-% Motivate the ==eE equalities 
-% Show some consequences of this logic.
-% * Canonic form theorem (Get/Uniform/Set)
-% * Cannoic form with oracle theorem (Get/Uniform/Oracle*/Set)
-% * Identical until bad theorem
-% QUESTION: How do we formulate identical until bad?
-% Work out PRF example in this system.
-
 Now that we can represent games, we can start the development of a notion of
 indistinguishability between them.  In this chapter, we will introduce a
 relation between games and specify the axioms that it must satisfy, giving rise
@@ -138,47 +123,111 @@ This has two useful consequences.
 \section{$\epsilon$-Indistinguishability}
 \label{sec:epsilon-indistinguishability}
 
-We define a relation |==eE| between games indexed by a non-negative rational
-$\epsilon$.  The following properties must hold of this relation:
-\begin{itemize}
-    \item |==eE| is reflexive and symmetric.
-    \item If |a ==e1E b| and |b ==e2E c| then |a ==eeE c|.
-    \item |==1E| relates every two games;
-    \item |==eE| is preserved by |>>=|;
-    \item |==eE| is closed under the state laws;
-    \item |==eE| is closed under the reordering of uniform and state operations;
-    \item |==eE| is closed under the insertion of uniform and state read
-    operations;
-    \item |==eE| is closed under the merging of uniform operations;
-    \item |==eE| is closed under application of bijections to uniform
-    distributions.
-    \item |uniform >>= a ==eE uniform >>= b| if we show |a v ==gvE b v| for every
-    |v : BitVec n| and $\epsilon \ge \frac{1}{2^n}\sum_v g(v)$.
-\end{itemize}
-
-Note that as is common with equational theories, we only specify what equalities
-must hold, but do not specify that any terms may not be indistinguishable.  We
-will consider the latter question in more detail in
+We will now define a family of relations |==eE| that represents that two games,
+seen as probability distributions, are at a distance of at most $\epsilon$,
+where $\epsilon$ is a non-negative rational.  For now, this is a purely
+syntactic construction; we will look at a semantical interpretation in
 \autoref{chp:interpretation}.
 
+The full axiomatisation of |==eE| is available in the Agda code.  However, since
+it involves a considerable number of technical details that are not interesting
+from a logical perspective, we will present the axioms here informally.  We say
+that two games |G| and |H| with the same result type are
+$\epsilon$-indistinguishable iff |G ==eE H| holds.  We say that two |A|-indexed
+families of games |f| and |g| are $h$-indistinguishable if for every |a : A|, |f
+a| and |g a| are $h(a)$-indistinguishable.  If $h$ is a constant function equal
+to $\epsilon$, we say |f| and |g| are $\epsilon$-indistinguishable.
+
+When we say |==eE| is closed under some substitution of actions $A1, A2, \ldots,
+An$
+for actions $B1, B2, \ldots, Bn$, we mean that for any continuation |cont| there
+exists a continuation |cont'| such that the games
+%{
+%format A1 = "A_1"
+%format A2 = "A_2"
+%format An = "A_n"
+%format a1 = "a_1"
+%format a2 = "a_2"
+%format an = "a_n"
+%format B1 = "B_1"
+%format B2 = "B_2"
+%format Bn = "B_n"
+%format b1 = "b_1"
+%format b2 = "b_2"
+%format bn = "b_n"
+%format ldots = "\ldots"
+\begin{code}
+A1 >>= \ a1 -> A2 >>= \ a2 -> ldots -> An >>= \ an -> cont a1 a2 ldots an
+\end{code}
+and
+\begin{code}
+B1 >>= \ a1 -> B2 >>= \ a2 -> ldots -> Bn >>= \ an -> cont' a1 a2 ldots an
+\end{code}
+%}
+are $\epsilon$-indistinguishable.  The definition of |cont'| is typically clear
+from the context.
+
+The axioms of $\epsilon$-indistinguishability are as follows:
+\begin{itemize}
+    \item |==eE| is reflexive and symmetric.
+    \item If |G ==e1E H| and |H ==e2E I| then |G ==eeE I|.
+    \item Every two games are $1$-indistinguishable.
+    \item If |G ==eE H| and |f| is a family of games, then |G >>= f ==eE H
+    >>= f|.
+    \item If |G| is a game with result type |A| and |f| and |g| are |A|-indexed
+    families of games that are $\epsilon$-indistinguishable, then |G >>= f ==eE
+    G >>= h|.
+    \item |==eE| is closed under the state laws;
+    \item |==eE| is closed under the reordering of |uniform| and |getState|
+    operations;
+    \item |==eE| is closed under the reordering of |uniform| and |setState|
+    operations;
+    \item |==eE| is closed under the insertion of |uniform| and |getState|
+    operations;
+    \item |==eE| is closed under replacing consecutive occurences of |uniform n|
+    and |uniform m| by |uniform (n+m)|.
+    \item |==eE| is closed under application of bijections to uniform
+    distributions.
+    \item If two $2^n$-indexed families of games |f| and |g| are
+    $h$-indistinguishable, then |uniform >>= f| and  |uniform >>= g| are
+    $\left(\sum_{v : 2^n} h(v)\right)$-indistinguishable.
+  \end{itemize}
+
+Note that as is common with equational theories, we only specify what equalities
+must hold, but do not specify that any terms may not be
+$\epsilon$-indistinguishable.  We will consider the latter question in more
+detail in \autoref{chp:interpretation}.
+
 A special case of this relation arises when $\epsilon = 0$.  We denote this
-relation |==E|.
+relation |==E| and say that two games |a| and |b| satisfying |a ==E b| are
+indistinguishable, dropping the $\epsilon$.  The |==E| relation is of key
+importance to the further development since it is a congruence: this means that
+we can replace all occurences of a subgame with an indistinguishable subgame
+even if we do not know how many occurences there are, and the resulting game
+will be indistinguishable from what we started.  This makes reasoning
+considerably easier than in the case of $\epsilon$-indistinguishability, where
+the number of occurences must be bounded for the result to be meaningful.
 
-There are a number of interesting properties worth mentioning.
-
-\begin{theorem}
-    |==E| is an equivalence relation.
-\end{theorem}
+The following simple theorem is often useful in practice.
 
 \begin{theorem}
     |==e1E| is a subrelation of |==e2E| if $\epsilon_1 \le \epsilon_2$.
 \end{theorem}
 
-We will now look at some consequences of this equational theory.
+\begin{proof}
+    The proof is by induction on the derivation of |a ==e1E b|.  All the cases
+    are trivial: for example, in the last axiom, we can take $h'(v) = h(v) +
+    \epsilon_2 - \epsilon_1$.  By induction, $f$ and $g$ are
+    $h'$-indistinguishable and the desired result follows.
+\end{proof}
+
+An important result we can obtain using this logic is that every game can be
+rewritten into a canonical form.  This is a first step to being able to perform
+the kind of rewriting steps we required in \autoref{sec:intro-prf}.
 
 \begin{theorem}
-    Every |ce : CryptoExpr ST A| is equivalent to a |CryptoExpr ST A| of the
-    form
+    Every |ce : CryptoExpr ST A| is indistinguishable from some |CryptoExpr ST
+    A| of the form
     \begin{code}
         GetState \ st ->
         Uniform (f st) \ v ->
@@ -191,7 +240,55 @@ Note that we do not assume that the state type |ST| is finite or has decidable
 equality.  Given such an assumption, we could reverse the order of the
 |GetState| and |SetState| call.
 
-The proof is in the code.
+\begin{proof}
+    The full proof is in the Agda code, and proceeds in two steps: we first
+    construct |f|, |g|, and |h| and then show indistinguishability.  In all
+    cases, the construction is by recursion on the structure of |ce|.
+
+    The key idea of the proof is to explicitly pass around the current state
+    |st| and, in the case of |g| and |h|, a sufficiently long bitvector of
+    random bits.  Since |f| does not have access to such a bitvector (being the
+    function that determines how much randomness we require), it must enumerate
+    all bitvectors of the right length when the recursion is on a |Uniform|
+    constructor.  This makes explicitly computing this canonical form
+    impractical, but is not an obstacle to reasoning with it.
+
+    The main difficulty in the proof is showing that the vector |v| has
+    sufficient random bits.  This is not a conceptual problem; it is just a
+    technicality caused by the fact that not every branch of a |Uniform|
+    constructor must use the same number of random bits.  This leads to the
+    following problem: the |Uniform n cont| case of |g| requires that |v| have
+    length |n + k|, where |k| is the maximum number of random bits |cont| may
+    use.
+\end{proof}
+
+\section{Result-Indistinguishability}
+
+It is tempting to assume that the notion of $\epsilon$-indistinguishability we
+have just defined represents $\epsilon$-indistinguishability as we used the term
+in \autoref{chp:introduction}.  Unfortunately, the situation is somewhat more
+nuanced.
+
+In \autoref{chp:introduction}, we considered computations to be
+indistinguishable even if they had different effects on the state of the
+adversary.   We did not have this luxury when defining the notion of
+$\epsilon$-indistinguishability above, since we wanted |==eE| to be closed under
+bind.  Without this, the |==eE| relation would not be composable, and we would
+not be able to show that replacing of indistinguishables in the middle of a game
+gives indistinguishable results.
+
+When it comes to bounding the advantage of the adversary, however, we do
+\emph{not} want to distinguish outcomes based on the state of the adversary: two
+adversaries that both win the game with probability 0.5 are equivalent for our
+purposes, even if we can distinguish between them based on the effect they have
+on the state.  As such, we want a weaker notion of indistinguishable which we
+will call ($\epsilon$-)result-indistinguishability.  This is the notion which
+will be used for reasoning about complete games, while
+$\epsilon$-indistinguishability will be used for reasoning about their parts.
+
+As with $\epsilon$-indistinguishability, we specify the axioms of
+$\epsilon$-result-indistinguishability, denoted |==eR|, in Agda and provide an
+informal overview of these axioms here.
 
 \section{Indistinguishability with Oracles}
 
@@ -222,17 +319,6 @@ about it directly, but it is convenient to add some assumptions.
     If the number of oracle calls is bounded by $k$
 \end{theorem}
 
-
-\section{Result-Indistinguishability}
-
-When we are judging whether an adversary has really managed to gain an advantage
-in the game, we want to see whether the result of the game is indistinguishable
-from a coin flip, not whether the accompanying state changes differ.  Moreover,
-we are interested in the result only starting from a particular state.  This is
-especially relevant for the oracle, whose state is opaque to the challenger and
-adversary.
-
-TODO: Write out a logic for reasoning about this.
 
 \section{Identical Until Bad}
 

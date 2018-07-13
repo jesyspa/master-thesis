@@ -456,6 +456,7 @@ rather than if we have shown that a game is $\epsilon$-indistinguishable from a
 coin flip.
 
 \section{Example: Pseudo-Random Functions}
+\label{sec:intro-prf}
 
 Let us now consider an example that uses the notions we have introduced in this
 chapter.  We would like to show that given a family of pseudorandom functions,

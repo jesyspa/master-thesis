@@ -17,7 +17,7 @@ particular, we will construct a model where we can explicitly refute the |coin
 
 Since the results of this chapter are far clearer when presented in a
 categorical context, we will phrase them as such.  We fix a locally biCartesian
-closed category \mathbf{Agda} representing the category of Agda types and terms,
+closed category $\mathbf{Agda}$ representing the category of Agda types and terms,
 and will construct the category of models in terms of this category.  These
 categorical constructions can be translated into constructions in Agda in a
 straightforward manner, but the additional syntax involved makes it unsuitable
