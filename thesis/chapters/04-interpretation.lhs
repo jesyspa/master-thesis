@@ -1,67 +1,74 @@
 \chapter{Interpreting Games}
 \label{chp:interpretation}
 
-Now that we have a syntax for games, we can define an interpretation of games.
-The fundamental idea is that we can regard a game, that is a term of type
-|CryptoExpr A|, as a stateful probabilistic computation which gives a result of
-type |A|.  We construct a monad that represents such stateful probabilistic
-computations and allows us to compute the probability of getting any specific
-result.  This allows us to reason about when two games describe probabilistic
-computations that give the same result with high probability, and define a
-similarity relation based on this.
+We have now developed a logic for reasoning about games.  This lets us show that
+two games \emph{are} $\epsilon$-indistinguishable, but gives us few tools for
+showing that two games \emph{are not} $\epsilon$-indistinguishable remains hard:
+we need to argue that no such derivation can be built from an inductive
+construction in our logic.  Meanwhile, the very essence of our system relies on
+the assumption that an adversary that consistently wins the game can be
+distinguished from an adversary that only wins by chance: in other words, we
+rely that |coin ==R return true| cannot be shown.
 
-\section{The Dist Monad}
+To reason about distinguishability and show that |coin ==R return true| cannot
+be derived within our logic, we will look at models of our logic.  In
+particular, we will construct a model where we can explicitly refute the |coin
+==R return true|.
 
-I think that in the full version of the thesis it is worth writing out
-explicitly what properties we expect our distribution monad to satisfy.  The
-implementation can generally be skimmed over, referencing existing work, but the
-conditions imposed should be covered.
+Since the results of this chapter are far clearer when presented in a
+categorical context, we will phrase them as such.  We fix a locally biCartesian
+closed category \mathbf{Agda} representing the category of Agda types and terms,
+and will construct the category of models in terms of this category.  These
+categorical constructions can be translated into constructions in Agda in a
+straightforward manner, but the additional syntax involved makes it unsuitable
+for presenting these concepts.
 
-This area is more technical than insightful in many places (e.g. working with
-finite sets), so deferring it to an appendix may also be reasonable.  I will
-probably want a page or two just stating (in Agda) all the laws, and that's not
-to mention how we work with the rationals.  In fact, the rationals can be an
-appendix in their own right.
+For the purpose of this chapter, we we will fix the state type |ST| and assume
+that it has decidable equality.  As in \autoref{chp:proofs}, we also fix a type
+of rational numbers |Q|.
 
-\section{The Valuation}
+\section{Models of Games}
 
-Now that we have a distribution monad |Dist|, once we have chosen some oracle
-state type |OracleState|, we can use |StateT (OracleState * AdvState) Dist| to
-interpret the distribution if we have an implementation of the oracle.  We
-denote this monad by |StateDist|.  This gives us the following:
+We already have one example of a model: the syntactic model defined in
+\autoref{chp:proofs}, consisting of a monad |CryptoExpr ST| and two families of
+relations |==eE| and |==eR|.  By regarding this as an object in a suitable
+category, we can take the coslice category over our syntactic model as our
+category of models.
 
-\begin{code}
-record OracleImpl : Set where
-  field
-    InitImpl : OracleInit -> StateDist top
-    CallImpl : OracleArg -> StateDist OracleResult
+Let $\mathbf{Mod}$ be the category with as objects triples $(M, E, R)$ such that
+\begin{itemize}
+  \item $M$ is a monad on $\mathbf{Agda}$;
+  \item for every object $A$ of $\mathbf{Mod}$, $E_A$ is a $Q$-indexed family of
+  binary relations on $M(A)$;
+  \item for every object $A$ of $\mathbf{Mod}$, $R_A$ is a ($Q \times
+  ST$)-indexed family of binary relations on $M(A)$.
+  \item Monadic structure preserves the relations?  Somehow?
+\end{itemize}
+and as morphisms the monad morphisms that preserve the relations.
 
-evalCE : OracleImpl -> CryptoExpr A -> StateDist A
-\end{code}
+Note that we get an initial and a terminal object here.
 
-This function arises from the fact that |CryptoExpr| is a free monad, since we
-have interpretations for all the operations.
+Anything else here? 
 
-Note that the oracles have direct access to |StateDist|; their types alone do
-not require them to return well-behaved distributions.  We should do something
-about that.  In particular, we don't want the oracle inspecting the adversary
-state.
+\section{List Model}
 
-\section{The Indistinguishability Relation}
+We can make an explicit model using a state transformer on a probability monad.
+The monad is easy, the distance functions are a bit more annoying, but we can
+use the fact we can extract the support to get what we want.
 
-We now have a notion of indistinguishability for terms of type |M A| with |A|
-finite.\footnote{Perhaps doing something with the support would also be
-interesting?} Since we apply a state monad on top of |Dist|, we want to
-generalise this notion to terms of type |S -> M (A * S)|.
+The implementation in Agda is terrible.  Like, really, awful.
 
-Note that simply assuming |S| has decidable equality and taking the maximum over
-all |s : S| would not work: for every $\epsilon$, the adversary could choose a
-state type so that $\abs{S}^{-1}$ is much smaller than $\epsilon$.  By
-scrambling the state on every computation, the difference between any two
-outcomes becomes less than $\epsilon$, and so we cannot show that e.g. |return
-false| and |return true| are different.  Taking the sum over all |S| works,
-though.
+We don't know whether this model is complete, from a logical point of view.
+Probably not.
 
-Another consideration is that when we regard the game as a whole, we don't want
-to worry about the initial and final states.  We thus require the adversary to
-specify their initial state and we project away the final state.
+
+
+
+
+% To write:
+% - Let us look at the model theory of games to show this is not trivial.
+% - A game structure is a monad + two families of relations.
+% - An example of a model.
+% - Models in the presence of oracles.
+% - An idealisation in the presence of HITs.
+
