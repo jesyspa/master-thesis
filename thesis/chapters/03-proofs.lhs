@@ -191,7 +191,7 @@ The axioms of $\epsilon$-indistinguishability are as follows:
     \item If two $2^n$-indexed families of games |f| and |g| are
     $h$-indistinguishable, then |uniform >>= f| and  |uniform >>= g| are
     $\left(\sum_{v : 2^n} h(v)\right)$-indistinguishable.
-  \end{itemize}
+\end{itemize}
 
 Note that as is common with equational theories, we only specify what equalities
 must hold, but do not specify that any terms may not be
@@ -223,7 +223,8 @@ The following simple theorem is often useful in practice.
 
 An important result we can obtain using this logic is that every game can be
 rewritten into a canonical form.  This is a first step to being able to perform
-the kind of rewriting steps we required in \autoref{sec:intro-prf}.
+the kind of rewriting steps we required in \autoref{sec:intro-prf}.  We denote
+this form as $\epsilon$-canonical form.
 
 \begin{theorem}
     Every |ce : CryptoExpr ST A| is indistinguishable from some |CryptoExpr ST
@@ -259,7 +260,15 @@ equality.  Given such an assumption, we could reverse the order of the
     constructor must use the same number of random bits.  This leads to the
     following problem: the |Uniform n cont| case of |g| requires that |v| have
     length |n + k|, where |k| is the maximum number of random bits |cont| may
-    use.
+    use.  If |v| has this length, then we can split it into vectors |l| and |r|
+    of length |n| and |k| respectively, and recurse on |cont l| using |r| as our
+    vector of random bits.  However, suppose now that |cont l| is again of the
+    form |Uniform n' cont'|.  To split |r|, we require that it have length |n' +
+    k'|.  But |r| has length |k|, which is a maximum of a list, and thus not of
+    this form at all.
+
+    Careful manipulation of indices can resolve these issues, but they
+    considerably complicate this otherwise fairly straightforward proof.
 \end{proof}
 
 \section{Result-Indistinguishability}
@@ -281,14 +290,84 @@ When it comes to bounding the advantage of the adversary, however, we do
 \emph{not} want to distinguish outcomes based on the state of the adversary: two
 adversaries that both win the game with probability 0.5 are equivalent for our
 purposes, even if we can distinguish between them based on the effect they have
-on the state.  As such, we want a weaker notion of indistinguishable which we
-will call ($\epsilon$-)result-indistinguishability.  This is the notion which
-will be used for reasoning about complete games, while
+on the state.  As such, we want a weaker notion of indistinguishability which we
+will call $(\epsilon, st)$-indistinguishability or result-indistinguishability.
+This is the notion which will be used for reasoning about complete games, while
 $\epsilon$-indistinguishability will be used for reasoning about their parts.
+The $st$ refers to the initial value of the state.
 
 As with $\epsilon$-indistinguishability, we specify the axioms of
-$\epsilon$-result-indistinguishability, denoted |==eR|, in Agda and provide an
-informal overview of these axioms here.
+$(\epsilon, st)$-indistinguishability, denoted |==eR|, in Agda and
+provide an informal overview of these axioms here.  The relation |==eR| is
+indexed by |Q * ST| pairs and satisfies the following axioms:
+\begin{itemize}
+    \item |==eE| is a subrelation of |==eR| for each |st|.
+    \item |==eR| is symmetric.
+    \item If |G ==e1R H| and |H ==e2R I| then |G ==eeR I|.
+    \item Every two games are $(1, st)$-indistinguishable.
+    \item If |G ==eR H| and |f| is an |A|-indexed family of games such that for
+    each |a : A|, |f a| does not use state, then |G >>= f ==eR H >>= f|.
+    \item If |G| is a game with result type |A| that does not use state and |f|
+    and |g| are |A|-indexed families of games that are
+    $(\epsilon, st)$-indistinguishable, then |G >>= f ==eR G >>= h|.
+    \item |getState >>= cont| is $(\epsilon, st)$-indistinguishable from |cont
+    st|.
+    \item |setState x| is $(\epsilon, st)$-indistinguishable from |return tt|.
+    \item If two $2^n$-indexed families of games |f| and |g| are
+    $(h, st)$-indistinguishable, then |uniform >>= f| and  |uniform >>= g| are
+    $\left(\sum_{v : 2^n} h(v), st\right)$-indistinguishable.
+\end{itemize}
+
+As before, we denote the special case of $(0, st)$-indistinguishability by
+$st$-indistinguishability.  Important to note is the difference between the
+|getState| and |setState| axioms.  In the former case, we know the state to be
+|st|, and so we do not need to restrict whether |cont| may or may not use state.
+In |setState|, on the other hand, we cannot allow an arbitrary continuation, and
+so we rely on the laws regarding bind, which require the continuation to be
+stateless.
+
+Games considered up to result-indistinguishability have an even stronger
+canonical form, denoted $(\epsilon, st)$-canonical form.
+
+\begin{theorem}
+    Every game |ce : CryptoExpr ST A| is result-indistinguishable from a game of
+    the form
+    \begin{code}
+        Uniform n \ v -> Return (f v)
+    \end{code}
+\end{theorem}
+
+\begin{proof}
+    It suffices to show that every $\epsilon$-canonical form is
+    result-indistinguishable from an $(\epsilon, st)$-canonical form.
+    By the |getState| axiom for result-indistinguishability, it is
+    $st$-indistinguishable from
+    \begin{code}
+        Uniform (f' st) \ v ->
+        SetState (g' st v) \ _ ->
+        Return (h' st v)
+    \end{code}
+
+    By the |setState| axiom and using the fact that |Uniform| and |Return| are
+    stateless, we see thisis $st$-indistinguishable from
+    \begin{code}
+        Uniform (f' st) \ v ->
+        Return (h' st v)
+    \end{code}
+
+    Since |st| is fixed, we can take |n = f' st| and |f = h' st|, giving the
+    desired result.
+\end{proof}
+
+\begin{corollary}
+    Every game |ce : CryptoExpr ST Bool| is result-indistinguishable from a
+    Bernoulli distribution |Bp : CryptoExpr ST Bool| that returns true with
+    probability |p|.
+\end{corollary}
+
+\begin{proof}
+    TODO: Idea is to rewrite into normal form and then count when |f| is true.
+\end{proof}
 
 \section{Indistinguishability with Oracles}
 
