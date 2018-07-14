@@ -14,11 +14,46 @@ open import Algebra.Function
 
 open CommandStructure
 
-postulate
-  _≡E_ : ∀{A} → CryptoExpr A → CryptoExpr A → Set
-  refl-≡E : ∀{A}{ce : CryptoExpr A} → ce ≡E ce
-  sym-≡E : ∀{A}{ce cf : CryptoExpr A} → ce ≡E cf → cf ≡E ce
-  trans-≡E : ∀{A}{ce cf cg : CryptoExpr A} → ce ≡E cf → cf ≡E cg → ce ≡E cg
+data _≡E_ {A} : CryptoExpr A → CryptoExpr A → Set where
+  refl-≡E : {ce : CryptoExpr A} → ce ≡E ce
+  sym-≡E : {ce cf : CryptoExpr A} → ce ≡E cf → cf ≡E ce
+  trans-≡E : {ce cf cg : CryptoExpr A} → ce ≡E cf → cf ≡E cg → ce ≡E cg
+  cong≡E-invoke : ∀ c {comt cont : Response CryptoExprCS c → CryptoExpr A}
+                → (∀ r → comt r ≡E cont r)
+                → Invoke-FM c comt ≡E Invoke-FM c cont
+  reorder-nowrite-base : (c c′ : Command CryptoExprCS)
+                       → NotAWrite c → NotAWrite c′
+                       → (cont : Response CryptoExprCS c → Response CryptoExprCS c′ → CryptoExpr A)
+                       → Invoke-FM c (λ r → Invoke-FM c′ (cont r)) ≡E Invoke-FM c′ λ r′ → Invoke-FM c (λ r → cont r r′)
+  reorder-onewrite-base : (c c′ : Command CryptoExprCS)
+                        → NotARead c′ → NotAWrite c′
+                        → (cont : Response CryptoExprCS c → Response CryptoExprCS c′ → CryptoExpr A)
+                        → Invoke-FM c (λ r → Invoke-FM c′ (cont r)) ≡E Invoke-FM c′ λ r′ → Invoke-FM c (λ r → cont r r′)
+
+  merge-uniform : ∀ n k (f : BitVec (n + k) → CryptoExpr A)
+                → Invoke-FM (Uniform n) (λ v → Invoke-FM (Uniform k) λ w → f (vconcat v w))
+                  ≡E Invoke-FM (Uniform (n + k)) f
+  trivial-uniform : ∀{n} (ce : CryptoExpr A)
+                  → ce ≡E Invoke-FM (Uniform n) (const ce)
+  uniform-bijection : ∀{n}(f : BitVec n → BitVec n)(bf : Bijective f)
+                    → (cont : BitVec n → CryptoExpr A)
+                    → Invoke-FM (Uniform n) cont ≡E Invoke-FM (Uniform n) (λ v → cont (f v))
+
+  trivial-getstate : (ce : CryptoExpr A)
+                   → ce ≡E Invoke-FM GetState (const ce)
+  join-getstate : (f : ST → ST → CryptoExpr A)
+                → Invoke-FM GetState (λ st → Invoke-FM GetState λ st′ → f st st′)
+                  ≡E Invoke-FM GetState (λ st → f st st)
+  join-setstate : ∀ st st′ (ce : CryptoExpr A)
+                → Invoke-FM (SetState st) (const $ Invoke-FM (SetState st′) (const ce))
+                  ≡E Invoke-FM (SetState st′) (const ce)
+  relate-setget : ∀ st (f : ST → CryptoExpr A)
+                → Invoke-FM (SetState st) (const $ Invoke-FM GetState f)
+                  ≡E Invoke-FM (SetState st) (const $ f st)
+  relate-getset : ∀(f : ST → CryptoExpr A)
+                → Invoke-FM GetState (λ st → Invoke-FM (SetState st) (const $ f st))
+                  ≡E Invoke-FM GetState f
+
 
 infixr 0 eqEReasoningStep eqEReasoningStepʳ eqEReasoningStepˡ eqEReasoningStepˡʳ
 infixr 1 _∎E
@@ -44,43 +79,4 @@ x ≡E⟨ refl ⟩ˡʳ q = q
 
 _∎E : ∀{A}(ce : CryptoExpr A) → ce ≡E ce
 ce ∎E = refl-≡E
-
-postulate
-  cong≡E-invoke : ∀{A} c {comt cont : Response CryptoExprCS c → CryptoExpr A}
-                → (∀ r → comt r ≡E cont r)
-                → Invoke-FM c comt ≡E Invoke-FM c cont
-  cong≡E->>=ˡ : ∀{A B}{ce cf : CryptoExpr A}(f : A → CryptoExpr B)
-              → ce ≡E cf → (ce >>= f) ≡E (cf >>= f)
-  reorder-nowrite-base : ∀{A}(c c′ : Command CryptoExprCS)
-                       → NotAWrite c → NotAWrite c′
-                       → (cont : Response CryptoExprCS c → Response CryptoExprCS c′ → CryptoExpr A)
-                       → Invoke-FM c (λ r → Invoke-FM c′ (cont r)) ≡E Invoke-FM c′ λ r′ → Invoke-FM c (λ r → cont r r′)
-  reorder-onewrite-base : ∀{A}(c c′ : Command CryptoExprCS)
-                        → NotARead c′ → NotAWrite c′
-                        → (cont : Response CryptoExprCS c → Response CryptoExprCS c′ → CryptoExpr A)
-                        → Invoke-FM c (λ r → Invoke-FM c′ (cont r)) ≡E Invoke-FM c′ λ r′ → Invoke-FM c (λ r → cont r r′)
-
-  merge-uniform : ∀{A} n k (f : BitVec (n + k) → CryptoExpr A)
-                → Invoke-FM (Uniform n) (λ v → Invoke-FM (Uniform k) λ w → f (vconcat v w))
-                  ≡E Invoke-FM (Uniform (n + k)) f
-  trivial-uniform : ∀{A n} (ce : CryptoExpr A)
-                  → ce ≡E Invoke-FM (Uniform n) (const ce)
-  uniform-bijection : ∀{A n}(f : BitVec n → BitVec n)(bf : Bijective f)
-                    → (cont : BitVec n → CryptoExpr A)
-                    → Invoke-FM (Uniform n) cont ≡E Invoke-FM (Uniform n) (λ v → cont (f v))
-
-  trivial-getstate : ∀{A}(ce : CryptoExpr A)
-                   → ce ≡E Invoke-FM GetState (const ce)
-  join-getstate : ∀{A}(f : ST → ST → CryptoExpr A)
-                → Invoke-FM GetState (λ st → Invoke-FM GetState λ st′ → f st st′)
-                  ≡E Invoke-FM GetState (λ st → f st st)
-  join-setstate : ∀{A} st st′ (ce : CryptoExpr A)
-                → Invoke-FM (SetState st) (const $ Invoke-FM (SetState st′) (const ce))
-                  ≡E Invoke-FM (SetState st′) (const ce)
-  relate-setget : ∀{A} st (f : ST → CryptoExpr A)
-                → Invoke-FM (SetState st) (const $ Invoke-FM GetState f)
-                  ≡E Invoke-FM (SetState st) (const $ f st)
-  relate-getset : ∀{A}(f : ST → CryptoExpr A)
-                → Invoke-FM GetState (λ st → Invoke-FM (SetState st) (const $ f st))
-                  ≡E Invoke-FM GetState f
 

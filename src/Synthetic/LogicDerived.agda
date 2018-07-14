@@ -21,6 +21,45 @@ cong≡E->>=ʳ : ∀{A B}(ce : CryptoExpr A){f g : A → CryptoExpr B}
 cong≡E->>=ʳ (Return-FM a) eq = eq a
 cong≡E->>=ʳ (Invoke-FM c cont) eq = cong≡E-invoke c λ r → cong≡E->>=ʳ (cont r) eq
 
+cong≡E->>=ˡ : ∀{A B}{ce cf : CryptoExpr A}(f : A → CryptoExpr B)
+            → ce ≡E cf → (ce >>= f) ≡E (cf >>= f)
+cong≡E->>=ˡ {ce = ce} {.ce} f refl-≡E = refl-≡E
+cong≡E->>=ˡ {ce = ce} {cf} f (sym-≡E eq) = sym-≡E (cong≡E->>=ˡ f eq)
+cong≡E->>=ˡ {ce = ce} {cf} f (trans-≡E eq₁ eq₂) = trans-≡E (cong≡E->>=ˡ f eq₁) (cong≡E->>=ˡ f eq₂)
+cong≡E->>=ˡ {ce = .(Invoke-FM c _)}
+            {cf = .(Invoke-FM c _)}
+            f (cong≡E-invoke c cont-eq) = cong≡E-invoke c λ r → cong≡E->>=ˡ f (cont-eq r) 
+cong≡E->>=ˡ {ce = .(Invoke-FM c (λ r → Invoke-FM c′ (cont r)))}
+            {cf = .(Invoke-FM c′ (λ r′ → Invoke-FM c (λ r → cont r r′)))}
+            f (reorder-nowrite-base c c′ naw naw′ cont) = reorder-nowrite-base c c′ naw naw′ λ r r′ → cont r r′ >>= f
+cong≡E->>=ˡ {ce = .(Invoke-FM c (λ r → Invoke-FM c′ (cont r)))}
+            {cf = .(Invoke-FM c′ (λ r′ → Invoke-FM c (λ r → cont r r′)))}
+            f (reorder-onewrite-base c c′ nar′ naw′  cont) = reorder-onewrite-base c c′ nar′ naw′ λ r r′ → cont r r′ >>= f
+cong≡E->>=ˡ {ce = .(Invoke-FM (Uniform n) (λ v → Invoke-FM (Uniform k) (λ w → cont (vconcat v w))))}
+            {cf = .(Invoke-FM (Uniform (n + k)) cont)}
+            f (merge-uniform n k cont) = merge-uniform n k λ v → cont v >>= f
+cong≡E->>=ˡ {ce = ce}
+            {cf = .(Invoke-FM (Uniform _) (λ _ → ce))}
+            f (trivial-uniform ce) = trivial-uniform $ ce >>= f
+cong≡E->>=ˡ {ce = .(Invoke-FM (Uniform _) cont)}
+            {.(Invoke-FM (Uniform _) (λ v → cont (bj v)))}
+            f (uniform-bijection bj bf cont) = uniform-bijection bj bf λ v → cont v >>= f
+cong≡E->>=ˡ {ce = ce}
+            {.(Invoke-FM GetState (λ _ → ce))}
+            f (trivial-getstate ce) = trivial-getstate $ ce >>= f
+cong≡E->>=ˡ {ce = .(Invoke-FM GetState (λ st → Invoke-FM GetState (cont st)))}
+            {.(Invoke-FM GetState (λ st → cont st st))}
+            f (join-getstate cont) = join-getstate λ st st′ → cont st st′ >>= f
+cong≡E->>=ˡ {ce = .(Invoke-FM (SetState st) (λ _ → Invoke-FM (SetState st′) (λ _ → ce)))}
+            {.(Invoke-FM (SetState st′) (λ _ → ce))}
+            f (join-setstate st st′ ce) = join-setstate st st′ $ ce >>= f
+cong≡E->>=ˡ {ce = .(Invoke-FM (SetState st) (λ _ → Invoke-FM GetState cont))}
+            {.(Invoke-FM (SetState st) (λ _ → cont st))}
+            f (relate-setget st cont) = relate-setget st λ st′ → cont st′ >>= f
+cong≡E->>=ˡ {ce = .(Invoke-FM GetState (λ st → Invoke-FM (SetState st) (λ _ → cont st)))}
+            {.(Invoke-FM GetState cont)}
+            f (relate-getset cont) = relate-getset λ st → cont st >>= f
+
 reorder-nowrite-lem : ∀{A B}(c : Command CryptoExprCS)(ce : CryptoExpr A)
                      → NotAWrite c → NoWrites ce
                      → (cont : A → Response CryptoExprCS c → CryptoExpr B)

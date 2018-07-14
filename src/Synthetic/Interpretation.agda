@@ -1,13 +1,13 @@
 {-# OPTIONS --type-in-type #-}
-open import Synthetic.CryptoState
-module Synthetic.Interpretation (CS : CryptoState) where
-
+open import Probability.Class
+open import Probability.PropsClass
 open import ThesisPrelude
+module Synthetic.Interpretation ST Q {{_ : Probability Q}}{{_ : Eq ST}} where
+
 open import Synthetic.CommandStructure
-open import Synthetic.CryptoExpr CS
+open import Synthetic.CryptoExpr ST
 open import Utility.Vector.Definition
 
-open CryptoState CS
 open FM CryptoExprCS
 open CommandStructure
 
@@ -18,9 +18,16 @@ postulate
     ApplicativeM : Applicative M
     MonadM       : Monad M
   uniform : (n : Nat) → M (BitVec n)
-  setAdvState : AdvState → M ⊤
-  getAdvState : M AdvState
+  setState : ST → M ⊤
+  getState : M ST
 
+  sample : ∀{A}{{_ : Eq A}} → ST → A → M A → Q
+
+module _ {A} where
+  _≡D_ : M A → M A → Set
+  m₁ ≡D m₂ = ∀{{_ : Eq A}} st a → sample st a m₁ ≡ sample st a m₂
+
+{-
 record OracleImpl : Set₁ where
   field
     InitImpl : OracleInit → M ⊤
@@ -38,3 +45,5 @@ module _ (OI : OracleImpl) where
   eval-CE : ∀{A} → CryptoExpr A → M A
   eval-CE = fold-monadic-algebra eval-Alg
 
+
+-}
