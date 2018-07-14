@@ -179,11 +179,9 @@ The axioms of $\epsilon$-indistinguishability are as follows:
     \item |==eE| is reflexive and symmetric.
     \item If |G ==e1E H| and |H ==e2E I| then |G ==eeE I|.
     \item Every two games are $1$-indistinguishable.
-    \item If |G ==eE H| and |f| is a family of games, then |G >>= f ==eE H
-    >>= f|.
-    \item If |G| is a game with result type |A| and |f| and |g| are |A|-indexed
-    families of games that are $\epsilon$-indistinguishable, then |G >>= f ==eE
-    G >>= h|.
+    \item If |f| and |g| are families of games indexed by the result type |R| of
+    a primitive command |c|\footnote{That is, |GetState|, |SetState| or
+    |Uniform|} and |f r ==eE g r| for every |r : R| then |c f ==eE c g|.
     \item |==eE| is closed under the state laws;
     \item |==eE| is closed under the reordering of |uniform| and |getState|
     operations;
@@ -226,6 +224,29 @@ The following simple theorem is often useful in practice.
     are trivial: for example, in the last axiom, we can take $h'(v) = h(v) +
     \epsilon_2 - \epsilon_1$.  By induction, $f$ and $g$ are
     $h'$-indistinguishable and the desired result follows.
+\end{proof}
+
+In \autoref{sec:proofs-dists} we discussed the importance of the fact that the
+distance between probability distributions remains bounded under monadic
+binding.  These properties can be proved from our axioms.
+
+\begin{theorem}
+    If |G| is a game with result type |A| and |f| and |g| are |A|-indexed
+    families of games that are $\epsilon$-indistinguishable, then |G >>= f ==eE
+    G >>= h|.
+\end{theorem}
+
+\begin{proof}
+    This is a straightforward recursion on the structure of |G|.
+\end{proof}
+
+\begin{theorem}
+    If |G ==eE H| and |f| is a family of games, then |G >>= f ==eE H >>= f|.
+\end{theorem}
+
+\begin{proof}
+    This proof goes by induction on the derivation of |G ==eE H|.  There are
+    many cases, but they are all straightforward.
 \end{proof}
 
 An important result we can obtain using this logic is that every game can be
