@@ -289,13 +289,13 @@ have just defined represents $\epsilon$-indistinguishability as we used the term
 in \autoref{chp:introduction}.  Unfortunately, the situation is somewhat more
 nuanced.
 
-In \autoref{chp:introduction}, we considered computations to be
-indistinguishable even if they had different effects on the state of the
-adversary.   We did not have this luxury when defining the notion of
-$\epsilon$-indistinguishability above, since we wanted |==eE| to be closed under
-bind.  Without this, the |==eE| relation would not be composable, and we would
-not be able to show that replacing of indistinguishables in the middle of a game
-gives indistinguishable results.
+In \autoref{chp:introduction}, we considered games to be indistinguishable even
+if they had different effects on the state of the adversary.   We did not have
+this luxury when defining the notion of $\epsilon$-indistinguishability above,
+since we wanted |==eE| to be closed under bind.  Without this, the |==eE|
+relation would not be composable, and we would not be able to show that
+replacing of indistinguishables in the middle of a game gives indistinguishable
+results.
 
 When it comes to bounding the advantage of the adversary, however, we do
 \emph{not} want to distinguish outcomes based on the state of the adversary: two
@@ -323,7 +323,8 @@ indexed by |Q * ST| pairs and satisfies the following axioms:
     $(\epsilon, st)$-indistinguishable, then |G >>= f ==eR G >>= h|.
     \item |getState >>= cont| is $(\epsilon, st)$-indistinguishable from |cont
     st|.
-    \item |setState x| is $(\epsilon, st)$-indistinguishable from |return tt|.
+    \item |ce >>= \ a -> setState (f a) >> return (g a)| is $(\epsilon,
+    st)$-indistinguishable from |fmap g ce| for any |f| and |g|.
     \item If two $2^n$-indexed families of games |f| and |g| are
     $(h, st)$-indistinguishable, then |uniform >>= f| and  |uniform >>= g| are
     $\left(\sum_{v : 2^n} h(v), st\right)$-indistinguishable.
@@ -333,12 +334,53 @@ As before, we denote the special case of $(0, st)$-indistinguishability by
 $st$-indistinguishability.  Important to note is the difference between the
 |getState| and |setState| axioms.  In the former case, we know the state to be
 |st|, and so we do not need to restrict whether |cont| may or may not use state.
-In |setState|, on the other hand, we cannot allow an arbitrary continuation, and
-so we rely on the laws regarding bind, which require the continuation to be
-stateless.
+In |setState|, on the other hand, we cannot allow an arbitrary continuation, but
+we can allow arbitrary game to precede the |setState| class, since the
+difference in state cannot later be observed.  The |setState| case can be
+generalised to the following theorem, which will prove useful later.
+
+\begin{theorem}
+    \label{thm:post-insert}
+    For any game |X| and family of games |Y|, |fmap g X| is result-indistinguishable
+    from |X >>= \ a -> Y a >> return (g a)|.
+\end{theorem}
+
+\begin{proof}
+    We can assume that |Y a| is in $\epsilon$-canonical form.  Note that the
+    insertion of |getState| and |uniform| operations gives games that are
+    $\epsilon$-indistinguishable.  It follows that |fmap g X| is
+    indistinguishable from
+    \begin{code}
+        X >>= \ a ->
+        getState >>= \ st ->
+        uniform (f a st) >>= \ v ->
+        return (g a)
+    \end{code}
+    By the monad laws, we can reassociate this to
+    \begin{code}
+        (X >>= \ a ->
+        getState >>= \ st ->
+        uniform (f a st) >>= \ v ->
+        return (a , st , v)) >>= \ pr
+        return (g dollar fst dollar snd pr)
+    \end{code}
+
+    We can now use the |setState| axiom to conclude this is
+    result-indistinguishable from
+    \begin{code}
+        (X >>= \ a ->
+        getState >>= \ st ->
+        uniform (f a st) >>= \ v ->
+        return (a , st , v)) >>= \ pr
+        setState (Y dollar fst dollar fst pr) >>= \ _ ->
+        return (g dollar fst dollar snd pr)
+    \end{code}
+
+    By the monad laws, this is equal to the desired result.
+\end{proof}
 
 Games considered up to result-indistinguishability have an even stronger
-canonical form, denoted $(\epsilon, st)$-canonical form.
+canonical form, which we call the $(\epsilon, st)$-canonical form.
 
 \begin{theorem}
     Every game |ce : CryptoExpr ST A| is result-indistinguishable from a game of
@@ -378,6 +420,30 @@ canonical form, denoted $(\epsilon, st)$-canonical form.
 
 \begin{proof}
     TODO: Idea is to rewrite into normal form and then count when |f| is true.
+\end{proof}
+
+We conclude with a finiteness theorem that will make subsequent developments
+easier.
+
+\begin{theorem}
+    \label{thm:finite-support}
+    Let |A| be a type with decidable equality.  For any game |X : CryptoExpr ST
+    A|, given |st : ST|, there is a list |f st : List A| representing the
+    support of |X|, in the sense that the following game is
+    result-indistinguishable from |return true|:
+    \begin{code}
+        getState >>= \ st ->
+        X >>= \ a ->
+        return (elem a (f st))
+    \end{code}
+\end{theorem}
+
+\begin{proof}
+    We compute the list |f st| by recursion on |X|, tracking the current state.
+    On |uniform| calls, we enumerate all bitvectors and take the concatenation
+    of the lists.
+
+    TODO: How do we prove result-indistinguishability?
 \end{proof}
 
 \section{Indistinguishability with Oracles}
@@ -433,24 +499,65 @@ implementation |impl'| such that each |Init impl' i| and |Call impl' arg| are in
 $\epsilon$-canonical form.  Going forward, we will assume all our oracle
 implementations are of this form unless we specify otherwise.
 
-We would now like to find an $\epsilon$-canonical form for games that make use
-of oracles.  We start by studying the reordering rules of these games.
+We would now like to find an $(\epsilon, st)$-canonical form for games that make
+use of oracles.  We start by studying the reordering and insertion rules of
+these games.
 
 \begin{theorem}
-    Any computation |X| that does not make use of the oracle can be reordered
-    with a |OracleInit| or |OracleCall| operation.
+    Games that do not make use of the oracle can be reordered with games that do
+    not make use of the state, in the following sense: for any game |X| that
+    does not make use of the oracle, any game |Y| that does not make use of the
+    state, and any continuation |cont|, the following games are
+    indistinguishable:
+    \begin{code}
+        X >>= \ a ->  Y >>= \ b ->  cont a b
+        Y >>= \ b ->  X >>= \ a ->  cont a b
+    \end{code}
 \end{theorem}
 
 \begin{proof}
-    The proof consists of two proofs by induction.  First, we show that every
-    |GetState|, |SetState|, and |Uniform| operation can be reordered with
-    an |OracleInit| and |OracleCall| by induction on the implementation of the
-    latter in the oracle.  We then proceed by induction on |X|.
+    The proof consists of several proofs by induction.  First, we show that
+    every |GetState|, |SetState|, and |Uniform| operation can be reordered with
+    an |OracleInit|, |OracleCall|, or |Uniform| operation, in the same sense as
+    this theorem.  We can then show, by induction on |X|, that we can reorder
+    |X| with the first operation on |Y|.  By induction on |Y|, we iterate this
+    construction to show that |X| and |Y| can be fully reordered.
 
-    The key insight is that |SetState| and |GetState| of the game and the oracle
-    can be reordered, since they always act on distinct components of the state
-    tuple.
+    The key insight is that the |SetState| and |GetState| operations of the game
+    and of the oracle can be reordered, since they always act on distinct
+    components of the state tuple.
 \end{proof}
+
+\begin{theorem}
+    Up to oracle result-indistinguishability, any game |X| can be extended with
+    any family of games |Y|, in the sense that |fmap g X| is
+    result-indistinguishable from |X >>= \ a -> Y a >> return (g a)|.
+\end{theorem}
+
+\begin{proof}
+    Note that this is just a restatement of \autoref{thm:post-insert} in the oracle
+    setting, and follows directly from that theorem.
+\end{proof}
+
+Let us now briefly discuss the $(\epsilon, st)$-canonical form we wish to find.
+We will assume that the oracle is initialised exactly once, and all accesses are
+performed after the initialisation: this is the typical form games will have,
+and this assumption makes the results much more syntactically pleasing.  We will
+discuss the more general case in \autoref{chp:command-structures}.
+
+Given this, we expect the normal form to be of the following form: a |uniform|
+call to generate |n| random bits, followed by a single initialisation of the
+oracle, followed by exactly |k| queries to the oracle, where each next call may
+depend on those before it, terminating in a |return|.  Note that no |getState|
+or |setState| calls (outside the oracle implementation) are necessary, since we
+are looking at the game up to result-indistinguishability.
+
+It remains to formalise this notion in Agda and prove
+result-indistinguishability.
+
+\begin{theorem}
+    
+\end{theorem}
 
 TODO: Insertion of oracle calls result-indistinguishable, $\epsilon$-canonical form, $(\epsilon, st)$-canonical form.
 

@@ -206,6 +206,7 @@ avoided in \autoref{chp:command-structures}.
 
 
 \section{Constraints on Adversaries}
+\label{sec:games-constraints}
 
 We can now express all the games we want to, and we tackle the opposite problem:
 how can we restrict the space of games, for example to restrict the class of

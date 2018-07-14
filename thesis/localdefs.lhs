@@ -210,6 +210,7 @@
 %% Punctuation
 %format dot   = "\hspace{-0.3em}.\,"
 %format comma = "\hspace{-0.3em},"
+%format dollar = "\mathbin{\$}"
 %format langle = "\langle"
 %format rangle = "\rangle"
 
