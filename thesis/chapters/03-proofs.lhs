@@ -1,4 +1,5 @@
 \chapter{The Logic of Games}
+\label{chp:proofs}
 
 Now that we can represent games, we can start the development of a notion of
 indistinguishability between them.  In this chapter, we will introduce a
@@ -24,31 +25,28 @@ Note: Also, we will need rational numbers for all this.  Their construction is
 not relevant to the problem, so we defer it to \autoref{chp:rationals}.
 
 \section{Properties of Distributions}
+\label{sec:proofs-dists}
 
-Before we introduce the logic, we will prove that the laws we will impose hold
-in standard probability theory.
+Since we are interested in modelling the (equational) logic of probability
+distributions, we will start by looking at the laws that these distributions
+satisfy in classical mathematics.  Fortunately, we are only interested in
+discrete probability distributions with finite support.  We can thus model a
+probability distribution $X$ over a set $A$ as a function $A \to \mathbb{R}$
+giving the probability of sampling $a \in A$ from $X$.
 
-List of notation:
-\begin{itemize}
-    \item The set of bitstrings of length $n$ is denoted $2^n$.
-    \item We regard distributions over a set $A$ as functions $A \to
-    \mathbb{R}$ giving the probability of sampling that element.  This is
-    possible since all distributions we are interested in are discrete.
-    \item We denote the uniform distribution over $2^n$ by $U_n$.
-    \item Given a distribution $X$ over a set $A$ and an $A$-indexed family of
-    distributions $Y$ over a set $B$, we use $XY$ to denote the combined
-    distribution obtained by sampling an $a$ from $X$ and then sampling a $b$
-    from $Y_a$.  Equivalently, given a $b \in B$, we define
-    \[ XY(b) = \sum_{a \in A} X(a)Y_a(b). \]
-    \item Given distributions $X, Y$ over a set $A$, we define the distance
-    $\norm{X - Y}$ between these distributions as
-    \[
-        \norm{X - Y} = \frac{1}{2} \sum{a \in A} \abs{X(a) - Y(a)}
-    \]
-\end{itemize}
+To start, a little notation: we will use $2^n$ to denote the bitvectors of
+length $n$, and $U_n$ to denote the uniform distribution over $2^n$.  The
+Direc delta distribution that gives an element $a \in A$ probability 1 is
+denoted $1_a$.  Given a distribution $X$ over $A$ and an $A$-indexed family of
+distributions $Y$ over $B$, we denote the composite distribution obtained by
+sampling $a$ from $X$ and then $b$ from $Y_a$ as $XY$, defined by
+\[ XY(b) = \sum_{a \in A} X(a)Y_a(b). \]
+Finally, given distributions $X$ and $Y$ over the same set $A$, we define the
+distance between them as follows:
+\[ \norm{X-Y} = \frac{1}{2} \sum_{a \in A} \abs{X(a) - Y(a)}. \]
 
-We now look at some consequences of this.
-
+The following theorem motivates the $\frac{1}{2}$ in the definition of the
+distance:
 \begin{theorem}
     For every two probability distributions $X, Y$ over some set $A$,
     \[ \norm{X - Y} \le 1. \]
@@ -56,7 +54,7 @@ We now look at some consequences of this.
 
 \begin{proof}
     Since $X$ and $Y$ are distributions, they take values in $[0, 1]$ and sum to
-    $1$.  It follows with the triangle inequality that
+    $1$.  It follows by the triangle inequality that
     \[
         \frac{1}{2} \sum_{a \in A} \abs{X(a) - Y(a)}
             \le \frac{1}{2} \left(\sum_{a \in A} \abs{X(a)} + \sum_{a \in A}
@@ -65,9 +63,21 @@ We now look at some consequences of this.
     \]
 \end{proof}
 
+The composition of distributions operation corresponds to the monadic bind
+operation.  The monad, in this case, sends a set $A$ to the set of all
+probability distributions over $A$, and the unit sends an element $a \in A$ to
+the Dirac delta distribution $1_a$.
+
+The logic of this monadic bind is of particular interest to is, since we are
+interested in knowing how much changing a single step of a game will influence
+the game as a whole.  The following results tell us that the effect of such a
+substitution is at most linear in the number of occurences.
+
+We use $A$ and $B$ to denote arbitrary sets in the following.
+
 \begin{theorem}
-    Let $X, Y$ be distributions over some set $A$ and let $Z$ be an $A$-indexed
-    family of distributions over some set $B$.  Then
+    Let $X, Y$ be distributions over $A$ and let $Z$ be an $A$-indexed
+    family of distributions over $B$.  Then
     \[ \norm{XZ - YZ} \le \norm{X - Y}. \]
 \end{theorem}
 
@@ -83,12 +93,9 @@ We now look at some consequences of this.
 \end{proof}
 
 \begin{theorem}
-    Let $X$ be a distribution over some set $A$ and let $Y, Z$ be $A$-indexed
-    families of distributions over some set $B$.  If there is a $g : A \to
-    \mathbb{R}$ such that for every $a \in A$,
-    \[ \norm{Y_a - Z_a} \le g(a) \]
-    then
-    \[ \norm{XY - XZ} \le \sum_{a \in A} X(a)g(a). \]
+    Let $X$ be a distribution over $A$ and let $Y, Z$ be $A$-indexed
+    families of distributions over $B$.  Then
+    \[ \norm{XY - XZ} \le \sum_{a \in A} X(a)\norm{Y_a - Z_a}. \]
 \end{theorem}
 
 \begin{proof}
@@ -97,26 +104,26 @@ We now look at some consequences of this.
     inequality we get
     \[ \sum_{b \in B} \abs{XY(b) - XZ(b)} \le
         \sum_{b \in B}\sum_{a \in A} \abs{X(a)}\abs{Y_a(b) - Z_a(b)} \]
-    and now using the assumption and the fact $X$ is a distribution we get
+    and now using the non-negativity of $X$ we get
     \[ \sum_{b \in B} \abs{XY(b) - XZ(b)} \le
-        \sum_{a \in A} X(a)g(a). \]
+        \sum_{a \in A} X(a)\left(\sum_{b \in B}\abs{Y_a(b) - Z_a(b)}\right)
+        = \sum_{a \in A} X(a)\norm{Y_a - Z_a} \]
 \end{proof}
 
 This has two useful consequences.
 
 \begin{corollary}
-    Let $X$ be a distribution over some set $A$ and let $Y, Z$ be $A$-indexed
-    families of distributions over some set $B$.  If there is an $\epsilon$ such
-    that $\norm{Y_a - Z_a} \le \epsilon$ for every $a \in A$, then
+    Let $X$ be a distribution over $A$ and let $Y, Z$ be $A$-indexed families of
+    distributions over $B$.  If there is an $\epsilon$ such that $\norm{Y_a -
+    Z_a} \le \epsilon$ for every $a \in A$, then
     \[ \norm{XY - XZ} \le \epsilon. \]
 \end{corollary}
 
 \begin{corollary}
     Let $n \in \mathbb{N}$ and let $X, Y$ be $2^n$-indexed families of
-    probability distributions over some type $A$.  Then if there is a $g : 2^n \to
-    \mathbb{R}$ such that $\norm{X_v - Y_v} \le g(v)$, then
+    probability distributions over $A$.  Then
     \[
-        \norm{U_nX - U_nY} \le \frac{1}{2^n} \sum_{v \in 2^n} g(v).
+        \norm{U_nX - U_nY} \le \frac{1}{2^n} \sum_{v \in 2^n} \norm{X_v - Y_v}.
     \]
 \end{corollary}
 
@@ -224,7 +231,11 @@ The following simple theorem is often useful in practice.
 An important result we can obtain using this logic is that every game can be
 rewritten into a canonical form.  This is a first step to being able to perform
 the kind of rewriting steps we required in \autoref{sec:intro-prf}.  We denote
-this form as $\epsilon$-canonical form.
+this form as $\epsilon$-canonical form.\footnote{A possible source of confusion
+is that the normal form does not depend on the value of $\epsilon$: rather, this
+is the $\epsilon$-canonical form as it is canonical with respect to
+$\epsilon$-indistinguishability, as opposed to the other notions of
+indistinguishability introduced later.}
 
 \begin{theorem}
     Every |ce : CryptoExpr ST A| is indistinguishable from some |CryptoExpr ST
@@ -371,32 +382,77 @@ canonical form, denoted $(\epsilon, st)$-canonical form.
 
 \section{Indistinguishability with Oracles}
 
-In order to speak of indistinguishability with oracles we need to keep track of
-the oracle implementation.  Let's say we have a type |GameImpl OST AST A| that
-consists of an oracle implementation with state |OST| and a |CryptoExpr AST A|.
-We have seen how this can be glued together into a single |CryptoExpr (AST *
-OST) A|.
+In order to reason about games involving oracles, we want to extend the notions
+of $\epsilon$-indistinguishability and $(\epsilon, st)$-indistinguishability to
+pairs of games involving oracles and oracle definitions for these games.  Since
+we can compile such a pair into a game not involving oracles, we can lift these
+notions directly, which we shall do.  We will then look at the consequences of
+this definition, and the rewrite rules we can derive.
 
-This gives rise to a |==OE| relation between |GameImpl|s.  We could just reason
-about it directly, but it is convenient to add some assumptions.
+We will assume that the types |OracleInit|, |OracleArg|, |OracleResult|, and
+|OST| all have decidable equality.  Finding where these restrictions can be
+relaxed would be a good candidate for further work in this area.
 
+Formally speaking, given |ce| and |cf| of type |OracleExpr AST A| and |impl| and
+|jmpl| of type |Oracle OST|, we say that |ce , impl ==eOE cf , jmpl| iff |eval
+ce impl ==eE eval cf jmpl|.  We will write |ce ==eOEimpl cf| if |impl| is the
+same on both sides.  We will also write |impl ==eE jmpl|  iff for every |i :
+OracleInit|, |Init impl i ==eE Init jmpl i|  and for every |a : OracleArg|,
+|Call impl arg ==eE Call jmpl arg|.  The definitions for |==eOR| and |==eR| on
+oracle implementations are analogous.
+
+The following simple results will make our life easier going forward:
 \begin{theorem}
-    Changing the oracle implementation to one that is fully indistinguishable
-    preserves indistinguishability.
+    If |impl ==E jmpl| and |ce : OracleExpr AST A|, then |ce , impl ==OE ce ,
+    jmpl|.  The same result does not hold for $\epsilon$-indistinguishability,
+    nor for result-indistinguishability.
 \end{theorem}
 
-\begin{corollary}
-    Every |GameImpl| is indistinguishable from one where the oracle
-    implementations are in canonic form.
-\end{corollary}
+\begin{proof}
+    This is easy to show by induction on the structure of |ce|.  The |GetState|,
+    |SetState|, and |Uniform| cases hold by reflixivity, while |impl ==E jmpl|
+    gives us the |InitOracle| and |CallOracle| cases.
+
+    The failure for $\epsilon$-indistinguishability can be seen in the following
+    game: let $0 < \epsilon < 1$ and consider an oracle that returns |true| with
+    probability $\epsilon$, and a game which calls the oracle $n$ times and
+    return |true| iff any oracle call returned |true|.  The probability that the
+    game returns true is $1 - (1 - \epsilon)^n$, which goes to $1$ as $n$ goes
+    to infinity and so is not bounded by $\epsilon$.
+
+    The failure for result-indistinguishability can be seen as follows: every
+    oracle implementation is result-indistinguishable from one where the
+    initialisation is |return tt|.  This would thus imply that every game
+    involving an oracle is result-indistinguishable to one where the oracle is
+    not initialised, which is clealy not the case.
+\end{proof}
+
+Since every game is indistinguishable from a game in $\epsilon$-canonical form,
+it follows that every oracle implementation |impl| is indistinguishable from an
+implementation |impl'| such that each |Init impl' i| and |Call impl' arg| are in
+$\epsilon$-canonical form.  Going forward, we will assume all our oracle
+implementations are of this form unless we specify otherwise.
+
+We would now like to find an $\epsilon$-canonical form for games that make use
+of oracles.  We start by studying the reordering rules of these games.
 
 \begin{theorem}
-    Something something canonic form.
+    Any computation |X| that does not make use of the oracle can be reordered
+    with a |OracleInit| or |OracleCall| operation.
 \end{theorem}
 
-\begin{theorem}
-    If the number of oracle calls is bounded by $k$
-\end{theorem}
+\begin{proof}
+    The proof consists of two proofs by induction.  First, we show that every
+    |GetState|, |SetState|, and |Uniform| operation can be reordered with
+    an |OracleInit| and |OracleCall| by induction on the implementation of the
+    latter in the oracle.  We then proceed by induction on |X|.
+
+    The key insight is that |SetState| and |GetState| of the game and the oracle
+    can be reordered, since they always act on distinct components of the state
+    tuple.
+\end{proof}
+
+TODO: Insertion of oracle calls result-indistinguishable, $\epsilon$-canonical form, $(\epsilon, st)$-canonical form.
 
 
 \section{Identical Until Bad}
@@ -441,3 +497,4 @@ can this be phrased well without reference to the evaluation?
 
 It is enlightening (?) to see how the above steps can be used to show that the
 game described can be formalised.
+
