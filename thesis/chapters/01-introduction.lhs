@@ -343,6 +343,7 @@ indistinguishable from |return true|.  It follows that this adversary has a
 guaranteed winning strategy.
 
 \section{Weaker Notions of Security}
+\label{sec:intro-weaker}
 
 Having introduced oracles to allow for the strengthening of our security
 conditions, let us consider the ways in which these conditions can be weakened.
@@ -393,6 +394,7 @@ restricting the class of adversaries, and so we will also discuss it in
 \autoref{sec:security-assumptions}.
 
 \section{Generalised Games}
+\label{sec:intro-general-games}
 
 So far, we have considered a single game at a time and shown it to be
 ($\epsilon$-)indistinguishable to a coin flip.  A straightforward generalisation

@@ -296,8 +296,8 @@ At first glance, this seems like a useful feature as we can now use
 when the term |ce| is closed.  However, this proof search algorithm has to
 iterate over every possible |BitVec n|, since it has no way to inspect the
 continuation directly.  As such, even on simple cases such as |isStateless
-(uniform n)|, the algorithm will take $O(2^n)$ time to run, making it unusable
-in practice.
+(uniform n)|, the algorithm will take $\Theta(2^n)$ time to run, making it
+unusable in practice.
 
 However, these predicates are still very useful when we want to restrict the
 behaviour of an adversary, since in that case we can take such a proof as a

@@ -130,6 +130,8 @@ This has two useful consequences.
 \section{$\epsilon$-Indistinguishability}
 \label{sec:epsilon-indistinguishability}
 
+\todo{This kind of family of relations is a common theme here; maybe give it a
+name?}
 We will now define a family of relations |==eE| that represents that two games,
 seen as probability distributions, are at a distance of at most $\epsilon$,
 where $\epsilon$ is a non-negative rational.  For now, this is a purely
@@ -145,10 +147,6 @@ families of games |f| and |g| are $h$-indistinguishable if for every |a : A|, |f
 a| and |g a| are $h(a)$-indistinguishable.  If $h$ is a constant function equal
 to $\epsilon$, we say |f| and |g| are $\epsilon$-indistinguishable.
 
-When we say |==eE| is closed under some substitution of actions $A1, A2, \ldots,
-An$
-for actions $B1, B2, \ldots, Bn$, we mean that for any continuation |cont| there
-exists a continuation |cont'| such that the games
 %{
 %format A1 = "A_1"
 %format A2 = "A_2"
@@ -162,7 +160,9 @@ exists a continuation |cont'| such that the games
 %format b1 = "b_1"
 %format b2 = "b_2"
 %format bn = "b_n"
-%format ldots = "\ldots"
+When we say |==eE| is closed under some substitution of actions $A_1, A_2, \ldots,
+A_n$ for actions $B_1, B_2, \ldots, B_n$, we mean that for any continuation |cont|
+there exists a continuation |cont'| such that the games
 \begin{code}
 A1 >>= \ a1 -> A2 >>= \ a2 -> ldots -> An >>= \ an -> cont a1 a2 ldots an
 \end{code}
@@ -291,13 +291,13 @@ equality.  Given such an assumption, we could reverse the order of the
     technicality caused by the fact that not every branch of a |Uniform|
     constructor must use the same number of random bits.  This leads to the
     following problem: the |Uniform n cont| case of |g| requires that |v| have
-    length |n + k|, where |k| is the maximum number of random bits |cont| may
+    length |n+k|, where |k| is the maximum number of random bits |cont| may
     use.  If |v| has this length, then we can split it into vectors |l| and |r|
     of length |n| and |k| respectively, and recurse on |cont l| using |r| as our
     vector of random bits.  However, suppose now that |cont l| is again of the
-    form |Uniform n' cont'|.  To split |r|, we require that it have length |n' +
-    k'|.  But |r| has length |k|, which is a maximum of a list, and thus not of
-    this form at all.
+    form |Uniform n' cont'|.  To split |r|, we require that it have length
+    |n'+k'|.  But |r| has length |k|, which is a maximum of a list, and thus not
+    of this form at all.
 
     Careful manipulation of indices can resolve these issues, but they
     considerably complicate this otherwise fairly straightforward proof.
@@ -467,6 +467,21 @@ easier.
     TODO: How do we prove result-indistinguishability?
 \end{proof}
 
+SPECULATION: Result-indistinguishability is caused by ignoring the possibility
+of variations in the initial and final state.  As such, the map |preserve| that
+sends a game |G| to |getState >>= \ st -> G >>= \ a -> setState st >> return a|
+should in any case preserve the final state.  This suggests the following
+theorem:
+
+\begin{theorem}
+    If games |G| and |H| are $(\epsilon, st)$-indistinguishable for every |st|,
+    then |preserve G| and |preserve H| are $\epsilon$-indistinguishable.
+\end{theorem}
+
+\begin{proof}
+    TODO: I have no clue how this could be proved.
+\end{proof}
+
 \section{Indistinguishability with Oracles}
 
 In order to reason about games involving oracles, we want to extend the notions
@@ -609,17 +624,80 @@ Problems and questions:
     probability are all focused in the area which we have already bounded?
 \end{itemize}
 
-\section{Security Assumptions and Polynomial Adversaries}
+\section{Security Assumptions, Polynomial Adversaries, and Asymptotic
+    Indistinguishability}
 \label{sec:security-assumptions}
-
-Sometimes we want to assume that some property holds: for example, that our hash
-function is hard to break.  How does this fit into the system?
-
-I guess typically this is just an assumption that two games are similar, but how
-can this be phrased well without reference to the evaluation?
-
-\section{Asymptotic Indistinguishability}
 \label{sec:asymptotic-indistinguishability}
+
+As we have already remarked in \autoref{sec:intro-weaker}, there are many cases
+when we want to show security only against adversaries that are restricted in
+the resources they may use.  The prime example of this is a restriction to
+adversaries that run in polynomial time.  Restricting the problem in this way
+allows us to use assumptions about what a polynomial-time algorithm cannot do.
+This allows us to reason about the security of systems that depend on problems
+like integer factorisation being hard; without such an assumption, since integer
+factorisation can be performed in Agda, we cannot rule out that the adversary
+performs the factorisation and thereby defeats our security scheme.
+
+Within our system, we cannot create a type of polynomial-time adversaries, and
+so we cannot allow a game to restrict its inputs to be polynomial-time
+adversaries.  However, we can still achieve the desired effect by assuming that
+certain operations cannot be performed by any adversary.  We do this by assuming
+that certain games are unwinnable, using the generalised notion of games
+described in \autoref{sec:intro-general-games}.
+
+For example, let us consider the discrete logarithm problem.  Given a cyclic
+group $G$ and a generator $g$, the Decisional Diffie-Hellman assumption states
+that it is hard to distinguish the triple $(g^a, g^b, g^c)$ with $a, b, c$ all
+uniformly random (with $0 \le a < |G|$) from $(g^a, g^b, g^{ab})$, with $a, b$
+uniformly random.  We can phrase this as follows: let |G| be the uniform
+distribution over $G$.  Then there is some $\epsilon$ such that the following
+two games are $(\epsilon, st)$-indistinguishable for any adversary |adv|:
+\begin{code}
+do
+    a <- G
+    b <- G
+    c <- G
+    adv (pow g a , pow g b , pow g c)
+
+do
+    a <- G
+    b <- G
+    adv (pow g a , pow g b , pow g (mul a b))
+\end{code}
+
+We can then use this assumption to replace the usage of |pow g (mul a b)| in a
+proof with |pow g c|.  This is a key step in proving the security of the ElGamal
+encryption scheme, for example.\todo{cite Shoup}  By introducing this assumption
+we show that no adversary can find |a| given |pow g a|, since otherwise they
+could take |pow (pow g b) a| and compare it to the third component of the tuple.
+
+A significant downside to this approach is that our assumptions must all be
+phrased as decision problems.\todo{Why is this bad?}
+
+Another issue with this approach is that while this allows us to reason about an
+arbitrary adversary as if it satisfied our assumptions, it does not restrict the
+class of adversaries that we may use as a counterexample: it is thus necessary
+to check the validity of any constructed adversaries by hand.
+
+Finally, an assumption of this kind only states that such an $\epsilon$ exists,
+without any bounds on the size of this $\epsilon$.  This is unsurprising: for
+any fixed problem size, a polynomial-time adversary can still achieve
+arbitrarily good probability, because the property of being polynomial-time is
+vacuous if the problem size is fixed.
+
+This is not as severe an issue as it may seem: we can assume (without
+formalising it in Agda) that $\epsilon$ is small, and interpret the
+indistinguishability results we come to in this light.  This is how many proofs
+in the literature are written as is.\todo{cite something}  On the other hand, a
+more elegant approach is to look at asymptotic indistinguishability.
+
+Instead of assuming that games |G adv| and |H adv| are
+$\epsilon$-indistinguishable, we can assume that the families of games |G n adv|
+and |H n adv| are $f(n)$-indistinguishable, where $f$ is a function with limit
+$0$ as $n$ goes to infinity.  The value $n$ is typically called the
+\emph{security parameter}.  This approach allows us to show within Agda that |G|
+and |H| are harder to distinguish at higher security levels.
 
 \section{Example: PRF, Formalised}
 

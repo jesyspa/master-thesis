@@ -199,6 +199,7 @@
 
 %% Not sure where to put
 %format Injective = "\F{Injective}"
+%format Sum = "\F{$\sum$}"
 
 %% Infix operator standalones
 %format _+_ = "\F{\_\hspace{-0.1em}+\hspace{-0.1em}\_}"
@@ -213,6 +214,7 @@
 %format dollar = "\mathbin{\$}"
 %format langle = "\langle"
 %format rangle = "\rangle"
+%format ldots = "\ldots"
 
 %% Misc stuff
 %format (FORALL (a))  = "\forall\{{"a"}\}\!"

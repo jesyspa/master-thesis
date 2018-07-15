@@ -167,10 +167,13 @@ latter.  Pity they need type in type.
 
 \section{Interpretation}
 
-Ignoring the previous section, we can now define what it means for a command
-structure to interpret another command structure.  Well, it means we've got a
-|MonadicCommandAlgebra| in that structure's free monad.  Semantically, this
-means that we can simulate the first command structure with sequences of
+TODO: This section is still a very condensed version of what it should be; I
+need to write out what an interpretation is and what a telescope looks like.
+
+We will now define directly what it means for a command structure to interpret
+another command structure.  TODO: Write this out formally: the idea is that we
+have a |MonadicCommandAlgebra| in that structure's free monad.  Semantically,
+this means that we can simulate the first command structure with sequences of
 commands from the second.  This is exactly what we want when we say we express
 some interface in terms of some basic language.
 
@@ -182,10 +185,44 @@ operations and previous players.  Finally, we combine the implementations to get
 a single implementation of all the interfaces in terms of the union of the base
 languages.
 
-This is a bit nasty to write out in Agda, but is a very neat way of modelling
-things semantically, if I say so myself.
+ESSENTIAL IDEA (needed for next section): we have players represented by the
+interfaces they provide.  Player $A_i$ is implemented in terms of its language
+$B_i$ together with the coproduct of the interfaces of $A_{i+1}, A_{i+2},
+\ldots$.  We can squash this together into a single implementation of the
+coproduct of all $A_i$ in the coproduct of all $B_i$.  Now we implement the
+coproduct of all $B_i$ in terms of some base language $C$.
 
-\section{Proofs of Equality}
+\begin{theorem}
+    If a telescope |T| can be interpreted in |C|, then so can every subtelescope
+    of it.
+\end{theorem}
 
-We do still need to develop syntax for proofs of equality in this context.  This
-does not seem trivial.
+Unfortunately, this formulation quickly becomes verbose when expressed in Agda.
+
+\section{Proofs of Indistinguishability}
+
+TODO: Here we speak of a relation, but really we want to focus on relations
+indexed by non-negative rationals.
+
+In \autoref{chp:proofs} we have seen that although we can define a notion of
+$\epsilon$-indistinguishability on games, the extension of this notion to games
+with oracles involves considerable work and is specific to the signature of the
+oracle involved.  In this section, we will amend this by expressing how a
+relation on the free monad over some command structure |C| can be extended to a
+relation over a telescope with result |C|.
+
+Fix a sequence of interfaces |A| and a sequence of implementation languages |B|.
+We will denote the coproduct of such a sequence by |Sum A|.  Since we have an
+implementation of |Sum B| in |C|, we have a free monad map |f| from |FreeMonad (Sum
+B)| to |FreeMonad C|.  We extend our relation by saying |a| and |b| in
+|FreeMonad (Sum B)| are related if their interpretations |f a| and |f b| are
+related.
+
+KEY IDEA: Define an indistinguishability relation on implementations into |C|.
+
+The head case is easy: if two heads are related and the tails are equal, then
+the telescopes are related.  The case where the heads are identical but the
+tails are not is harder, since we need to take into account that the head
+implementation may use the tail implementation multiple times.
+
+
