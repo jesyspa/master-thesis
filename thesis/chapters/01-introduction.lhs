@@ -1,20 +1,40 @@
 \chapter{Introduction}
 \label{chp:introduction}
 
-This thesis is structured as follows: we start by demonstrating how games can be
-used in cryptography, then show how these can be represented and reasoned about
-in Agda, and how common steps used in cryptography\footnote{Triple Encryption
-paper} can be formalised in this manner.  We then detour into indexed monads and
-interaction structures and show how these can be used to more precisely express
-the computations we are interested in.  Finally, we give an overview of how
-these developments could be combined in order to provide a language for
-reasoning about games.
+Cryptography plays an essential role in the modern world: we trust that
+encryption will prevent unauthorised access to our data, securing our online
+activity, banking information, and whatever else we wish to keep private.
+As such, it is important to be able to verify the guarantees a cryptographic
+algorithm provides.
 
-\todo{Write this out}
-The goal of this chapter is to introduce the problem that we are trying to
-formalise.  This means that it should cover not only the basic question of what
-a game is and how we reason about it, but also introduce the notion of an
-oracle and the various weaker notions of security.
+A powerful tool for this verification is the technique of code-based
+games~\cite{codebasedgames, gameexamples}, whereby the security condition is
+formulated as a game between a \emph{challenger} and an \emph{adversary}.  The
+condition is satisfied if no adversary has a high probability of winning the
+game.  A typical proof proceeds by rewriting the game in ways that preserve the
+probability of the adversary winning, until a direct argument for the victory
+probability can be made.  We will see several examples of such proofs in this
+chapter.
+
+Given the importance that the security guarantees are satisfied, the question
+arises of whether these proofs can be mechanically verified.  There exist
+several systems for this purpose,
+EasyCrypt\footnote{\url{http://www.easycrypt.info}} and FCF~\cite{fcf} two
+notable examples.  In this thesis, we explore how the power of dependent types,
+as implemented by the Agda programming language, can be used to approach this
+problem.  In particular, we show how we can define a language for games
+(\autoref{chp:games}) and a logic for reasoning about this language
+(\autoref{chp:proofs}).  We also remark on the models of this logic
+(\autoref{chp:interpretation}), and how we can use dependent types to further
+constrain the language for our purposes (\autoref{chp:indexed-monads}).  In
+\autoref{chp:command-structures} and \autoref{chp:interaction-structuers}, we
+look at how this can be implemented in a flexible manner, and what issues arise
+from a straightforward implementation in Agda.  Finally, in
+\autoref{chp:language} we describe a possible design for a domain-specific
+language for cryptographic proofs based on these ideas.
+
+In this chapter, we will introduce the notion of code-based games and see what
+features a proof system must have in order to be useful.
 
 \section{Motivation for Games}
 

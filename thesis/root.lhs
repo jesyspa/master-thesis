@@ -24,7 +24,7 @@
 \newtheorem{definition}{Definition}
 
 \title{Master Thesis: Formalisation of Cryptographic Proofs in Agda}
-\author{By Anton Golov,\\under the supervision of\\Jaap van Oosten, Wouter Swiestra, and Victor Miraldo}
+\author{By Anton Golov,\\under the supervision of\\Jaap van Oosten, Wouter Swierstra, and Victor Miraldo}
 
 \begin{document}
     \maketitle

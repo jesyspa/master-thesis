@@ -1,4 +1,5 @@
 \chapter{A Language for Cryptography}
+\label{chp:language}
 
 So, the stuff we describe in chapters 2-4 can nicely prove things about simple
 games, and the stuff we describe in chapters 5-6 can allow us to impose much
