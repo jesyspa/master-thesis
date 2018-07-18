@@ -60,6 +60,19 @@ cong≡E->>=ˡ {ce = .(Invoke-FM GetState (λ st → Invoke-FM (SetState st) (λ
             {.(Invoke-FM GetState cont)}
             f (relate-getset cont) = relate-getset λ st → cont st >>= f
 
+cong≡E-fmap : ∀{A B}{ce cf : CryptoExpr A}(f : A → B)
+            → ce ≡E cf → fmap f ce ≡E fmap f cf
+cong≡E-fmap {ce = ce} {cf} f eq =
+  fmap f ce
+    ≡E⟨ unsafeEqual ⟩ˡ -- monad laws
+  (ce >>= λ a → return (f a))
+    ≡E⟨ cong≡E->>=ˡ (λ a → return (f a)) eq ⟩
+  (cf >>= λ a → return (f a))
+    ≡E⟨ unsafeEqual ⟩ˡ -- monad laws
+  fmap f cf
+  ∎E
+  where open import Prelude.Equality.Unsafe
+
 reorder-nowrite-lem : ∀{A B}(c : Command CryptoExprCS)(ce : CryptoExpr A)
                      → NotAWrite c → NoWrites ce
                      → (cont : A → Response CryptoExprCS c → CryptoExpr B)

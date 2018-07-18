@@ -9,6 +9,7 @@ open import Synthetic.CryptoExpr ST
 open import Synthetic.CryptoExprHelpers
 open import Synthetic.StateBounds ST
 open import Synthetic.Logic ST
+open import Synthetic.LogicDerived ST
 open import Utility.Vector.Definition
 open import Utility.Vector.Functions
 open import Utility.Vector.Props
@@ -29,14 +30,69 @@ data result-ind {A} : ST → CryptoExpr A → CryptoExpr A → Set where
 
   getstate-≡R : ∀{st}(cont : ST → CryptoExpr A) 
               → cont st ≡R[ st ] Invoke-FM GetState cont
-  setstate-≡R : ∀{st}(ce : CryptoExpr A)
+  setstate-≡R : ∀{st}(ce : CryptoExpr A)(cf : CryptoExpr ⊤)
               → (g : A → ST)
-              → ce ≡R[ st ] (ce >>= λ a → Invoke-FM (SetState $ g a) (const $ Return-FM a))
+              → ce ≡R[ st ] (ce >>= λ a → cf >> Return-FM a)
 
-setstate-≡R-gen : ∀{A B st}(ce : CryptoExpr A)
-                → (f : A → B)
-                → (g : A → ST)
-                → fmap f ce ≡R[ st ] (ce >>= λ a → Invoke-FM (SetState $ g a) (const $ Return-FM $ f a))
-setstate-≡R-gen (Return-FM a) f g = {!!}
-setstate-≡R-gen (Invoke-FM c cont) f g = {!!}
+infixr 0 eqRReasoningStep eqRReasoningStepʳ eqRReasoningStepˡ eqRReasoningStepˡʳ
+infixr 1 _∎R
+
+reflˡ-≡R : ∀{A st}{ce cf : CryptoExpr A} → ce ≡ cf → ce ≡R[ st ] cf
+reflˡ-≡R refl = embed-≡R refl-≡E 
+
+syntax eqRReasoningStep  x q p = x ≡R⟨ p ⟩ q
+eqRReasoningStep : ∀{A st} (x : CryptoExpr A){y z} → y ≡R[ st ] z → x ≡R[ st ] y → x ≡R[ st ] z
+x ≡R⟨ p ⟩ q = trans-≡R p q
+
+syntax eqRReasoningStepʳ  x q p = x ≡R⟨ p ⟩ʳ q
+eqRReasoningStepʳ : ∀{A st} (x : CryptoExpr A){y z} → y ≡R[ st ] z → y ≡R[ st ] x → x ≡R[ st ] z
+x ≡R⟨ p ⟩ʳ q = trans-≡R (sym-≡R p) q
+
+syntax eqRReasoningStepˡ  x q p = x ≡R⟨ p ⟩ˡ q
+eqRReasoningStepˡ : ∀{A st} (x : CryptoExpr A){y z} → y ≡R[ st ] z → x ≡ y → x ≡R[ st ] z
+x ≡R⟨ refl ⟩ˡ q = q
+
+syntax eqRReasoningStepˡʳ x q p = x ≡R⟨ p ⟩ˡʳ q
+eqRReasoningStepˡʳ : ∀{A st} (x : CryptoExpr A){y z} → y ≡R[ st ] z → y ≡ x → x ≡R[ st ] z
+x ≡R⟨ refl ⟩ˡʳ q = q
+
+_∎R : ∀{A st}(ce : CryptoExpr A) → ce ≡R[ st ] ce
+ce ∎R = reflˡ-≡R refl
+
+cong≡R->>=ʳ : ∀{A B st}(ce : CryptoExpr A){f g : A → CryptoExpr B}
+            → NoWrites ce → NoReads ce
+            → (∀ a → f a ≡R[ st ] g a)
+            → (ce >>= f) ≡R[ st ] (ce >>= g)
+cong≡R->>=ʳ (Return-FM a) nw nr eq = eq a
+cong≡R->>=ʳ (Invoke-FM c cont) (Invoke-NW .c naw nw) (Invoke-NR .c nar nr) eq
+  = cong≡R-invoke c naw nar λ r → cong≡R->>=ʳ (cont r) (nw r) (nr r) eq
+
+fmap≡R-cong : ∀{A B st}{ce cf : CryptoExpr A}(f : A → B)
+            → ce ≡R[ st ] cf → fmap f ce ≡R[ st ] fmap f cf
+fmap≡R-cong f (embed-≡R eq) = embed-≡R $ cong≡E-fmap f eq
+fmap≡R-cong f (sym-≡R eq) = {!!}
+fmap≡R-cong f (trans-≡R eq eq₁) = {!!}
+fmap≡R-cong f (cong≡R-invoke c x x₁ x₂) = {!!}
+fmap≡R-cong f (getstate-≡R cont) = {!!}
+fmap≡R-cong f (setstate-≡R ce cf g) = {!!}
+
+
+setstate-≡R-gen : ∀{A B C st}(ce : CryptoExpr A)(f : A → CryptoExpr B)(g : A → C)
+                → fmap g ce ≡R[ st ] (ce >>= λ a → f a >> return (g a))
+setstate-≡R-gen ce f g =
+  fmap g ce
+    ≡R⟨ {!!} ⟩
+  fmap g (ce >>= λ a → (f a >> return ⊤) >> return a)
+    ≡R⟨ unsafeEqual ⟩ˡ -- monad law
+  ((ce >>= λ a → (f a >> return ⊤) >> return a) >>= λ a′ → return (g a′))
+    ≡R⟨ unsafeEqual ⟩ˡ -- monad law
+  (ce >>= λ a → (f a >> return ⊤) >> return a >>= λ a′ → return (g a′))
+    ≡R⟨ unsafeEqual ⟩ˡ -- monad law
+  (ce >>= λ a → (f a >> return ⊤) >> return (g a))
+    ≡R⟨ unsafeEqual ⟩ˡ -- monad law
+  (ce >>= λ a → f a >> (return ⊤ >> return (g a)))
+    ≡R⟨ unsafeEqual ⟩ˡ -- monad law
+  (ce >>= λ a → f a >> return (g a))
+  ∎R
+  where open import Prelude.Equality.Unsafe
 
