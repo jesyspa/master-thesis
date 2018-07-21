@@ -127,6 +127,25 @@ This has two useful consequences.
     \]
 \end{corollary}
 
+\section{$\epsilon$-Relations}
+
+A recurring theme in our constructions is a relation indexed by a non-negative
+rational $\epsilon$, and  that is an equivalence relation for $\epsilon = 0$,
+and that is weakenable.
+
+Definition: $R_\epsilon$ is an $\epsilon$-relation on $A$ if
+\begin{itemize}
+    \item For every $a \in A$, $R_\epsilon(a, a)$;
+    \item For every $a, b \in A$, if $R_\epsilon(a, b)$ then $R_\epsilon(b, a)$;
+    \item For every $a, b, c \in A$, if $R_{\epsilon_1}(a, b)$ and
+    $R_{\epsilon_2}(b, c)$ then $R_{\epsilon_1 + \epsilon_2}(a, c)$.
+    \item For every $a, b \in A$, if $R_{\epsilon_1}(a, b)$ and $\epsilon_1 \le
+    \epsilon_2$ then $R_{\epsilon_2}(a, b)$.
+\end{itemize}
+
+Functorial version: closed under fmap?
+Monadic version: closed under bind?
+
 \section{$\epsilon$-Indistinguishability}
 \label{sec:epsilon-indistinguishability}
 

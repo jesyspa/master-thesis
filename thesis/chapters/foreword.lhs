@@ -23,3 +23,8 @@ don't mind, do you?
 
 I would like to thank a whole bunch of people; Wouter, Victor, Jaap, Napoleon,
 dstolfa (Freenode, Kan extension stuff).
+
+\section*{List of Notation}
+
+\begin{itemize}
+\end{itemize}

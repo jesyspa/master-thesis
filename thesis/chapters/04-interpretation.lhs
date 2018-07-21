@@ -15,19 +15,17 @@ be derived within our logic, we will look at models of our logic.  In
 particular, we will construct a model where we can explicitly refute the |coin
 ==R return true|.
 
-Since the results of this chapter are far clearer when presented in a
-categorical context, we will phrase them as such.  We fix a locally biCartesian
-closed category $\mathbf{Agda}$ representing the category of Agda types and terms,
-and will construct the category of models in terms of this category.  These
-categorical constructions can be translated into constructions in Agda in a
-straightforward manner, but the additional syntax involved makes it unsuitable
-for presenting these concepts.
-
 For the purpose of this chapter, we we will fix the state type |ST| and assume
 that it has decidable equality.  As in \autoref{chp:proofs}, we also fix a type
 of rational numbers |Q|.
 
 \section{Models of Games}
+
+We try to regard our syntactic model as an object in a certain category.  A
+model is then any other object in this category together with a morphism from
+the syntactic model to it.  In this case, the category we are looking for is
+a monad with two monadic $\epsilon$-relations, where one is weaker than the
+other.
 
 We already have one example of a model: the syntactic model defined in
 \autoref{chp:proofs}, consisting of a monad |CryptoExpr ST| and two families of
@@ -60,6 +58,13 @@ The implementation in Agda is terrible.  Like, really, awful.
 
 We don't know whether this model is complete, from a logical point of view.
 Probably not.
+
+\section{Further Work}
+
+There is still considerable work to be done in this area.  There is considerable
+engineering work to be done on the list model: many of the desirable properties
+require coming up with lemmas we've not yet thought of.
+
 
 
 
