@@ -70,11 +70,11 @@ cong≡R->>=ʳ (Invoke-FM c cont) (Invoke-NW .c naw nw) (Invoke-NR .c nar nr) eq
 fmap≡R-cong : ∀{A B st}{ce cf : CryptoExpr A}(f : A → B)
             → ce ≡R[ st ] cf → fmap f ce ≡R[ st ] fmap f cf
 fmap≡R-cong f (embed-≡R eq) = embed-≡R $ cong≡E-fmap f eq
-fmap≡R-cong f (sym-≡R eq) = {!!}
-fmap≡R-cong f (trans-≡R eq eq₁) = {!!}
-fmap≡R-cong f (cong≡R-invoke c x x₁ x₂) = {!!}
-fmap≡R-cong f (getstate-≡R cont) = {!!}
-fmap≡R-cong f (setstate-≡R ce cf g) = {!!}
+fmap≡R-cong f (sym-≡R eq) = sym-≡R $ fmap≡R-cong f eq
+fmap≡R-cong f (trans-≡R eq ep) = trans-≡R (fmap≡R-cong f eq) (fmap≡R-cong f ep)
+fmap≡R-cong f (cong≡R-invoke c naw nar eq) = cong≡R-invoke c naw nar λ r → fmap≡R-cong f (eq r)
+fmap≡R-cong f (getstate-≡R cont) = getstate-≡R λ r → fmap f (cont r) 
+fmap≡R-cong f (setstate-≡R ce cf g) = {!setstate-≡R ? ? ?!}
 
 
 setstate-≡R-gen : ∀{A B C st}(ce : CryptoExpr A)(f : A → CryptoExpr B)(g : A → C)
