@@ -2,10 +2,10 @@
 \label{chp:introduction}
 
 Cryptography plays an essential role in the modern world: we trust that
-encryption will prevent unauthorised access to our data, securing our online
-activity, banking information, and whatever else we wish to keep private.
-As such, it is important to be able to verify the guarantees a cryptographic
-algorithm provides.
+cryptographic primitives will prevent unauthorised access to our data, securing
+our online activity, banking information, and whatever else we wish to keep
+private.  As such, it is important to be able to verify that such primitives
+provide the guarantees they promise.
 
 A powerful tool for this verification is the technique of code-based
 games~\cite{codebasedgames, gameexamples}, whereby the security condition is
@@ -27,7 +27,7 @@ problem.  In particular, we show how we can define a language for games
 (\autoref{chp:proofs}).  We also remark on the models of this logic
 (\autoref{chp:interpretation}), and how we can use dependent types to further
 constrain the language for our purposes (\autoref{chp:indexed-monads}).  In
-\autoref{chp:command-structures} and \autoref{chp:interaction-structuers}, we
+\autoref{chp:command-structures} and \autoref{chp:interaction-structures}, we
 look at how this can be implemented in a flexible manner, and what issues arise
 from a straightforward implementation in Agda.  Finally, in
 \autoref{chp:language} we describe a possible design for a domain-specific
@@ -69,7 +69,7 @@ In \autoref{chp:games} we will look into the details of how these games can be
 represented.  For now, let us assume that we have a |CryptoExpr ST A| type, 
 monadic in |A|, with the following operations:
 \begin{code}
-uniform    : (n : Nat)  ->  CryptoExpr ST A (BitVec n)
+uniform    : (n : Nat)  ->  CryptoExpr ST (BitVec n)
 coin       :                CryptoExpr ST Bool
 setState   : ST         ->  CryptoExpr ST top
 getState   :                CryptoExpr ST ST
@@ -138,9 +138,9 @@ keygen   OTP  =  keygenOTP
 encrypt  OTP  =  encryptOTP
 \end{code}
 
-We have now specified a game, and can rewrite it to show that no matter the
-adversary chosen, it is indistinguishable from a coin flip.  Let us start by
-writing out the game, filling in the definition of the encryption scheme:
+We can now rewrite this game to show that no matter the adversary chosen, it is
+indistinguishable from a coin flip.  Let us start by writing out the game,
+filling in the definition of the encryption scheme:
 \begin{code}
 INDEAVOTP1 adv = do
   m1 , m2 <- A1 adv
@@ -197,10 +197,11 @@ INDEAVOTP5 adv = do
 \end{code}
 
 Since the outcome of |INDEAVOTP5| is independent of |adv|, it is
-indistinguishable from |coin|.  We have thus shown that |OTP| is secure against
-an eavesdropper attack.
-
-\todo{Analyse this proof?}
+indistinguishable from |coin|.  Since the games are indistinguishable, the
+probability of drawing |true| from |INDEAVOTP1| is the same as from
+|INDEAVOTP5|.  Since the advantage of any adversary against |INDEAVOTP5| is 0,
+it follows that it has advantage 0 against |INDEAVOTP1| as well, and thus we
+have shown that |OTP| is secure against an eavesdropper attack.
 
 \section{Oracles}
 
@@ -234,6 +235,10 @@ on the game being played.  We can represent this in code by assumpting that
 oracleInit  : (FORALL st) ->  OracleInit  -> CryptoExpr st top
 oracleCall  : (FORALL st) ->  OracleArg   -> CryptoExpr st OracleResult
 \end{code}
+
+In \autoref{chp:command-structures} we will show how this approach can be
+generalised to allow oracles with different signatures in a straightforward
+manner.  We consider this a noteworthy feature of our system.
 
 Note that the state of the oracle is not represented in |st|: otherwise, the
 adversary could use |getState| to inspect the oracle state.  We will for now
@@ -301,6 +306,10 @@ throughout our reasoning, but as we will see later, there are game-based proofs
 where a change in the definition of the oracle is an essential part of the
 proof.  We will look at the details in \autoref{chp:games}.
 
+The attentive reader will notice that this kind of attack will work on any
+deterministic encryption scheme.  We only present this special case, since the
+general proof involves an encoding of determinism in Agda.  However, the proof
+can be formalised in full generality.
 
 Let us write out |INDCPA| with |OTP| and |INDCPAOTPADV| filled in.  Note that we
 can also fill in the implementation of the oracle, since we will not change it
@@ -315,7 +324,7 @@ INDCPAOTP1 = do
   k <- uniform n
   setOracleState k
   b <- coin
-  ct <- return $ xor k (if b then m1 else m2)
+  ct <- return $ (xor k (if b then m1 else m2))
   k' <- getOracleState
   b' <- return $ isYes (eq ct (xor k' (allzero n)))
   return $ isYes (eq b b')
@@ -329,7 +338,7 @@ This gives us the following game, indistinguishable from the previous:
 INDCPAOTP2 = do
   k <- uniform n
   b <- coin
-  ct <- return $ xor k (if b then allzero n else allone n)
+  ct <- return $ (xor k (if b then allzero n else allone n))
   b' <- return $ isYes (eq ct (xor k (allzero n)))
   return $ isYes (eq b b')
 \end{code}
@@ -362,6 +371,8 @@ is |true| as well.  It follows that this game always yields |true|, and is thus
 indistinguishable from |return true|.  It follows that this adversary has a
 guaranteed winning strategy.
 
+\todo{Mention possible solutions involving salting?}
+
 \section{Weaker Notions of Security}
 \label{sec:intro-weaker}
 
@@ -370,8 +381,8 @@ conditions, let us consider the ways in which these conditions can be weakened.
 A strong motivation to look for such a weakening arises in public key
 cryptography, where the adversary is given access to the public key, which is
 sufficient to encrypt messages, while the challenger retains the private key,
-which is used for their decryption.  The public key can often be computed from
-the private key.
+which is used for their decryption. \todo{Find an argument that checking a
+guessed private key is possible.}
 
 In this setting, the adversary may be able to do better than random by guessing
 a private key and checking whether the public key corresponds to it.  If it
@@ -392,7 +403,7 @@ However, note that this alone does not resolve the situation, since the
 adversary can increase its chances of guessing the private key simply by trying
 more times, potentially enumerating every possible private key to find the
 correct one.  However, while this would certainly be enough to break the
-encryption, such an adversary would take take time exponential in the length of
+encryption, such an adversary would take time exponential in the length of
 the key.
 
 We thus extend our system in a further two ways.  First of all, we should be

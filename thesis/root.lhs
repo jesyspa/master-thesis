@@ -9,6 +9,7 @@
 \usepackage{todonotes}
 \usepackage[margin=4cm]{geometry}
 \usepackage{appendix}
+\newcommand*{\Appendixautorefname}{appendix}
 
 %include polycode.fmt
 %include agda.lhs
@@ -24,7 +25,8 @@
 \newtheorem{definition}{Definition}
 
 \title{Master Thesis: Formalisation of Cryptographic Proofs in Agda}
-\author{By Anton Golov,\\under the supervision of\\Jaap van Oosten, Wouter Swierstra, and Victor Miraldo}
+\author{By Anton Golov,\\under the supervision of\\Jaap van Oosten, Wouter
+Swierstra, and Victor Cacciari Miraldo}
 
 \begin{document}
     \maketitle

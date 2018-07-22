@@ -27,4 +27,5 @@ dstolfa (Freenode, Kan extension stuff).
 \section*{List of Notation}
 
 \begin{itemize}
+  \item Implicit universal quantification.
 \end{itemize}

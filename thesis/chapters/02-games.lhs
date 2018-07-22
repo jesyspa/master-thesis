@@ -1,21 +1,21 @@
 \chapter{Representing Games}
 \label{chp:games}
 
-\todo{Why?}
-The games we considered in \autoref{chp:introduction} are sequences of
-instructions, where later instructions can depend on the results of earlier
-ones.  In order to be able to formulate properties of these games within Agda,
-we would like to retain as much of their syntactic structure as possible.  We
-therefore use a free monad construction to obtain the most general type that
-supports the operations we require and has a monadic bind.
+In \autoref{chp:introduction}, we modelled games as sequences of instructions,
+where later instructions may depend on the results of the previous ones.  This
+is naturally captured by the binding structure of a monad~\cite{monadsforfp}.
+Furthermore, we are for the moment interested only in representing the games
+syntactically.  As such, we will use the free monad
+construction~\cite{dtalacarte, tctotallyfree} to obtain a monad that supports
+all the desired operations while also allowing us to inspect the monadic terms
+we construct.
 
-We start by introducing a datatype for games and showing that it has the
-properties we are interested in.  This datatype supports the essential
-operations we expect from games: generating a uniformly random bitvector, and
-reading and writing the state.  We then show how this language can be extended
-to support oracle use and how we can impose constraints on such use.
-
-\todo{Where do these ideas come from?}
+We will start by constructing a datatype for games that do not make use of an
+oracle.  In this case, the only supported operations are the generation of
+random bitstrings and manipulation of the state.  We will then show how the same
+techniques can be used to extend this language to support games that make use of
+an oracle.  Finally, we will show how this syntactic representation can be used
+to impose constraints on an adversary.
 
 \section{Free Monads}
 
@@ -102,7 +102,7 @@ now, that any information needed in |enc| and |dec| is passed explicitly via the
 key.  This is a considerable simplification, as it means the only player with
 state is the adversary, and no questions of how state should be shared arise.
 
-We can now define the EAV-IND game much as we did in \autoref{chp:introduction}.
+We can now define the IND-EAV game much as we did in \autoref{chp:introduction}.
 We fix an |enc : EncScheme|.  Since Agda 2.5.4 supports |do| notation we make
 use of it, though the equivalent program could of course be written using |>>=|
 explicitly.
@@ -139,8 +139,8 @@ record Oracle (OST : Set) : Set where
 
 However, we cannot pass these implemantations to the adversary as we passed the
 adversary implementations to the challenger, since they would then share state
-types.  We must specify the oracle and adversary in such a way that neither has
-any syntactic possibility to inspect the other's state.
+types.  We must specify the oracle and adversary in such a way that neither
+actor has any syntactic possibility to inspect the other's state.
 
 We can do this by extending the language of adversaries with commands for oracle
 initialisation and oracle call operations.  We get a new type
@@ -296,7 +296,7 @@ At first glance, this seems like a useful feature as we can now use
 when the term |ce| is closed.  However, this proof search algorithm has to
 iterate over every possible |BitVec n|, since it has no way to inspect the
 continuation directly.  As such, even on simple cases such as |isStateless
-(uniform n)|, the algorithm will take $\Theta(2^n)$ time to run, making it
+(uniform n)|, the algorithm will take $\Omega(2^n)$ time to run, making it
 unusable in practice.
 
 However, these predicates are still very useful when we want to restrict the

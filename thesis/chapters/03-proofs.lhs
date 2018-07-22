@@ -36,7 +36,7 @@ giving the probability of sampling $a \in A$ from $X$.
 
 To start, a little notation: we will use $2^n$ to denote the bitvectors of
 length $n$, and $U_n$ to denote the uniform distribution over $2^n$.  The
-Direc delta distribution that gives an element $a \in A$ probability 1 is
+Dirac delta distribution that gives an element $a \in A$ probability 1 is
 denoted $1_a$.  Given a distribution $X$ over $A$ and an $A$-indexed family of
 distributions $Y$ over $B$, we denote the composite distribution obtained by
 sampling $a$ from $X$ and then $b$ from $Y_a$ as $XY$, defined by
@@ -333,9 +333,7 @@ In \autoref{chp:introduction}, we considered games to be indistinguishable even
 if they had different effects on the state of the adversary.   We did not have
 this luxury when defining the notion of $\epsilon$-indistinguishability above,
 since we wanted |==eE| to be closed under bind.  Without this, the |==eE|
-relation would not be composable, and we would not be able to show that
-replacing of indistinguishables in the middle of a game gives indistinguishable
-results.
+relation would not be a congruence.
 
 When it comes to bounding the advantage of the adversary, however, we do
 \emph{not} want to distinguish outcomes based on the state of the adversary: two
