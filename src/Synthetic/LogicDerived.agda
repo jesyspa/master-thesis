@@ -9,7 +9,6 @@ open import Synthetic.CryptoExpr ST
 open import Synthetic.CryptoExprHelpers
 open import Synthetic.StateBounds ST
 open import Synthetic.Logic ST
-open import Algebra.FunExt
 open import Utility.Vector.Definition
 open import Utility.Vector.Functions
 open import Utility.Vector.Props
@@ -195,6 +194,6 @@ trivial-uniform′ f =
   f []
     ≡E⟨ trivial-uniform (f []) ⟩
   Invoke-FM (Uniform 0) (const $ f [])
-    ≡E⟨ cong (Invoke-FM (Uniform 0)) (fun-ext _ _ (λ { [] → refl })) ⟩ˡ
+    ≡E⟨ cong≡E-invoke _ (λ { [] → refl-≡E }) ⟩
   Invoke-FM (Uniform 0) f
   ∎E
