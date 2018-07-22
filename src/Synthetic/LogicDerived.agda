@@ -9,6 +9,7 @@ open import Synthetic.CryptoExpr ST
 open import Synthetic.CryptoExprHelpers
 open import Synthetic.StateBounds ST
 open import Synthetic.Logic ST
+open import Algebra.FunExt
 open import Utility.Vector.Definition
 open import Utility.Vector.Functions
 open import Utility.Vector.Props
@@ -187,3 +188,13 @@ extend-uniform′ {n = n} {k} (diff i eq) f = helper
         k-is-n+i = suc-Inj eq ⟨≡⟩ auto
         helper : Invoke-FM (Uniform n) f ≡E Invoke-FM (Uniform k) (λ v → f (vtake′ n (diff i eq) v))
         helper rewrite k-is-n+i = extend-uniform _ _ _
+
+trivial-uniform′ : ∀{A}(f : BitVec 0 → CryptoExpr A)
+                 → f [] ≡E Invoke-FM (Uniform 0) f
+trivial-uniform′ f =
+  f []
+    ≡E⟨ trivial-uniform (f []) ⟩
+  Invoke-FM (Uniform 0) (const $ f [])
+    ≡E⟨ cong (Invoke-FM (Uniform 0)) (fun-ext _ _ (λ { [] → refl })) ⟩ˡ
+  Invoke-FM (Uniform 0) f
+  ∎E
