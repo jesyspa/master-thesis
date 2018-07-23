@@ -43,11 +43,11 @@ Swierstra, and Victor Cacciari Miraldo}
     %include chapters/01-introduction.lhs
     %include chapters/02-games.lhs
     %include chapters/03-proofs.lhs
-    %include chapters/int01-command-structures.lhs
-    %include chapters/04-interpretation.lhs
-    %include chapters/05-indexed-monads.lhs
-    %include chapters/06-interaction-structures.lhs
-    %include chapters/07-crypto-language.lhs
+    %include chapters/04-command-structures.lhs
+    %include chapters/05-interpretation.lhs
+    %include chapters/06-indexed-monads.lhs
+    %include chapters/07-interaction-structures.lhs
+    %include chapters/08-crypto-language.lhs
 
     \begin{appendices}
         %include chapters/ap01-finite-sets.lhs

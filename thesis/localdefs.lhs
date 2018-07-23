@@ -248,5 +248,7 @@
 %format ==e1D = "\F{$\equiv_{\epsilon_1}^D$}"
 %format ==e2D = "\F{$\equiv_{\epsilon_2}^D$}"
 %format ==eeD = "\F{$\equiv_{\epsilon_1 + \epsilon_2}^D$}"
+%format ~~eE = "\F{$\approx_\epsilon^E$}"
+%format ~~eR = "\F{$\approx_{\epsilon,st}^R$}"
 %format eq (a) (b) = "{" a "}\mathbin{\F{==}}{" b "}"
 %format congbind = "\F{cong-\textgreater\!\!\textgreater\!=}"

@@ -1,6 +1,5 @@
-\chapter{Intermezzo: Command Structures}
+\chapter{Command Structures}
 \label{chp:command-structures}
-% TODO: Maybe make this nameless at some point?
 
 As we mentioned in \autoref{chp:games}, the definitions of |CryptoExpr| and
 |OracleExpr| are very similar and we don't want to write them (and all the
