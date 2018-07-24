@@ -42,7 +42,7 @@ This definition can be rephrased in categorical terms by considering the
 syntactic model in a suitable category and taking the coslice:
 
 \begin{definition}
-  Let $\mathbb{Pre-MGL}$ (pre-models of game logic) be the category whose
+  Let $\PreMGL$ (pre-models of game logic) be the category whose
   objects are monads |M| together with a monadic $\epsilon$-relation |~~eE| and
   a functorial $\epsilon$-relation |~~eR|, where |~~eE| is a subrelation of
   |~~eR|, and whose morphisms are monad morphisms that preserve the structure of
@@ -55,32 +55,32 @@ category where the objects are morphisms out of $A$ (in $\mathcal{C}$), and the
 morphisms from an object $\phi : A \to B$ to $\psi : A \to C$ are morphisms $f :
 B \to C$ such that $f \circ \phi = \psi$.
 
-Let us now enote the coslice category $CE \shortdownarrow \mathbb{Pre-MGL}$ by
-$\mathbb{MGL}$.
+Let us now enote the coslice category $CE \shortdownarrow \PreMGL$ by
+$\MGL$.
 
 \begin{theorem}
-  A model of game logic $\mathcal{M}$ is an object in $\mathbb{MGL}$.
+  A model of game logic $\mathcal{M}$ is an object in $\MGL$.
 \end{theorem}
 
 \begin{proof}
   Let $\mathcal{M}$ be a model of game logic.  The underlying monad and the
-  $\epsilon$-relations give rise to an object in $\mathbb{Pre-MGL}$.  The
+  $\epsilon$-relations give rise to an object in $\PreMGL$.  The
   valuation function gives a monad morphism which, by definition of a model of
   game logic, preserves the $\epsilon$-relations.
 
-  On the other hand, let $\mathcal{M}$ be an object in $\mathbb{MGL}$.  Its
-  codomain is a $\mathbb{Pre-MGL}$ object.  Regarding $\mathcal{M}$ as a
+  On the other hand, let $\mathcal{M}$ be an object in $\MGL$.  Its
+  codomain is a $\PreMGL$ object.  Regarding $\mathcal{M}$ as a
   valuation function, this gives rise to a model of game logic.
 \end{proof}
 
 This result allows us to use standard theorems about coslice categories to
 analyse the model theory of game logic.  In particular, it tells us that the
-identity function on |CE| is the initial object in $\mathbb{MGL}$, meaning that
+identity function on |CE| is the initial object in $\MGL$, meaning that
 our syntactic model is initial, as we would expect.  Furthermore, since
-$\mathbb{Pre-MGL}$ has a terminal object $1$ (given by the constant singleton
+$\PreMGL$ has a terminal object $1$ (given by the constant singleton
 monad), the unique map from |CE| to $1$ gives us a terminal model.  In general,
-limits in $\mathbb{MGL}$ correspond to the limits of the underlying objects in
-$\mathbb{Pre-MGL}$~\cite{maclane}.
+limits in $\MGL$ correspond to the limits of the underlying objects in
+$\PreMGL$~\cite{maclane}.
 
 \section{List Model}
 

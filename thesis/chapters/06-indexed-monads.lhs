@@ -1,135 +1,287 @@
 \chapter{Indexed Monads}
 \label{chp:indexed-monads}
 
-We have seen that certain properties, such as the number of oracle calls that an
-adversary is allowed to make, would best be bounded on the level of the monad.
-However, if we add these constraints as parameters of |CryptoExpr|, we can no
-longer define the bind operation with the signature required for a monad.  We
-can correct this issue by using an indexed monad.
+Let us return to the problem of enforcing an upper bound on the number of
+times the adversary may query the oracle.  In \autoref{sec:games-constraints} we
+have seen a way of imposing such a bound by defining an additional data
+structure which can only be constructed if the bound is respected.  In this
+chapter, we will explore an alternative approach that makes use of McBride's
+notion of an indexed monad~\cite{indexedmonads}.
+
+A major frustration with the usage of an additional datatype for imposing a
+boundary on the adversary is that we must explicitly construct the proof,
+despite its structure being determined by the structure of the game it refers
+to.  We can avoid this by encoding the same proof information in the
+|OracleExpr| type itself.  Fixing an |ST| type for the (adversary) state, we may
+imagine the following datatype to work:
+\begin{code}
+data OracleExpr : Nat -> Set -> Set where
+  Return      : A                                      -> OracleExpr k        A
+  Uniform     : ldots  -> (ldots  ->  OracleExpr k A)  -> OracleExpr k        A
+  GetState    : ldots  -> (ldots  ->  OracleExpr k A)  -> OracleExpr k        A
+  SetState    : ldots  -> (ldots  ->  OracleExpr k A)  -> OracleExpr k        A
+  InitOracle  : ldots  -> (ldots  ->  OracleExpr k A)  -> OracleExpr k        A
+  CallOracle  : ldots  -> (ldots  ->  OracleExpr k A)  -> OracleExpr (suc k)  A
+\end{code}
+
+Indeed, a term of type |OracleExpr k A| can make at most |k| calls to the
+oracle.  However, this na\"ive attempt fails to be a monad: the |CallOracle|
+case of bind does not go through.  This is to be expected, since binding may
+change the number of oracle calls performed.  As such, we need to extend our
+notion of a monad to allow terms to have an index, and allow the bind to modify
+this index.
 
 \section{Definition}
 
-The functions |S -> Set| form a category |SetS|, with the morphisms being
-|S|-indexed families of morphisms.  This gives rise to the notion of a functor
-on this category:
-\begin{code}
-_=>_ : (S -> Set) -> (S -> Set) -> Set
-a => b = forall {s} -> a s -> b s
+In functional programming, we are used to the term monad referring specifically
+to monads on the category of types and terms of the language we are using.
+However, the mathematical definition of monad can refer to endofunctors on any
+category.  The following is simply a specialisation of this definition to the
+category of types and terms indexed by some type |S|.
 
+\begin{definition}
+  Given any type |S|, the category |SetS| is the category with functions |S ->
+  Set| as its objects and |S|-indexed families of functions as its morphisms.
+\end{definition}
+
+We define the morphisms in Agda as follows:
+\begin{code}
+_~>_ : (S -> Set) -> (S -> Set) -> Set
+A ~> B = forall {s} -> A s -> B s
+\end{code}
+
+Given a function |(S -> Set) -> (S -> Set)|, we can regard it as a functor if it
+has a corresponding action on morphisms.  This gives rise to the notion of an
+|S|-indexed functor on |Set|, or endofunctor on |SetS|, as follows:
+\begin{code}
 record IxFunctor {S : Set}(F : (S -> Set) -> (S -> Set)) : Set1 where
   field
-    fmapi : (a => b) -> (F a => F b)
+    fmapi : (A ~> B) -> (F A ~> F B)
 \end{code}
 
-The natural transformations between these functors give rise to another category
+Together with the usual notion of a natural transformation, this gives rise to
+the category of endofunctors and natural transformations between them.  The
+notion of an indexed monad now arises naturally:
 \begin{code}
-_~>_  :  ((S -> Set) -> (S -> Set))
-      -> ((S -> Set) -> (S -> Set))
-      -> Set1
-F ~> G = forall {a} -> F a => G a
-\end{code}
-
-An indexed monad is a monoid in this category, that is:
-\begin{code}
-record IxMonad {S : Set}(F : (S -> Set) -> (S -> Set)) : Set1 where
+record IxMonad {S : Set}(M : (S -> Set) -> (S -> Set)) : Set1 where
   field
-    overlap {{ixfunctorsuper}} : IxFunctor F
-    returni : a => F a
-    joini   : F (F a) => F a
+    overlap {{ixfunctorsuper}} : IxFunctor M
+    returni : A ~> M A
+    joini   : M (M A) ~> M A
 \end{code}
 
-As with normal monads, we typically find the bind operation of more practical
-use than the join:
+Just as with normal monads, the bind operation is of more use if our goal is to
+write programs.  It can be defined in terms of |fmapi| and |joini| just as in
+the non-indexed case:
 \begin{code}
-  bindi : F a s -> (a => F b) -> F b s
+_bindi_ : M A s -> (A ~> M B) -> M B s
+m bindi cont = joini (fmapi cont m)
 \end{code}
 
-Note that flipping the arguments we get |(a => F b) -> (F a => F b)|.
+A useful intuition is that a term |m : M A s| is a computation that starts at
+state |s| and ends at some (unknown) state |s'|.  Since |s'| is not known, the
+continuation must work for \emph{any} |s'|.  This is essential to avoid the
+problem we encountered when we tried to implement bind for |OracleExpr| at the
+begining of the chapter.  However, on the face of it, this seems very
+restrictive: in our example, this means that the continuation must work no
+matter how many oracle queries may still be made.  Can it query the oracle at
+all?
 
-\section{Indexed Monad Morphisms}
-
-There is a notion of a morphism between two monads on a category.  This is
-great, since it gives some laws that functions like |evalCE| from chapter 3 must
-follow.  However, in the indexed case things are a bit harder: suppose that our
-indexed monads are indexed over different categories, what then?
-
-It turns out there are in fact several choices of morphisms and each gives a
-category (though we kind of need Kan extensions to do that nicely).
+Fortunately, the Atkey construction~\cite{indexedmonads} can be used to work
+around this limitation.
 
 \section{The Atkey Construction}
 
-The advantage of indexed monads is that we can restrict what kind of actions can
-be performed.  However, at face value, the type of bind is very restrictive: we
-must be able to proceed no matter what state we end up in.  This is often not
-what we want, since we may know what state we will actually arrive at.
+An important feature of indexed monads is that the type of the result may depend
+on the index.  That is, unlike our definition of |OracleExpr| above, the type of
+an indexed monad is |(S -> Set) -> S -> Set| rather than |S -> Set -> Set|.
+This means that in the call |m bindi f|, the type of values |f| operates on
+depends on the index at which it is used.
 
-In order to encode this we make an indexed type which is inhabited in exactly
-one state, namely the one we care about.  This is called the Atkey trick.
+The original Atkey construction~\cite{indexedmonads} makes use of this by
+constructing a type that is empty except at one selected index.  This can be
+defined as follows:
 \begin{code}
 data Atkey (A : Set) : S -> S -> Set where
   V : A -> Atkey A s s
 \end{code}
 
-In the state in which we will arrive, we get the result of the type we chose.
-In every other state, the type of results is empty, and so there are no cases to
-handle.
+Suppose we have an indexed monad |M|, a term |m : M (Atkey A s') s|, and a
+continuation |cont : A -> M B s'|.  We can use bind as follows:
+\begin{code}
+m bindi \ { (V a) -> cont a }
+\end{code}
+In the context of the lambda, we know that the only value |Atkey A s' s''| can
+attain is |V a|, and thus |s' == s''|.  The case we provided typechecks, since
+|f a : M B s'|.  Since all other cases are empty, we do not have to write them
+out.  The expression as a whole has type |M B s|.
 
-However, this is sometimes not quite powerful enough for our purposes.  We
-sometimes don't know exactly what state we will end up in, but would know if we
-got the value.  For example, in an interaction structure, we do not know the
-state a command will take us to, but we discover it once we get the result.
-This gives rise to a generalisation of the Atkey trick:
+There are a number of variations on this construction.  We will explore one
+generalisation in particular that will come in useful later.
+
+Suppose that we have a monadic computation that starts at an index |s| and that
+yields a value of type |A|.  How can we express that given the value |a : A|
+returned, we know the state |s'| that the computation ended at?  For example,
+suppose that we have an oracle that may refuse queries: it returns a value of
+type |Maybe OracleResult|.  If the query was refused, the number of uses does
+not go down.  We know that if we query the oracle at state |suc k|, we end up in
+either state |k| (if we get |just x|) or |suc k| (if we get |nothing|).  We thus
+want an indexed type which contains values of the form |just x| at index |k| and
+the value |nothing| at index |suc k|, and is empty elsewhere.
+
+We can solve this using a dependent Atkey construction as follows, where |f : A
+-> S| is the function that indicates the ending state for a given value |a : A|.
 \begin{code}
 data DepAtkey (A : Set)(f : A -> S) : S -> Set where
-  DepV : (a : A){s : S} -> (hip : s == f a) -> DepAtkey A f s
+  DepV : (a : A){s : S} -> (pf : s == f a) -> DepAtkey A f s
 \end{code}
 
-Now once we receive the value, we know what state we are in and do not have to
-handle that value in any other states.
+Consider the expression |m bindi \ { (DepV a refl) -> ? }|.  Matching on the
+|pf| argument lets us rewrite the type of the hole to |M B (f a)|.  It follows
+that a continuation to a term |m : M (DepAtkey A f) s| corresponds to a function
+|(a : A) -> M B (f a)|.
 
-Interestingly, this can also be expressed as a Kan extension:
+Interestingly, this type arises as the left Kan extension of the functor |const
+A : A -> Set| along |f : A -> S|, where |A| and |S| are seen as discrete
+categories.
+
+\section{Oracle Query Bounds}
+\label{sec:indexed-monads-bounds}
+
+Let us return to our motivating example.  We can define the |OracleExpr| type
+from above as follows:
 \begin{code}
-KanAtkey : (A : Set)(f : A -> S) -> S -> Set
-KanAtkey A f = Lan f (const A)
+data OracleExpr (A : Nat -> Set) : Nat -> Set where
+  Return      : A k                                    -> OracleExpr A k
+  Uniform     : ldots  -> (ldots  ->  OracleExpr A k)  -> OracleExpr A k
+  GetState    : ldots  -> (ldots  ->  OracleExpr A k)  -> OracleExpr A k
+  SetState    : ldots  -> (ldots  ->  OracleExpr A k)  -> OracleExpr A k
+  InitOracle  : ldots  -> (ldots  ->  OracleExpr A k)  -> OracleExpr A k
+  CallOracle  : ldots  -> (ldots  ->  OracleExpr A k)  -> OracleExpr A (suc k)
 \end{code}
 
-In words, this takes the left Kan extension of the |const A : A -> Set| functor
-along |f : A -> S|, giving a functor |S -> Set|.
-
-\section{Examples}
-
-We can use the index to track how many oracle queries the adversary can make by
-adding an index to the |CryptoExpr| type.  The resulting type becomes
+The definitions of fmap, bind, and return all proceed like their non-indexed
+counterparts.  However, the smart constructors need a change, since |Return| has
+the wrong type to be a continuation for the other constructors.  Instead, we use
+the Atkey construction:
 \begin{code}
-data CryptoExpr : (Nat -> Set) -> (Nat -> Set) where
-  Return       : a k                                                 -> CryptoExpr a k
-  Uniform      : (n : Nat)    -> (BitVec n      ->  CryptoExpr a k)  -> CryptoExpr a k
-  GetAdvState  :              -> (AdvState      ->  CryptoExpr a k)  -> CryptoExpr a k
-  SetAdvState  : AdvState     ->                    CryptoExpr a k   -> CryptoExpr a k
-  InitOracle   : OracleState  ->                    CryptoExpr a k   -> CryptoExpr a k
-  CallOracle   : OracleArg    -> (OracleResult  ->  CryptoExpr a k)  -> CryptoExpr a (suc k)
+uniform : Nat -> OracleExpr (Atkey Nat k) k
+uniform n = Uniform n \ v -> Return (V v)
 \end{code}
 
-We can remark here that since |k| can only shrink, we can make a stronger
-operator than |bindi|, namely one which only has to handle cases where the
-number of allowed queries is less than or equal to the previous.  As per the
-Intrinsically-Typed Interpreters paper, this should correspond to a strictening
-of the functors that |CryptoExpr| accepts.  (I am still not quite sure how the
-category structure gives rise to this.)
+The other smart constructors are similar, except that |callOracle| has type
+|OracleArg -> OracleExpr (Atkey OracleResult k) (suc k)| to indicate that it
+uses up one call to the oracle.
 
-Another example is the indexed state monad: we can choose a universe and an
-evaluation function and then provide a monad (in fact, monad transformer) that
-stores a type and a value of that type.
+Effectively, we have now merged the call-counting portion of |BoundedOracleUse|
+from \autoref{sec:games-constraints} into the |OracleExpr| type.  One big
+benefit of this merge is that we retain this information under binding without
+having to separately manipulate a proof term.  We can also extend this system to
+track other properties, such as how many bits of randomness are necessary,
+whether the state has been accessed, and whether the oracle has been
+initialised.
 
-\section{Reindexing Morphisms}
+Unfortunately, this solution also has some considerable drawbacks.  While we
+\emph{can} keep track of many things in this way, we cannot easily choose to
+track some things and ignore others, and the increasing number of type
+parameters makes the code hard to read.  We will expand on what might be done
+about this in \autoref{sec:indexed-monads-future-work} and
+\autoref{chp:language}.
 
-Sometimes, we want to speak about maps between indexed monads with different
-index sets.  There are surprisingly many ways to do this, and it's probably
-worth mentioning at least the main ones.
+\section{Player State Types}
 
-\section{Other ideas}
+Indexed monads can play another role in the development of games.  Recall that
+we had to introduce separate notions of indistinguishability and
+result-indistinguishability, since the initial and final state of the game are
+not of interest to us when deciding who won.  This is rather unfortunate, as the
+logic of indistinguishability is far more straightforward.
 
-I think that indexed monads should be able to capture IND-CCA's requirement that
-the adversary not decrypt the ciphertext it is given by the challenger.  This
-would be an interesting illustration, since this seems to be tracked dynamically
-otherwise.
+Using indexed monads we can avoid this problem by allowing the players to modify
+the type of their state during execution.  This allows us to specify that a game
+starts and ends with state type |top|, making the notions of
+indistinguishability and result-indistinguishability coincide.  Within it, the
+adversary may switch to a different type of state to store whatever information
+it needs, as long as it sets the type back to |top| when it is done.
+
+We would like to define |CryptoExpr| as follows:
+\begin{code}
+data CryptoExpr : (Set -> Set) -> Set -> Set where
+  Return   : A s                                          -> CryptoExpr A s
+  Uniform  : (n : Nat)  ->  (BitVec n -> CryptoExpr A s)  -> CryptoExpr A s
+  GetState :                (s -> CryptoExpr A s)         -> CryptoExpr A s
+  SetState : s'         ->  (top -> CryptoExpr A s')      -> CryptoExpr A s
+\end{code}
+
+Unfortunately, this definition does not type-check: the |Return| constructor is
+polymorphic in |s : Set|, and so |CryptoExpr A s| has type |Set1|, not |Set|.
+This problem can be remedied by giving |CryptoExpr| the type |(Set -> Set1) ->
+Set -> Set1|, but this is very impractical.  For one, since Agda does not have
+universe cumulativity, such an approach requires our Atkey constructions to
+\emph{also} be in |Set1| (or universe-polymorphic), and the code quickly becomes
+unmaintainable.
+
+A more manageable solution is to define a universe |U| and an evaluation
+function |eval : U -> Set|, and let |CryptoExpr| be a |U|-indexed monad.  This
+has the added benefit of letting us impose constraints on state types by our
+choice of |U|: for example, we can ensure that all state types have decidable
+equality.
+
+A natural question to ask is whether the state monad transformer we used in
+order to define the list interpretation can be generalised to this context.
+This is indeed the case: although it has the same universe size issues as
+|CryptoExpr|, fixing an |S|-indexed monad |M|, some custom universe |U|, and a
+function |eval : U -> Set| we can define:
+\begin{code}
+IxStateT : (U * S -> Set) -> U * S -> Set
+IxStateT A (u , s) = eval u -> M (\ s' -> Sigma U \ u' -> eval u' * A (u' , s')) s
+\end{code}
+
+This code can be a little confusing due to the overloaded meaning of `state': on
+the one hand, it refers to the pair |u , s| that we have on the type level, and
+on the other to the values of type |eval u| that we pass around on the value
+level.  To disambiguate, we will refer to the former as the `index' and to the
+latter as the `message'.
+
+The definition of |IxStateT| can then be expressed as follows: a term of
+|IxStateT A (u , s)| is a function that takes a message of type |u| and returns
+a monadic action in |M| at index |s| which has, as result value at index |s'|, a
+new message type |u'|, a message of that type, and a value of type |A (u' ,
+s')|.  If you squint, this resembles the type |U -> M (U , A)| of a non-indexed
+state monad transformer.
+
+The definition of |modify| is less complicated and makes it clear why this
+approach works:
+\begin{code}
+modify : (eval u -> eval u') -> IxStateT (Atkey (eval u') (u' , s)) (u , s)
+modify f v = return (u' , fv , V fv))
+  where fv = f v
+\end{code}
+
+Here, |v| is the message.  We apply the function |f| to it, and then store the
+new message type, the new message, and give as result the new message wrapped in
+an Atkey.  The definitions of |get| and |set| can, fortunately, be derived from
+this, and the definitions of bind and return are straightforward.
+
+\todo{conclusion?}
+
+\section{Future Work}
+\label{sec:indexed-monads-future-work}
+
+Indexed monads are a very powerful tool, but their verbosity and lack of
+modularity makes them unappealing to use directly.  In
+\autoref{sec:indexed-monads-bounds} we have seen how they can be used to
+restrict what games we consider well-formed.  If we have two such constraints,
+we have no way to express them separately and then enable one or both depending
+on our present needs.  It would be interesting to see whether such a system
+could be developed.  This could also lead to a more concise formulation of what
+effect a monadic action has on the index.
+
+Also in the oracle example, we glossed over the fact that the number of
+permitted calls to the oracle does not ever increase.  As such, given an |m :
+OracleExpr A k| we only need an |f : A i -> OracleExpr A i| that works for $i
+\le k$, not one that works for every $i$.  This is explored by Visser \textit{et
+al.}~\cite{definterp}, and appears to rely on a categorical structure on the
+index set.  Expressing the conditions and resulting definition of bind
+explicitly could be of interest.
+
+\todo{Maybe add IND-CCA idea?}

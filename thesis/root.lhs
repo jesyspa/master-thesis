@@ -18,6 +18,9 @@
 \newcommand{\abs}[1]{\left|| #1 \right||}
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 
+\DeclareMathOperator{\PreMGL}{\mathbf{Pre-MGL}}
+\DeclareMathOperator{\MGL}{\mathbf{MGL}}
+
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{corollary}[theorem]{Corollary}
