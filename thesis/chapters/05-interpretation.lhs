@@ -84,14 +84,17 @@ $\PreMGL$~\cite{maclane}.
 
 \section{List Model}
 
+\todo{Clarify how incomplete things are.}
 Let us now regard a specific model based on the |Dist|
 monad~\cite{probfunproghaskell}, in which we can compute whether two games over
 a finite type |A| are $\epsilon$-indistinguishable.  This material has not been
 fully worked out in Agda, but the claims we make pertain to finite objects
 (lists of rational numbers) and, as such, can be shown to hold constructively.
 Furthermore, the construction relies in several places on equality being
-decidable.  For now, we will assume that all types involved have decidable
-equality, and analyse this assumption at the end of this section.
+decidable.  This is a serious issue.  However, we think that the results we
+present here are worth stating despite this. For now, we will assume that all
+types involved have decidable equality, and analyse this assumption at the end
+of this section.
 
 We represent a probability distribution over a type |A| as a list of pairs of
 elements of |A| and their corresponding probabilities.  Our two basic
@@ -116,6 +119,26 @@ times) List| monad.  We use the latter in our implementation, as it allows for
 better separation of concerns; in particular, the monad laws for |Dist| follow
 from the monad laws for |Writer| and |List|.  However, the difference is
 insignificant to us here, and the direct presentation is clearer.
+
+There is a slight complication that we need to address here.  We require that an
+$\epsilon$-relation on $A$ identify every two elements of $A$ at $\epsilon = 1$.
+We would like to define the $\epsilon$-indistinguishability relation on
+distributions with the help of a distance function, much as we did in
+\autoref{sec:proofs-dists}.  However, this definition fails if we allow
+`distributions' with negative elements, or `distributions' that sum to more than
+1.
+
+In order to deal with this problem properly, we would need to have every
+distribution carry around a proof of its validity.  However, this is very
+inconvenient from a programming perspective: these proofs must be maintained at
+all times, which makes it inconvenient to perform recursion on the list
+structure.  As such, it is more convenient to instead make a separate type
+|ValidDist xs| that represents a proof that |xs| is a valid distribution.  We
+can then show that validity is preserved by bind.  Our implementation lacks this
+feature, but as we will see, the reliance on these assumptions is minor.
+
+For the purposes of this section, we will continue to work with the |Dist| monad
+but assume that any distribution |xs| has a corresponding |ValidDist xs| proof.
 
 The concrete nature of |Dist| allows us to provide two further operations that
 are not supported by |CryptoExpr ST|: computing the support of a distribution
@@ -166,15 +189,65 @@ transformer, |coin| lifts into it, and we use the usual |getState| and
 \autoref{chp:command-structures}, specifying these there base operations extends
 to a unique monad morphism from |CryptoExpr ST| to |StateT ST Dist|.
 
-\todo{Define indistinguishability notions.}
+As above, we assume that given |g : StateT ST Dist A|, for any |st : ST|, |g st|
+is a valid probability distribution with a corresponding proof |ValidDist (g
+st)|.
 
-\todo{Discuss preservation of relations}
+We can now define a notion of distance between distributions.  We make use of a
+|union| function that merges two lists and removes duplicates.
+\begin{code}
+distance : (xs ys : Dist A) -> Q
+distance xs ys = times (1/2) (sum (map (\ a -> sample xs a - sample ys
+a) sup))
+  where sup = union (support xs) (support ys)
+\end{code}
 
-\todo{Discuss `everything has decidable equality'}
+We say that |g1 ~~eE g2| iff for every |st : ST|, |distance (g1 st) (g2 st) <=
+epsilon|.
+
+\begin{theorem}
+  |~~eE| is an $\epsilon$-relation.
+\end{theorem}
+
+\begin{proof}
+  TODO: Sketch
+\end{proof}
+
+We say that |g1 ~~eR g2| iff |distance (fst dollar g1 st) (fst dollar g2 st) <=
+epsilon|.
+
+\begin{theorem}
+  |~~eR| is an $\epsilon$-relation.
+\end{theorem}
+
+\begin{proof}
+  TODO: Sketch
+\end{proof}
+
+\todo[inline]{Discuss preservation of relations}
+
+Throughout this section, we have assumed that every type has decidable equality.
+This is, of course, not the case.  It is not clear how we can best deal with
+this.  The following trick allows us to nevertheless define the |~~eE| and
+|~~eR| relations: for |g1| and |g2| in |StateT ST Dist A|, we say that |g1 ~~eE
+g2| iff for every |st : ST| \emph{and every proof that |A| has decidable
+equality}, |distance (g1 st) (g2 st) <= epsilon|.  This is a type that behaves
+as our earlier definition for decidable |A|.  However, we cannot prove
+properties such as congruence under |fmap| if indistinguishability is defined
+this way.
+
+Another option is to only define indistinguishability for result types that have
+decidable equality.  This, however, means that this is no longer a model of game
+logic.
+
+Yet another option is to require finiteness of the state type and regard our
+|StateT ST Dist| functor as an endofunctor on the category of sets with
+decidable equality.  This requires the additional assumption of functional
+extensionality.  At present, this is the cleanest solution, but it is not clear
+whether all games we may want to express can be expressed this way.
 
 \section{Further Work}
 
-\todo{Describe more things}
 TODO: Finish off list model, develop continuation-passing model, explore
 possibility of other models, explore completeness properties.
 

@@ -149,6 +149,10 @@ and that is weakenable.
 Functorial version: closed under fmap?
 Monadic version: closed under bind?
 
+\begin{theorem}
+    The norm defined above gives rise to an $\epsilon$-relation.
+\end{theorem}
+
 \section{$\epsilon$-Indistinguishability}
 \label{sec:epsilon-indistinguishability}
 
