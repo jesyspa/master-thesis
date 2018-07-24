@@ -27,6 +27,21 @@ module _ {A} where
   _≡D_ : M A → M A → Set
   m₁ ≡D m₂ = ∀{{_ : Eq A}} st a → sample st a m₁ ≡ sample st a m₂
 
+  refl-≡D : {m : M A} → m ≡D m
+  refl-≡D st a = refl
+
+  sym-≡D : {m₁ m₂ : M A} → m₁ ≡D m₂ → m₂ ≡D m₁
+  sym-≡D pf st a rewrite pf st a = refl
+
+{- An issue:
+module _ {A B}(f : A → B) where
+  postulate
+    sample-fmap : ∀{{_ : Eq A}}{{_ : Eq B}} st a m → sample st a m ≡ sample st (f a) (fmap f m)
+  cong≡D-fmap : {m₁ m₂ : M A} → m₁ ≡D m₂ → fmap f m₁ ≡D fmap f m₂
+  cong≡D-fmap {m₁} {m₂} pf st a
+    rewrite sym $ sample-fmap st a m₁
+          | sym $ sample-fmap st a m₂ = {!!}
+-}
 {-
 record OracleImpl : Set₁ where
   field
