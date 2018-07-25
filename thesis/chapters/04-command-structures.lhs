@@ -1,18 +1,18 @@
 \chapter{Command Structures}
 \label{chp:command-structures}
 
-As we mentioned in \autoref{chp:games}, the definitions of |CryptoExpr| and
-|OracleExpr| are very similar and we don't want to write them (and all the
-associated instances) out explicitly.  Fortunately, we don't have to!  In this
-chapter we'll show how we can generate monads for representing expressions based
-on the set of operations that these monads should support.
+In \autoref{chp:games},  we saw the definitions of |CryptoExpr| and
+|OracleExpr| and their corresponding functor and monad instances, and remarked
+that they contain considerable duplication.   In this chapter we will look at
+how the free monad construction can be performed in a parametrised way, allowing
+us to automatically generate these types and functions over them by specifying
+the operations that we want them to support.
 
-This chapter may be of interest for the practical implementation of a language
-for reasoning about games, but is of no great interest theoretically.  The
-notions presented are not new; they can be found in (TURING COMPLETENESS TOTALLY
-FREE).  The purpose of this chapter is to serve as a prelude and motivation for
-\autoref{chp:interaction-structures}, where we will study a more general version
-of this construction.
+This chapter is primarily of interest as a guide to the accompanying code.  The
+ideas presented are not new; they are laid out by McBride~\cite{tctotallyfree}.
+We wish to nevertheless present these constructions in some depth, as this
+serves as a good introduction to the more general case we will consider in
+\autoref{chp:interaction-structures}.
 
 \section{Definition}
 
@@ -41,20 +41,22 @@ record CmdMorphism (C1 C2 : CmdStruct) : Set where
     ResponseF  : Response C2 (CommandF c) -> Response C1 c
 \end{code}
 
-This gives rise to a category of command structures, so we can study its
-categorical structure.  This category turns out to have products and
-coproducts over families indexed by a decidable set.  In practice, we only care
-about the finite case.
+This gives rise to a category of command structures and simulations between
+them.  Given a type |A| with decidable equality and an |A|-indexed family of
+command structures |C|, there is a product and coproduct command structure given
+as follows:
 \begin{code}
 Product and coproduct placeholder
-Question: general or nullary + binary?
 \end{code}
 
-The products and coproducts can be intuitively interpreted as follows: a command
-in the product specifies a command for each component of the product, but only
-one is executed, and its response is returned.  The command of a coproduct is a
-command for one of the components, and it is always executed and gives its
-response.
+These constructions correspond to the notions of angelic and demonic
+choice~\cite{indexedmonads}.   A command in the product consists of a command for
+each component, and the corresponding response is a response to one of the
+commands given.  A command in the coproduct, on the other hand, is a choice of
+a command in one component, and the response is the response to that command.
+If the index set is empty, the product (that is, the terminal object) has a
+trivial command that gives no response, while the coproduct (the initial object)
+has no commands.
 
 \section{Free Monads}
 
@@ -67,7 +69,8 @@ data FreeMonad : Set -> Set where
   InvokeFM : (c : Command C) -> (Response c -> FreeMonad A) -> FreeMonad A
 \end{code}
 
-We can fold over these free monads in a uniform way:
+The usual catamorphism construction~\cite{cataana} gives us a uniform way to
+operate on these values:
 \begin{code}
 CommandAlgebra : Set -> Set
 CommandAlgebra R = (c : Command C) -> (Response c -> R) -> R
@@ -78,7 +81,7 @@ foldalgebra alg f (InvokeFM c cont)  = alg c (\ r -> foldalgebra alg f (cont r))
 \end{code}
 
 Note that we can regard |InvokeFM| as an algebra with result |FreeMonad R|.  We
-will denote this algebra by |id-Alg|.  The instances for functor, applicative,
+will denote this algebra by |idAlg|.  The instances for functor, applicative,
 and monad now follow immediately:
 \begin{code}
 fmapFM : (A -> B) -> FreeMonad A -> FreeMonad B
@@ -91,11 +94,8 @@ bindFM : FreeMonad A -> (A -> FreeMonad B) -> FreeMonad B
 bindFM m f = foldalgebra idAlg f m
 \end{code}
 
-Much of this can be found in McBride's paper Turing-Completeness Totally Free.
-A funny thing he mentions there is that this next transformation follows by the
-Yoneda lemma.  Of course it does.
-We can also fold over the structure in a different way, using the monadic
-structure:
+If the result we are building has monadic structure, then we can express our
+algebra in a more concise way:
 \begin{code}
 MonadicCommandAlgebra : (Set -> Set) -> Set
 MonadicCommandAlgebra M = (c : Command) -> M (Response c)
@@ -127,6 +127,111 @@ fmapCSMAlg m c = InvokeFM (CommandF m c) \ r -> ReturnFM (ResponseF m r)
 fmapCSFM : CmdMorphism C1 C2 -> FreeMonad C1 A -> FreeMonad C2 A
 fmapCSFM m = foldmonadicalgebra C1 (fmapCSMAlg m)
 \end{code}
+
+There is a certain similarity between the types |CmdMorphism C1 C2| and
+|MonadicCommandAlgebra C1 (FreeMonad C2)|.  The former is a way of simulating
+|C1| by |C2|, where every command in |C1| maps to exactly one command in |C2|.
+The latter can also be seen as a kind of simulation, but every command in |C1|
+is interpreted as a sequence of commands in |C2|.  We will refer to this as an
+implementation of |C1| in terms of |C2|:
+\begin{code}
+Interpretation : (C1 C2 : CmdStruct) -> Set
+Interpretation C1 C2 = MonadicCommandAlgebra C1 (FreeMonad C2)
+\end{code}
+
+We can show within Agda that interpretations enjoy many of the same properties
+that simulations do: they give rise to another category on command structures.
+Furthermore, given an interpretation of |C1| in |C2| and of |D1| in |D2|, we can
+combine them to obtain an interpretation of the (co)product of |C1| and |D1| in
+the (co)product of |C2| and |D2|.  These properties will play a crucial role in
+the further development.
+
+\section{Example: Games}
+
+Let us now consider how we can express our constructions from
+\autoref{chp:games} in this manner.  We will start by taking a simplistic
+but straightforward approach, and then refine it to allow for greater
+flexibility.  To begin, we can define the type of commands a |CryptoExpr|
+supports, and the corresponding responses, to get the |CryptoExpr| monad:
+\begin{code}
+data CryptoCmd : Set where
+  Uniform   : Nat  ->  CryptoCmd
+  GetState  :          CryptoCmd
+  SetState  : ST   ->  CryptoCmd
+
+CryptoCS : CmdStruct
+Command   CryptoCS = CryptoCmd
+Response  CryptoCS (Uniform n)   = BitVec n
+Response  CryptoCS GetState      = ST
+Response  CryptoCS (SetState _)  = top
+
+CryptoExpr : Set -> Set
+CryptoExpr = FreeMonad CryptoCS
+\end{code}
+
+Defined this way, we get the functor and monad instances of |CryptoExpr| for
+free.
+
+We can reuse |CryptoCS| to define |OracleExpr|.  Since an operation in
+|OracleExpr| is either an oracle-specific operation or one of the operations
+from |CryptoExpr|, we can define the command structure for oracles as a
+coproduct:
+\begin{code}
+data OracleCmd : Set where
+  OracleInit  : OracleState  -> OracleCmd
+  OracleCall  : OracleArg    -> OracleCmd
+
+OracleBaseCS : CmdStruct
+Command   OracleBaseCS = OracleCmd
+Response  OracleBaseCS (OracleInit _)  = OracleResult
+Response  OracleBaseCS (OracleCall _)  = top
+
+OracleCS : CmdStruct
+OracleCS = CryptoCS +CS OracleBaseCS
+
+OracleExpr : Set -> Set
+OracleExpr = FreeMonad OracleCS
+\end{code}
+
+This allows us to express computations that make use of an oracle.  But in fact,
+this definition tells us more: it also specifies that to implement an oracle in
+the base language, we must provide an |Implementation OracleBaseCS CryptoCS|.
+This plays the role of the |Oracle| type from \autoref{chp:games-oracles}.
+
+For the sake of uniformity, we can also regard a game as a whole as an
+implementation of a particularly simple command structure in terms of
+|OracleCS|:
+\begin{code}
+GameCS : CmdStruct
+Command   GameCS = top
+Response  GameCS tt = Bool
+\end{code}
+
+Given an implementation of |GameCS| in terms of |OracleCS| and an implementation
+of |BaseOracleCS| in terms of |CryptoCS|, we can use the fact that
+implementations can be combined over coproducts to obtain an implementation of
+|GameCS| in terms of the coproduct of |CryptoCS| with itself.  Since this is a
+coproduct, we can take the codiagonal map, giving us an implementation of
+|GameCS| in terms of |CryptoCS|, as desired.
+
+There is a problem with this approach, namely in the usage of state.  In
+\autoref{chp:games-oracles}, we had allowed for two state types, |AST| and |OST|,
+for the adversary and oracle state respectively.  However, here we have used the
+same type |ST|, and the composite implementation of |GameCS| in terms of
+|CryptoCS| proposed above would merge the operations.  This is not the expected
+behaviour.
+
+We can rectify this by parametrising |CryptoCS| by the type, and then showing
+that there is an implementation of |CryptoCS AST +CS CryptoCS OST| in terms of
+|CryptoCS (AST * OST)|.  With this change in place, the composition of
+implementations corresponds to the |eval| function defined in
+\autoref{chp:games-oracles}.  However, unlike in the earlier development, we
+have been left with no ad-hoc choices once we specified what the permitted
+commands were.  We could use this technique to add further players, for example
+to specify the adversary as a player explicitly, or to modify the oracle
+interface, and the effects of these changes would be propagated automatically.
+
+
 
 \section{The Right Adjoint}
 
