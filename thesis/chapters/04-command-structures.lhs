@@ -135,14 +135,14 @@ The latter can also be seen as a kind of simulation, but every command in |C1|
 is interpreted as a sequence of commands in |C2|.  We will refer to this as an
 implementation of |C1| in terms of |C2|:
 \begin{code}
-Interpretation : (C1 C2 : CmdStruct) -> Set
-Interpretation C1 C2 = MonadicCommandAlgebra C1 (FreeMonad C2)
+Implementation : (C1 C2 : CmdStruct) -> Set
+Implementation C1 C2 = MonadicCommandAlgebra C1 (FreeMonad C2)
 \end{code}
 
-We can show within Agda that interpretations enjoy many of the same properties
+We can show within Agda that implementations enjoy many of the same properties
 that simulations do: they give rise to another category on command structures.
-Furthermore, given an interpretation of |C1| in |C2| and of |D1| in |D2|, we can
-combine them to obtain an interpretation of the (co)product of |C1| and |D1| in
+Furthermore, given an implementation of |C1| in |C2| and of |D1| in |D2|, we can
+combine them to obtain an implementation of the (co)product of |C1| and |D1| in
 the (co)product of |C2| and |D2|.  These properties will play a crucial role in
 the further development.
 
@@ -232,7 +232,6 @@ to specify the adversary as a player explicitly, or to modify the oracle
 interface, and the effects of these changes would be propagated automatically.
 
 
-
 \section{The Right Adjoint}
 
 This is a technical section with little bearing on the rest of the text.  For
@@ -269,17 +268,16 @@ Now that we know that the (abstract) morphisms |FreeMonad C A -> M A| correspond
 to simulations of |C| by |Forget M|, we can, if we want, work mostly with the
 latter.  Pity they need type in type.
 
-\section{Interpretation}
+\section{Multiplayer Systems}
 
-TODO: This section is still a very condensed version of what it should be; I
-need to write out what an interpretation is and what a telescope looks like.
+In the example above, we have seen how we can express the computations of the
+challenger, adversary, and oracle as implementations of their command structures
+in terms of a base language, augmented with the interfaces of the others.  We
+will now generalis this situation to an arbitrary $N$-player system, where
+the player at index $i$ can use the interface of the player at index $j$ iff $i <
+j$.
 
-We will now define directly what it means for a command structure to interpret
-another command structure.  TODO: Write this out formally: the idea is that we
-have a |MonadicCommandAlgebra| in that structure's free monad.  Semantically,
-this means that we can simulate the first command structure with sequences of
-commands from the second.  This is exactly what we want when we say we express
-some interface in terms of some basic language.
+TODO: Describe things properly.
 
 Note that the coproduct here gives us a nice way of talking about two interfaces
 together.  This means that we specify what operations each player can perform
@@ -301,32 +299,6 @@ coproduct of all $B_i$ in terms of some base language $C$.
     of it.
 \end{theorem}
 
-Unfortunately, this formulation quickly becomes verbose when expressed in Agda.
+\section{Future Work}
 
-\section{Proofs of Indistinguishability}
-
-TODO: Here we speak of a relation, but really we want to focus on relations
-indexed by non-negative rationals.
-
-In \autoref{chp:proofs} we have seen that although we can define a notion of
-$\epsilon$-indistinguishability on games, the extension of this notion to games
-with oracles involves considerable work and is specific to the signature of the
-oracle involved.  In this section, we will amend this by expressing how a
-relation on the free monad over some command structure |C| can be extended to a
-relation over a telescope with result |C|.
-
-Fix a sequence of interfaces |A| and a sequence of implementation languages |B|.
-We will denote the coproduct of such a sequence by |Sum A|.  Since we have an
-implementation of |Sum B| in |C|, we have a free monad map |f| from |FreeMonad (Sum
-B)| to |FreeMonad C|.  We extend our relation by saying |a| and |b| in
-|FreeMonad (Sum B)| are related if their interpretations |f a| and |f b| are
-related.
-
-KEY IDEA: Define an indistinguishability relation on implementations into |C|.
-
-The head case is easy: if two heads are related and the tails are equal, then
-the telescopes are related.  The case where the heads are identical but the
-tails are not is harder, since we need to take into account that the head
-implementation may use the tail implementation multiple times.
-
-
+Generalise an $\epsilon$-relation on a base language to work on telescopes.

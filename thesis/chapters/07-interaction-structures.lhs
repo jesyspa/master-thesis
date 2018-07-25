@@ -1,24 +1,21 @@
 \chapter{Interaction Structures}
 \label{chp:interaction-structures}
 
-In previous chapters, we have expressed both challenger and adversary in the
-same basic instruction set, and then expressed the oracle separately (since it
-required instructions we could not afford to allow to the adversary).  This was
-not ideal: the challenger had access to instructions that are only for the
-adversary's use, and the difference in the way the adversary and oracle were
-specified made it harder to reason about indistinguishability.
+In \autoref{chp:command-structures}, we have seen that the free monads we used
+for expressing our games can be generated from a command structure.  In the
+presence of indexed monads, however, command structures are no longer
+sufficient: the command-response specification they provide cannot express the
+indexing constraints that we would like.  In this chapter, we will show how
+interaction structures~\cite{istructures, freemonads} can be used to provide a
+similar construction in the indexed case.
 
-The problem arises from requiring that every player be expressed in terms of the
-same instruction set.  However, defining a new instruction set for every player
-duplicates a lot of code: the functor and monad instances have to be replicated,
-as well as the evaluation function.  We thus want a way of generating a monad
-like |CryptoExpr| given a set of instructions that it must support.
-
-We achieve this by defining a category of interaction structures and then a
-functor from that into the category of indexed morphisms.  Now that I think
-about it, I'm pretty sure there should be some kind of functor in the other
-direction that's right adjoint to this functor.  This is totally useless but
-fun.
+We will focus our presentation on the differences between the two approaches.
+The primary issue is that interaction structures do not typically have
+coproducts, which were an essential part of our earlier construction.  We can
+work around this issue by defining a different way of combining interaction
+structures and use it to build the same kind of telescopes. Unfortunately, while
+the results are comparable to those of command structures in theory, the
+resulting code is too verbose to be of practical use.
 
 \section{Definition}
 
