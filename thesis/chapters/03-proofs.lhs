@@ -621,35 +621,7 @@ result-indistinguishability.
 
 TODO: Insertion of oracle calls result-indistinguishable, $\epsilon$-canonical form, $(\epsilon, st)$-canonical form.
 
-
-\section{Identical Until Bad}
-
-This is something I still need to work on.  Given two games and some predicate
-on their outcome (on the state?), and a proof that they give identical results
-if the bad thing doesn't happen, we can prove that their difference is bounded
-by the probability of the bad event.
-
-Problems and questions:
-\begin{itemize}
-    \item Even if we can prove this, the number of claims the user must show is
-    pretty large.  In particular, it seems very hard to argue that the games are
-    identical without the bad event; ``bad even didn't happen'' just isn't a
-    very strong assumption to work with.
-    \item We need a completely different argument here if the oracle changes
-    rather than if the game changes.  Really, this becomes a new principle in
-    this setting.  Pity.
-    \item We could add an extra |MaybeT| on top of everything and add an |Abort|
-    command to bail out.  We can then compute the probability\ldots I guess?
-    But is the adversary allowed to abort, or is it the special power of the
-    oracle?  It seems like certain bad events (e.g. the adversary breaking the hash
-    function) are modelled this way but not explicitly detectable.
-    \item Suppose we've avoided all the above.  What would a proof look like?  I
-    guess we can argue that certain states are equivalent, so the differences in
-    probability are all focused in the area which we have already bounded?
-\end{itemize}
-
-\section{Security Assumptions, Polynomial Adversaries, and Asymptotic
-    Indistinguishability}
+\section{Generalised Security}
 \label{sec:security-assumptions}
 \label{sec:asymptotic-indistinguishability}
 
@@ -723,8 +695,35 @@ $0$ as $n$ goes to infinity.  The value $n$ is typically called the
 \emph{security parameter}.  This approach allows us to show within Agda that |G|
 and |H| are harder to distinguish at higher security levels.
 
-\section{Example: PRF, Formalised}
+\section{Future Work}
 
-It is enlightening (?) to see how the above steps can be used to show that the
-game described can be formalised.
+In this chapter, we have specified the foundations of a theory of
+indistinguishability of games.  An important further step is to develop a
+collection of lemmas based on this theory that can act as rewrite rules for
+games.  Bellare and Rogaway~\cite{codebasedgames} have identified a number of
+techniques that are commonly used in cryptographical proofs, and a formalisation
+of these would greatly improve the practical value of this theory.
+
+In particular, the `identical until bad' technique~\cite{gameexamples} tells us
+that if two games |X| and |Y| are identical unless some bad event |F| happens
+and |F| has probability $\epsilon$, then |X| and |Y| are in fact
+$\epsilon$-indistiindistinguishable.  For example, two games may be
+indistinguishable unless two uses of |uniform n| result in the same bitstring,
+or if the adversary can find a string that causes a hash collision.  This 
+technique is very useful, but it is hard to formalise in our context: we may not
+be able to tell from the final state of the game whether the bad event happened.
+As such, we need to show that the game is result-indistinguishable from one
+that adds additional instrumentation to track the bad event, and then use the
+data provided by this instrumentation to reason that the games can only differ
+in a minority of cases.  This is hard to do even in concrete scenarios, and a
+general solution would be useful for formalising existing proofs.
+
+We have also been unable to develop the equational theory with oracles to the
+same point as the theory without them.  There does not appear any fundamental
+reason we could not find comparable results for canonical forms.  However, these
+developments may be better done in the context of \autoref{sec:cs-multiplayer},
+where we perform a further generalisation of oracles.  The need to reason about
+both indistinguishability and result-indistinguishability also makes the system
+more complex than it may need to be; we discuss how this can be tackled in
+\autoref{sec:is-player-state-type}.
 

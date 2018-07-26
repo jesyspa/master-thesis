@@ -246,7 +246,7 @@ decidable equality.  This requires the additional assumption of functional
 extensionality.  At present, this is the cleanest solution, but it is not clear
 whether all games we may want to express can be expressed this way.
 
-\section{Further Work}
+\section{Future Work}
 
 TODO: Finish off list model, develop continuation-passing model, explore
 possibility of other models, explore completeness properties.

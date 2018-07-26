@@ -269,6 +269,7 @@ to simulations of |C| by |Forget M|, we can, if we want, work mostly with the
 latter.  Pity they need type in type.
 
 \section{Multiplayer Systems}
+\label{sec:cs-multiplayer}
 
 In the example above, we have seen how we can express the computations of the
 challenger, adversary, and oracle as implementations of their command structures

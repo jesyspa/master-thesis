@@ -488,39 +488,3 @@ do so if we have shown that two games are $\epsilon$-indistinguishability,
 rather than if we have shown that a game is $\epsilon$-indistinguishable from a
 coin flip.
 
-\section{Example: Pseudo-Random Functions}
-\label{sec:intro-prf}
-
-Let us now consider an example that uses the notions we have introduced in this
-chapter.  We would like to show that given a family of pseudorandom functions,
-we can create a new family of pseudorandom functions with greater input length
-by using a suitable family of hash functions.  The proof is an adaptation of the
-proof given by Shoup in~\cite{gameexamples}.
-
-Let $S$ be a finite set, $i$ and $j$ be positive integers and let
-$\mathcal{F}$ be an $S$-indexed family of functions $F_s : \{0, 1\}^i \to \{0,
-1\}^j$.  Let $\Gamma_{i, j}$ be the set of all functions $\{0,
-1\}^i \to \{0, 1\}^j$.  We say the family $\mathcal{F}$ is pseudo-random
-if it is hard to distingiuish a function taken at random from $\mathcal{F}$ from
-a function taket at random from $\Gamma_{i, j}$.  Formally, this is
-expressed by saying that for some negligible $\epsilon$ and any adversary |A :
-(BitVec i -> BitVec j) -> Bool|, the following two games are
-$\epsilon$-indistinguishable:
-\begin{code}
-PRFpseudo = do
-  s <- random S
-  A (F s)
-
-PRFrandom = do
-do
-  f <- random Gammaij
-  A f
-\end{code}
-
-TODO:
-\begin{itemize}
-  \item Rewrite this to access the function as an oracle.
-  \item Define what a universal hash function is.
-  \item Express a way to track a variable number of items
-  \item Express a failure event step
-\end{itemize}

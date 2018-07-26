@@ -189,6 +189,7 @@ about this in \autoref{sec:indexed-monads-future-work} and
 \autoref{chp:language}.
 
 \section{Player State Types}
+\label{sec:im-player-state-types}
 
 Indexed monads can play another role in the development of games.  Recall that
 we had to introduce separate notions of indistinguishability and
