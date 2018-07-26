@@ -1,22 +1,110 @@
 \chapter{A Language for Cryptography}
 \label{chp:language}
 
-So, the stuff we describe in chapters 2-4 can nicely prove things about simple
-games, and the stuff we describe in chapters 5-6 can allow us to impose much
-more powerful constraints on games (and express more complex games), but all
-together they create a system where getting anything done involves writing a lot
-of code, most of it boilerplate.
+In the course of the last chapters, we have developed a way of representing
+cryptographic games as monadic action, developed an equational theory of
+indistinguishability between games, and shown how we can extend and simplify
+this with the help of indexed monads.  We have also seen that this construction
+can be done in a modular manner using command or interaction structures.  One
+question remains: what must be done to turn these developments into a practical
+system for reasoning about cryptography?
 
-In a sense, the problem is that our descriptions of games are not syntactic
-enough: the free monad lets us syntactically store what operations are
-performed, but they are still related by binds with arbitrary Agda code
-inbetween.  We want to work on the syntax tree of the game itself, and then
-things like bounds on the number of adversary calls can be written automatically
-for many cases.
+\section{Unfinished Work}
 
-So we either want to use reflection or we want to write a separate language and
-compile from that into the Agda system we describe.  In this chapter, I'd like
-to say some things about the design of such a language.
+There are a number of questions that fall within the scope of this thesis, but
+that have not been able to resolve due to time constraints.  We have already
+discussed them in greater depth at the end of the relevant chapters, but let us
+recap the key points.
 
-I don't actually know what things yet, but it's an interesting topic and I think
-it would be a fitting way to conclude the work.
+In \autoref{chp:proofs}, we defined the notions of an $\epsilon$-normal form and
+an $(\epsilon, st)$-normal form for |CryptoExpr|s.  However, we did not prove a
+similar result for |OracleExpr|s.  This is unfortunate, as many game-playing
+proofs rely on a transformation to this kind of normal form~\cite{gameexamples}.
+
+A planned topic for \autoref{chp:proofs} was the ``identical until bad'' proof
+technique~\cite{gameexamples}, which states that if games |X| and |Y| are
+different only in the case of a bad event |F| happening, then |X| and |Y| are
+$\epsilon$-indistinguishable, with $\epsilon$ being the probability of |F|.
+This is a very useful proof step, but we have not found a way to express it in
+Agda.  The problem is that the bad event |F| is often implicit in the game: for
+example, the event may be ``two calls to |uniform n| return the same bitstring''
+or ``the adversary finds a hash collision.''  Instrumenting the game code to
+state when |F| occurs can be a non-trivial problem even in concrete cases; a
+general solution would be of great value.
+
+In \autoref{chp:command-structures}, we developed the telescope construction and
+showed how we can systematically fold a telescope into a single game.  If an
+$\epsilon$-relation like indistinguishability was defined on this game, then
+this fold gave rise to an $\epsilon$-relation on the whole telescope.  However,
+this induced relation is inconvenient to work with: we would like to be able to
+express our indistinguishability proofs in terms of the telescopes themselves,
+and then show via a lemma that the indistinguishability of their folds follows.
+The difficulty lies in striking a balance between what can be shown and how much
+bookkeeping this requires.
+
+In \autoref{chp:interpretation}, we present a list-based model of game logic.
+We have constructed the carrier of this model in Agda, but we have not verified
+all of the properties we require of it.  The proofs involved are typically not
+hard conceptually, but require many steps to formulate in Agda.  This suggests
+that a proof system for arguments about lists may be an interesting project in
+its own right.
+
+Another important issue with this model is the treatment of types that lack
+decidable equality.  This issue is made particularly frustrating by the fact
+that in cryptography, our problem domain, every value we may want to discuss can
+be represented as a bitstring; as such, the question of types without decidable
+equality does not arise in practice.  Nevertheless, it is a blemish in our
+theory.
+
+The last issue worth mentioning is that our model theory is specified in the
+non-indexed case.  We see no fundamental obstacles to generalising the argument
+to the indexed case, but we have not done so ourselves.
+
+\section{Further Possibilities}
+
+The greatest obstacle in using the ideas we have presented is the verbosity.
+Even in the non-indexed case, expressing the indistinguishability of two games
+will typically involve multiple applications of the fact that
+indistinguishability is a congruence under bind.  In the indexed case, the
+situation is even worse, as the indices may also need to be explicitly
+specified.
+
+We expect that reflection could be used to tackle these issues.  Ulf Norell's
+\texttt{agda-prelude}\footnote{\url{https://github.com/UlfNorell/agda-prelude}}
+library features tactics: these allow the user to write |by pf|, where |pf| is
+some equality proof, and allow the library to find a proof of the type expected
+by the context.  A similar technique could be used for proofs of
+$\epsilon$-indistinguishability to automatically find the applications of
+congruence needed to prove a theorem.  The pinnacle of this approach would be to
+allow the user to invoke an external SMT solver.
+
+Reflection could also be used to take non-indexed descriptions of games and
+generate corresponding indexed versions.  This would free up the syntactic
+burden from the programmer, while retaining the extra safety.  However, it is
+not clear whether this can be done without considerable loss of expressive
+power.
+
+The use of command and interaction structures to simplify the defintion of games
+also induces some syntactic burden.  In particular, specifying telescopes and
+their folds is done in a style that is unfriendly to the user.  A language
+with dedicated syntactic constructs for defining telescopes could make the
+process significantly easier, while still benefiting from our abstract approach
+under the hood.
+
+Such a language would benefit from the development of appropriate tooling.  In
+our experiments in Agda, we found ourselves repeating the game we were operating
+on many times as we made minor changes to it.  These games could (at least
+partially) be generated automatically based on the rewrite rules we applied.
+However, we were unable to do this within Agda.  This is even more important in
+the indexed case, where we do not want to make the user write out every index,
+but do want to display this index if the user asks for it.
+
+\section{Conclusions}
+
+In this thesis, we have laid a foundation for a system for reasoning about
+cryptography.  There is still considerable engineering work required for the
+expression of most cryptographic proofs to be possible, but we consider this a
+successful proof of concept that shows the applicability of tools from
+functional and dependently typed programming to this problem domain.
+
+

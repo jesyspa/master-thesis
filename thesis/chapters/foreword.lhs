@@ -29,3 +29,10 @@ dstolfa (Freenode, Kan extension stuff).
 \begin{itemize}
   \item Implicit universal quantification.
 \end{itemize}
+
+\section*{A Note on Proofs}
+
+This thesis has for a large part been written in Agda.  Some proofs are a
+combination of Agda code and informal reasoning.  Some claims are partially
+formal and partially not.  We will remark about the difficulties when we
+consider this of interest.
