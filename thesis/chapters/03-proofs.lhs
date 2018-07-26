@@ -458,17 +458,10 @@ canonical form, which we call the $(\epsilon, st)$-canonical form.
 \end{proof}
 
 \begin{corollary}
-    Every game |ce : CryptoExpr ST Bool| is result-indistinguishable from a
-    Bernoulli distribution |Bp : CryptoExpr ST Bool| that returns true with
-    probability |p|.
+    For every game |ce : CryptoExpr ST Bool|, there is some probability |p| such
+    that |ce| is result-indistinguishable from the
+    Bernoulli distribution |Bp : CryptoExpr ST Bool| with parameter |p|.
 \end{corollary}
-
-\begin{proof}
-    TODO: Idea is to rewrite into normal form and then count when |f| is true.
-\end{proof}
-
-We conclude with a finiteness theorem that will make subsequent developments
-easier.
 
 \begin{theorem}
     \label{thm:finite-support}
@@ -482,29 +475,6 @@ easier.
         return (elem a (f st))
     \end{code}
 \end{theorem}
-
-\begin{proof}
-    We compute the list |f st| by recursion on |X|, tracking the current state.
-    On |uniform| calls, we enumerate all bitvectors and take the concatenation
-    of the lists.
-
-    TODO: How do we prove result-indistinguishability?
-\end{proof}
-
-SPECULATION: Result-indistinguishability is caused by ignoring the possibility
-of variations in the initial and final state.  As such, the map |preserve| that
-sends a game |G| to |getState >>= \ st -> G >>= \ a -> setState st >> return a|
-should in any case preserve the final state.  This suggests the following
-theorem:
-
-\begin{theorem}
-    If games |G| and |H| are $(\epsilon, st)$-indistinguishable for every |st|,
-    then |preserve G| and |preserve H| are $\epsilon$-indistinguishable.
-\end{theorem}
-
-\begin{proof}
-    TODO: I have no clue how this could be proved.
-\end{proof}
 
 \section{Indistinguishability with Oracles}
 
@@ -599,27 +569,14 @@ these games.
     setting, and follows directly from that theorem.
 \end{proof}
 
-Let us now briefly discuss the $(\epsilon, st)$-canonical form we wish to find.
-We will assume that the oracle is initialised exactly once, and all accesses are
-performed after the initialisation: this is the typical form games will have,
-and this assumption makes the results much more syntactically pleasing.  We will
-discuss the more general case in \autoref{chp:command-structures}.
-
-Given this, we expect the normal form to be of the following form: a |uniform|
-call to generate |n| random bits, followed by a single initialisation of the
-oracle, followed by exactly |k| queries to the oracle, where each next call may
-depend on those before it, terminating in a |return|.  Note that no |getState|
-or |setState| calls (outside the oracle implementation) are necessary, since we
-are looking at the game up to result-indistinguishability.
-
-It remains to formalise this notion in Agda and prove
-result-indistinguishability.
-
-\begin{theorem}
-    
-\end{theorem}
-
-TODO: Insertion of oracle calls result-indistinguishable, $\epsilon$-canonical form, $(\epsilon, st)$-canonical form.
+We conjecture that the canonical form results we obtained earlier can be
+generalised to the oracle case.  Unfortunately, these results are much harder to
+state than the non-oracle equivalents, since we must allow for the alternation
+of an arbitrary number of |OracleInit| and |OracleCall| operations.  In
+practice, we will usually wish to assume the order is specified by some proof
+term such as |BoundedOracleUse| from \autoref{sec:games-constraints}.  Given
+such a proof term, we expect to be able to compute the canonical form.  However,
+due to time constraints we have not been able to show this in Agda.
 
 \section{Generalised Security}
 \label{sec:security-assumptions}
@@ -718,12 +675,25 @@ data provided by this instrumentation to reason that the games can only differ
 in a minority of cases.  This is hard to do even in concrete scenarios, and a
 general solution would be useful for formalising existing proofs.
 
+\todo{inline}{Bernoulli?}
+
 We have also been unable to develop the equational theory with oracles to the
 same point as the theory without them.  There does not appear any fundamental
 reason we could not find comparable results for canonical forms.  However, these
 developments may be better done in the context of \autoref{sec:cs-multiplayer},
-where we perform a further generalisation of oracles.  The need to reason about
-both indistinguishability and result-indistinguishability also makes the system
-more complex than it may need to be; we discuss how this can be tackled in
-\autoref{sec:is-player-state-type}.
+where we perform a further generalisation of oracles.
 
+The distinction between indistinguishability and result-indistinguishability
+is a considerable source of complexity throughout this chapter.  We have not
+thoroughly studied the connection between the two: we conjecture that we can
+recover indistinguishability from result-indistinguishability by defining a
+|preserve| map that sends a game |X| to |getState >>= \ st -> X >>= \ a ->
+setState st >> return a| and arguing that if games |X| and |Y| are
+result-indistinguishable, then |preserve X| and |preserve Y| are
+indistinguishable.  However, even this is not very satisfactory, and we explore
+a better approach in \autoref{sec:im-player-state-types}.
+
+Finally, not all conseuences of the point-free presentation of
+indistinguishability we have given here are clear to us.  In particular, we
+may wish to work with the support of a distribution, and we do not yet know how
+this can be expressed in this system.
