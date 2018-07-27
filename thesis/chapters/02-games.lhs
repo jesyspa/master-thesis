@@ -121,7 +121,7 @@ INDEAV adv = do
 \todo{Some kind of conclusion here?}
 
 \section{Representing Oracles}
-\label{chp:games-oracles}
+\label{sec:games-oracles}
 
 For the purposes of this chapter, we will consider oracles that support two
 operations: they can be initialised using some value of type |OracleInit|, and

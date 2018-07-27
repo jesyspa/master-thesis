@@ -1,5 +1,6 @@
 \chapter{Introduction}
 \label{chp:introduction}
+%{
 
 Cryptography plays an essential role in the modern world: we trust that
 cryptographic primitives will prevent unauthorised access to our data, securing
@@ -39,51 +40,71 @@ features a proof system must have in order to be useful.
 \section{Motivation for Games}
 \label{sec:games-motivation}
 
-\todo[inline]{Clean up}
-In cryptography, we often wish to prove that a certain function does not exist.
-The prototypical example is when we want to show an encryption scheme is secure:
-we want to show that no function exists that (with high probability) correctly
-decrypts messages without knowledge of the key.
+In cryptography, we often wish to prove that no program can distinguish between
+two or more possibilities.  The standard example we will use is that a good
+encryption scheme should not allow an attacker to tell what message had been
+encrypted, even if the set of possible messages is very small.
 
-Questions of this form can be rephrased as games between a challenger and an
-adversary: in this case, the adversary chooses two messages, the challenger
-encrypts one, and the adversary must identify which of the messages was
-encrypted.  The adversary wins if he guesses correctly.  How much better the
-adversary can perform than random chance is called the adversary's
-\emph{advantage}, and we can now reformulate our goal from proving non-existence
-to the finding of an upper bound on the advantage.
+Following Bellare and Rogaway~\cite{codebasedgames}, we will frame questions of
+this form as games between a challenger and an adversary.  The challenger
+represents the system we want to prove secure, while the adversary represents an
+attacker.  The challenger poses a challenge to the adversary, and the adversary
+wins if it can correctly answer the challenge.  If we can show that no adversary
+can reliably win the game, we conclude that our system is secure.  On the other
+hand, we can prove a system to be vulnerable by exhibiting an adversary that
+has a winning strategy.
 
-There are some games where this upper bound is clear.  For example, if the
-challenger flips a coin and the adversary wins if it comes up heads, the
-adversary has no active participation and so any adversary will have equal
-probability of winning (and thus advantage 0).  For more complicated games, we
-derive the upper bound by relating them to such simpler games.
+An important example of a game is indistinguishability against an eavesdropper,
+abbreviated IND-EAV.  The premise is that we have an encryption scheme which we
+wish to prove secure against an attacker that can intercept our encrypted
+messages.  The attacker wins if he can distinguish between any two encrypted
+messages; we win if he cannot.
+
+Let Alice be the challenger and Bob be the adversary.  The protocol they follow
+to play the game is as follows: Bob gives Alice two messages, |m1| and |m2|.
+Alice generates an encryption key and uses it to encrypt one of the messages,
+chosen at random.  Alice gives Bob the resulting ciphertext and poses the
+challenge: did she encrypt |m1| or |m2|?  Bob wins if his answer is correct.
+
+Bob can definitely win half of his games, just by choosing an answer at random.
+How much better Bob can do is called his \emph{advantage}.  In order to show
+that an encryption scheme is secure, we must show that any adversary's advantage
+is close to zero.  In order to show that a scheme is not secure, we must show
+that some adversary has high advantage.
+
+When we want to put an upper bound on the advantage, we could analyse the game
+and attempt to derive this bound directly.  However, an approach that is often
+simpler is to modify the game slightly and show that this change does not change
+the advantage considerably.  We say that two games between which the difference
+in advantage is at most $\epsilon$ are $\epsilon$-indistinguishable.  By
+constructing a sequence of $\epsilon$-indistinguishable games, we can relate our
+initial (complicated) game to a much simpler one, simplifying our analysis.
 
 \section{Games as Programs}
 
-A game is a sequence of operations performed by the players, where later actions
-may depend on the results of earlier actions.  We can regard this as an
-imperative program, where the actions correspond to basic instructions.  The
-players have access to three basic instructions: generating random bits, reading
-from some state, and writing to that state.
+We can regard a game as a sequence of actions performed by the players.  Players
+may perform computations, generate random bits, and make use of memory.
+As such, a description of a game or player can be seen as an imperative
+program in a non-determinsitic, stateful programming language, the instructions
+of which correspond to the actions that players may take.
 
-Fortunately, representing imperative-style programs in a functional language is
-a well-studied problem~\cite{monadsforfp}, and can be solved using a monad that
-supports the desired operations.  We will show how this monad can be constructed
-explicitly in \autoref{chp:games}.  For now, we will assume that the internal
-state has type |ST|, and that there is a monad |CryptoExpr| that supports the
-following operations:
+Fortunately, representing imperative programs in a functional language is a
+well-studied problem~\cite{monadsforfp}, and can be solved using a monad that
+has operations corresponding to the imperative instructions.  We will show how
+this monad can be constructed explicitly in \autoref{chp:games}.  For now, we
+will assume that there is a monad |CryptoExpr ST| that supports the following
+operations, where |ST| is the type of the state:
 \begin{code}
-uniform    : (n : Nat)  ->  CryptoExpr (BitVec n)
-coin       :                CryptoExpr Bool
-setState   : ST         ->  CryptoExpr top
-getState   :                CryptoExpr ST
+uniform    : (n : Nat)  ->  CryptoExpr ST (BitVec n)
+coin       :                CryptoExpr ST Bool
+setState   : ST         ->  CryptoExpr ST top
+getState   :                CryptoExpr ST ST
 \end{code}
 
-A term of type |CryptoExpr A| represents a computation that can generate random
-bits and store and retrieve values of type |ST|.  We include both |uniform| and
-|coin| for the sake of convenience, although one could be defined in terms of
-the other.
+A term of type |CryptoExpr ST A| represents a computation that can generate
+random bits and store and retrieve values of type |ST|, and that has a result of
+type |A|.  We include both |uniform| and |coin| for the sake of convenience,
+although one could be defined in terms of the other.
 
 We would like to use this monad express an encryption scheme and a game between
 a challenger and an adversary that expresses a security property of this scheme.
@@ -98,19 +119,24 @@ encrypting a message with a given key.  We can express this in Agda as a record.
 \begin{code}
 record EncScheme : Set1 where
   field
-    keygen   : CryptoExpr K
-    encrypt  : K -> PT -> CryptoExpr CT
+    keygen   : (FORALL st) -> CryptoExpr st K
+    encrypt  : (FORALL st) -> K -> PT -> CryptoExpr st CT
 \end{code}
+
+We express the fact that the encryption scheme should be stateless by requiring
+that it work for \emph{any} state type.  This allows us to let the adversary
+choose the state type, as we will see shortly.
 
 The adversary is given the chance to act twice during the game, first to
 generate two plaintext messages, and then to guess which message had been
-encrypted. \todo[inline]{Another sentence here.}
+encrypted.  We again represent this as a record, parametrised by the type of
+state |ST| that the adversary uses.
 
 \begin{code}
-record Adversary : Set where
+record Adversary (ST : Set) : Set where
   field
-    A1  : CryptoExpr (PT * PT)
-    A2  : CT -> CryptoExpr Bool
+    A1  : CryptoExpr ST (PT * PT)
+    A2  : CT -> CryptoExpr ST Bool
 \end{code}
 
 It may seem strange that the adversary is not given access the plaintext
@@ -126,14 +152,15 @@ and then let the adversary guess which one it was.  Altogether, this is a
 probabilistic computation that returns |true| iff the adversary wins.
 
 \begin{code}
-INDEAV  : EncScheme -> Adversary -> CryptoExpr Bool
+INDEAV  : EncScheme -> Adversary ST -> CryptoExpr ST Bool
 INDEAV enc adv = do
   m1 , m2 <- A1 adv
   k <- keygen enc
   b <- coin
-  ct <- encrypt enc k (if b then m1 else m2)
+  let pt = if b then m1 else m2
+  ct <- encrypt enc k pt
   b' <- A2 adv ct
-  return $ isYes (eq b b')
+  return dollar (eq b b')
 \end{code}
 
 If we now fix an encryption |enc| and take an arbitrary adversary |adv|, we can
@@ -155,28 +182,29 @@ an $n$-bit vector uniformly at random.  To encrypt some message $m$ with a key
 $k$, we take the bitwise XOR.
 
 \begin{code}
-keygenOTP : (FORALL st) -> CryptoExpr st (BitVec n) 
-keygenOTP = uniform n
-
-encryptOTP : (FORALL st) -> BitVec n -> BitVec n -> CryptoExpr st (BitVec n)
-encryptOTP key msg = return (xor key msg)
-
 OTP : EncScheme
-keygen   OTP  =  keygenOTP
-encrypt  OTP  =  encryptOTP
+keygen   OTP  =  uniform n
+encrypt  OTP  key msg = return dollar (xor key msg)
 \end{code}
 
 We can now rewrite this game to show that no matter the adversary chosen, it is
 indistinguishable from a coin flip.  Let us start by writing out the game,
 filling in the definition of the encryption scheme:
+%format INDEAVOTP1 = "\F{IND-EAV-OTP\textsubscript{1}}"
+%format INDEAVOTP2 = "\F{IND-EAV-OTP\textsubscript{2}}"
+%format INDEAVOTP3 = "\F{IND-EAV-OTP\textsubscript{3}}"
+%format INDEAVOTP4 = "\F{IND-EAV-OTP\textsubscript{4}}"
+%format INDEAVOTP5 = "\F{IND-EAV-OTP\textsubscript{5}}"
 \begin{code}
+INDEAVOTP1 : Adversary ST -> CryptoExpr ST Bool
 INDEAVOTP1 adv = do
   m1 , m2 <- A1 adv
   k <- uniform n
   b <- coin
-  ct <- return $ xor k (if b then m1 else m2)
+  let pt = if b then m1 else m2
+  ct <- return dollar (xor k pt)
   b' <- A2 adv ct
-  return $ isYes (eq b b')
+  return dollar (eq b b')
 \end{code}
 
 First of all, we note that |k| and |b| are independent random variables and may
@@ -186,12 +214,13 @@ as an |fmap|.  This gives us the following code:
 INDEAVOTP2 adv = do
   m1 , m2 <- A1 adv
   b <- coin
-  ct <- fmap (\ k -> xor k (if b then m1 else m2)) (uniform n)
+  let pt = if b then m1 else m2
+  ct <- fmap (\ k -> (xor k pt)) (uniform n)
   b' <- A2 adv ct
-  return $ isYes (eq b b')
+  return dollar (eq b b')
 \end{code}
 
-We can show that |\ k -> xor k m| is a bijection for any |m : BitVec n|, and
+We can show that |\ k -> (xor k m)| is a bijection for any |m : BitVec n|, and
 since applying a bijection to a uniform distribution produces another uniform
 distribution, we may omit the |fmap|, giving us the following game:
 \begin{code}
@@ -200,7 +229,7 @@ INDEAVOTP3 adv = do
   b <- coin
   ct <- uniform n
   b' <- A2 adv ct
-  return $ isYes (eq b b')
+  return dollar (eq b b')
 \end{code}
 
 We now see that |b| and |b'| are independent random variables and can reorder
@@ -211,10 +240,10 @@ INDEAVOTP4 adv = do
   m1 , m2 <- A1 adv
   ct <- uniform n
   b' <- A2 adv ct
-  fmap (\ b -> isYes (eq b b')) coin
+  fmap (\ b -> (eq b b')) coin
 \end{code}
 
-Finally, we can show that |\ b -> isYes (eq b b'))| to be a bijection as well,
+Finally, we can show that |\ b -> (eq b b'))| to be a bijection as well,
 giving us the last game in the sequence:
 \begin{code}
 INDEAVOTP5 adv = do
@@ -237,125 +266,175 @@ The above lets us reason about adversaries expressed in terms of the basic
 language of non-determinsitic stateful computation.  This is useful by itself,
 but by restricting adversaries to this language, we are only considering the
 weakest kind of adversary possible.  If we want to strengthen our results, we
-need to develop a way of expressing adversaries that may have access to
-computations that cannot be expressed in this language directly.
+need to develop a way of giving adversaries access to computations they cannot
+perform themselves.
 
 To give an example, a straightforward strengthening of the |INDEAV| game is to
 give the adversary access to the encryption function used by the challenger.
 Since this computation depends on the key\footnote{Which the adversary should
 \emph{not} have access to!}, this cannot be expressed directly as a
-non-deterministic stateful computation by the adversary.
+computation performed by the adversary.  Instead, we must give the adversary
+black-box access to the encryption function.
 
 A function provided to the adversary in this opaque way is called an
 \emph{oracle}.  Oracles have all the power that the challenger and adversary
-have: they may generate random bitstrings and may read and write a state.
+have: they may generate random bitstrings and have access to mutable state.
 However, the other players cannot inspect the code or state of the oracle.  This
 lets us precisely control the power of the adversary by adjusting the
 information provided by the oracle.
 
 For the moment, we will assume that there are two operations provided by the
 oracle: a way to initialise the oracle state with some value of type
-|OracleInit|, and a way to query the oracle function using an |OracleArg|
+|OracleState|, and a way to query the oracle function using an |OracleArg|
 argument to get an  |OracleResult| response.  The types in question will depend
 on the game being played.  We can represent this in code by assumpting that
 |CryptoExpr| supports an additional two operations:
 \begin{code}
-oracleInit  : (FORALL st) ->  OracleInit  -> CryptoExpr st top
-oracleCall  : (FORALL st) ->  OracleArg   -> CryptoExpr st OracleResult
+initOracle  : OracleState  -> CryptoExpr ST top
+callOracle  : OracleArg    -> CryptoExpr ST OracleResult
 \end{code}
 
 In \autoref{chp:command-structures} we will show how this approach can be
 generalised to allow oracles with different signatures in a straightforward
 manner.  We consider this a noteworthy feature of our system.
 
-Note that the state of the oracle is not represented in |st|: otherwise, the
+Note that the state of the oracle is not represented by |ST|: otherwise, the
 adversary could use |getState| to inspect the oracle state.  We will for now
 leave the oracle state hidden, and look at how it can be implemented in
-\autoref{chp:games}.  We assume that only the challenger can use |oracleInit|
-and only the adversary can use |oracleCall|.
+\autoref{chp:games}.  We assume that only the challenger can use |initOracle|
+and only the adversary can use |callOracle|.
 
 We can now express a game that expresses a stronger security condition than
-IND-EAV.  This is called IND-CPA, indistinguishability under chosen plaintext
-attack.  The definition of an encryption scheme and an adversary remain
-unchanged, so we only need to specify the game.  In this case, |OracleInit = K|,
-|OracleArg = PT|, and |OracleResult = CT|.
+IND-EAV.  In IND-EAV, we assumed that the adversary could choose two messages
+for the challenger to encrypt, but could not perform the encryption.  If the
+adversary also has the power to encrypt messages of its choice, the game is
+known as indistinguishability under a chosen plaintext attack, abbreviated
+IND-CPA.  The name comes from the fact that the adversary is allowed to choose
+one or more plaintext to be encrypted by the oracle.  Apart from the fact that
+the challenger has to initialise the oracle and the adversary may query it, the
+game is identical.
+
+Let us now look at the code.  Since the oracle must have the key to encrypt
+messages, |OracleState = K|.  The query takes a plaintext and yields a
+ciphertext, so |OracleArg = PT| and |OracleResult = CT|.  The code is as
+follows:
 \begin{code}
-INDCPA  : EncScheme K PT CT -> Adversary PT CT ST
+INDCPA  : EncScheme -> Adversary ST
         -> CryptoExpr ST Bool
 INDCPA enc adv = do
   m1 , m2 <- A1 adv
   k <- keygen enc
-  oracleInit k
+  initOracle k
   b <- coin
-  ct <- encrypt enc k (if b then m1 else m2)
+  let pt = if b then m1 else m2
+  ct <- encrypt enc k pt
   b' <- A2 adv ct
-  return $ isYes (eq b b')
+  return dollar (eq b b')
 \end{code}
 
-Since the |oracleInit| call happens only after |A1 adv|, the adversary cannot
-effectively use the oracle when choosing the messages.  In particular, we will
-show that any adversary is indistinguishable from one which does not make any
-use of |oracleCall| in |A1|.
-
-In this case, just specifying |INDCPA| is not sufficient to define the game,
-since we must also define how the oracle is implemented.  The oracle state, in
-this case, is |K|, since the oracle must store the encryption key used.  The
-definitions are then as follows:
+However, we are not yet done.  Apart from specifying the interaction between the
+challenger and the adversary, we must also specify the behaviour of the oracle.
+Just like the challenger and adversary, the oracle may store some state, in this
+case the key.  In this case, the oracle definition is straightforward:
+initialisation stores the encryption key, and a query takes a plaintext message
+and returns it encrypted with the stored key.  This can be expressed in code as
+follows:
+%format initOracleImpl = "\F{init-oracle-impl}"
+%format callOracleImpl = "\F{call-oracle-impl}"
 \begin{code}
-oracleInitImpl : K -> CryptoExpr K top
-oracleInitImpl = setState
+initOracleImpl : K -> CryptoExpr K top
+initOracleImpl = setState
 
-oracleCallImpl : PT -> CryptoExpr K CT
-oracleCallImpl pt = do
+callOracleImpl : PT -> CryptoExpr K CT
+callOracleImpl pt = do
   k <- getState
   encrypt enc k pt
 \end{code}
 
+We have now specified the IND-CPA game, just as we had specified IND-EAV
+earlier, and can reason about it in the same ways, by fixing an encryption
+scheme and considering an arbitrary adversary.  Our goal is again to either
+upper bound the probability of any adversary winning, or show that an adversary
+exists that wins the game with certainty.
+
+If an adversary wins the IND-EAV game against some encryption scheme |enc|, the
+same adversary can win the IND-CPA game against |enc| by ignoring the oracle.
+Conversely, any game that is secure against IND-CPA is also secure against
+IND-EAV.  We can thus regard IND-CPA as a stronger claim about an encryption
+scheme, and we will see that it is strictly stronger by showing that our
+One-Time Pad scheme is not secure against it.
+
+Before we go on, let us note that we have not specified how the implementation
+of an oracle can be combined with the implementation of the game, since one has
+state type |ST| and the other has state type |K|.  The full details will be
+worked out in \autoref{sec:games-oracles}; for now, it suffices to remark that
+we can store both at once in a state of type |ST * K|.  We will use
+|getAdvState| and |getOracleState| instead of |getState| (and analogously for
+|setState|) when we want to disambiguate which component we are referring to.
+
 \section{Example: One-Time Pad (IND-CPA)}
 
-Let us now show that the One-Time Pad scheme presented above is not secure with
-respect to this new IND-CPA game.  As before, we fix an |n : Nat| and set |K =
-CT = PT = BitVec n|.  We assume |n > 0|, since otherwise there exists only one
-message of type |PT|.  Our adversary does not need to store any state, so we
-choose |ST = top|.
+Let us now show that the One-Time Pad encryption scheme presented above is not
+secure with respect to the IND-CPA game by constructing an adversary that wins
+the game with probability 1.  As before, we fix an |n : Nat| and set |K = CT =
+PT = BitVec n|.  We assume |n > 0|, since otherwise there exists only one
+plaintext message.
 
-We can now define our adversary as follows:
+The encryption scheme can be broken using the fact that |encrypt OTP| is
+deterministic.  Since the adversary has access to the encryption function, it
+can use the oracle to find the ciphertext that corresponds to each message.  As
+long as the two chosen messages |m1| and |m2| are distinct, the challenger chose
+to encrypt |m1| iff the given ciphertext is equal to the ciphertext of |m1|.
+
+In code, we need to choose two specific messages.  Let |allzero n| and |allone
+n| be the $n$-bit vectors that consist entirely of zeroes and ones respectively.
+They are distinct, since |n > 0|.  To decide which message the challenger chose to
+encrypt, we query the oracle to encrypt |allzero n|, and respond with |true| iff
+this is equal to the given ciphertext.
+
+This can be expressed in Agda as follows.  Note that since we have chosen our
+messages a priori, we do not need to store any state, and can choose |ST = top|.
+%format INDCPAOTPADV = "\F{IND-CPA-OTP-ADV}"
 \begin{code}
-INDCPAOTPADV : Adversary
+INDCPAOTPADV : Adversary top
 A1 INDCPAOTPADV = return (allzero n , allone n)
 A2 INDCPAOTPADV ct = do
   r <- callOracle (allzero n)
-  return $ isYes (eq ct r)
+  return dollar (eq ct r)
 \end{code}
-
-In addition to the adversary, we must now track the definition of the oracle as
-we go through the game.  In this case, we keep the same oracle definition
-throughout our reasoning, but as we will see later, there are game-based proofs
-where a change in the definition of the oracle is an essential part of the
-proof.  We will look at the details in \autoref{chp:games}.
 
 The attentive reader will notice that this kind of attack will work on any
 deterministic encryption scheme.  We only present this special case, since the
-general proof involves an encoding of determinism in Agda.  However, the proof
-can be formalised in full generality.
+general proof involves an encoding of determinism in Agda.
 
-Let us write out |INDCPA| with |OTP| and |INDCPAOTPADV| filled in.  Note that we
-can also fill in the implementation of the oracle, since we will not change it
-in the future.  The purpose of separating this implementation was to restrict
-the class of adversaries by ruling out adversaries that inspect the oracle.
-Since we have chosen an adversary already, this purpose has been achieved, and
-we do not need to retain the separation any further.  The resulting code is as
-follows:
+Let us write out |INDCPA| with |OTP|, |INDCPAOTPADV|, and the definition of the
+oracle filled in.  As we mentioned, the combination of the adversary and oracle
+state results in the state type being |top * K|.
+
+It may seem strange to go to such lengths to define the oracle separately, only
+to immediately inline it when we begin with the proof.  However, recall that the
+purpose of the separation was to prevent the adversary from accessing the oracle
+state.  Since we have chosen an adversary that does not does this, the
+separation does not play any further role in this case.
+
+The resulting code is as follows:
+%format INDCPAOTP1 = "\F{IND-CPA-OTP\textsubscript{1}}"
+%format INDCPAOTP2 = "\F{IND-CPA-OTP\textsubscript{2}}"
+%format INDCPAOTP3 = "\F{IND-CPA-OTP\textsubscript{3}}"
+%format INDCPAOTP4 = "\F{IND-CPA-OTP\textsubscript{4}}"
+%format INDCPAOTP5 = "\F{IND-CPA-OTP\textsubscript{5}}"
 \begin{code}
+INDCPAOTP1 : CryptoExpr (top * K) Bool
 INDCPAOTP1 = do
-  m1 , m2 <- return $ allzero n , allone n
+  m1 , m2 <- return dollar allzero n , allone n
   k <- uniform n
   setOracleState k
   b <- coin
-  ct <- return $ (xor k (if b then m1 else m2))
+  let pt = if b then m1 else m2
+  ct <- return dollar (xor k pt)
   k' <- getOracleState
-  b' <- return $ isYes (eq ct (xor k' (allzero n)))
-  return $ isYes (eq b b')
+  b' <- return dollar (eq ct (xor k' (allzero n)))
+  return dollar (eq b b')
 \end{code}
 
 We use |setOracleState| instead of |setState| here to disambiguate whose
@@ -366,111 +445,120 @@ This gives us the following game, indistinguishable from the previous:
 INDCPAOTP2 = do
   k <- uniform n
   b <- coin
-  ct <- return $ (xor k (if b then allzero n else allone n))
-  b' <- return $ isYes (eq ct (xor k (allzero n)))
-  return $ isYes (eq b b')
+  let pt = if b then m1 else m2
+  ct <- return dollar (xor k pt)
+  b' <- return dollar (eq ct (xor k (allzero n)))
+  return dollar (eq b b')
 \end{code}
 
-Since the last three operations are all returns, we can merge them into a single
-operation (by the monad laws):
+By the monad laws, we can rewrite this game as follows, translating |return|
+statements into |let| bindings and inlining the definition of |ct|:
 \begin{code}
 INDCPAOTP3 = do
   k <- uniform n
   b <- coin
-  missingline
+  let  pt  = if b then allzero n else allone n
+       b'  = (eq (xor k pt) (xor k (allzero n)))
+  return dollar (eq b b')
 \end{code}
-% DOesn't compile for some reason:
-% return $ isYes (eq  b (isYes (eq (xor k (if b then allzero n else allone n)) (xor k (allzero n)))))
+
 We know that |xor k| is an injective function, so |eq (xor k v) (xor k w)| holds
 iff |eq v w| holds.  We can thus simplify the above to the following:
 \begin{code}
 INDCPAOTP4 = do
   k <- uniform n
   b <- coin
-  missingline
+  let  pt  = if b then allzero n else allone n
+       b'  = (eq pt (allzero n))
+  return dollar (eq b b')
 \end{code}
-% idem: 
-% return $ isYes (eq  b (isYes (eq (if b then allzero n else allone n) (allzero n))))
 
 If |b| is |true|, then we compare |allzero n| to |allzero n| and get |true|, so
 the expression as a whole is |true|.  On the other hand, if |b| is |false|, we
-compare |allone n| to |allzero Nn| and get |fales|, so the expression as a whole
-is |true| as well.  It follows that this game always yields |true|, and is thus
-indistinguishable from |return true|.  It follows that this adversary has a
-guaranteed winning strategy.
-
-\todo{Mention possible solutions involving salting?}
+compare |allone n| to |allzero n| and get |false|, so the expression as a whole
+is |true| as well.  It follows that this game always yields |true|, and so this
+adversary is guaranteed to win it.
 
 \section{Weaker Notions of Security}
 \label{sec:intro-weaker}
 
 Having introduced oracles to allow for the strengthening of our security
-conditions, let us consider the ways in which these conditions can be weakened.
-A strong motivation to look for such a weakening arises in public key
-cryptography, where the adversary is given access to the public key, which is
-sufficient to encrypt messages, while the challenger retains the private key,
-which is used for their decryption. \todo{Find an argument that checking a
-guessed private key is possible.}
+conditions, let us consider the opposite problem: in what ways can a security
+condition be weakened?
 
-In this setting, the adversary may be able to do better than random by guessing
-a private key and checking whether the public key corresponds to it.  If it
-does, the adversary can decrypt the ciphertext and so definitely choose the
-right message, while if it doesn't, he can select one at random.  If the
-probability of guessing the private key correctly is $p$, then the probability
-of choosing the right message is $p + \frac{1-p}{2} = \frac{1+p}{2}$, which is
-slightly more than $\frac{1}{2}$.  It follows that the resulting game cannot be
-indistinguishable from a coin flip.
+A strong motivation to look for such variations arises in public key
+cryptography.  Instead of generating a single key that is used for both
+encryption and decryption, a public key encryption scheme generates a public key
+that can be used for encrypting messages and a private key that is needed to
+decrypt them.  As the name suggests, the public key is available to both the
+challenger and adversary, while only the challenger has the private key.
 
-A good first step to work around this problem is to extend the notion of
-indistinguishability to identify terms that are equal up to some error
-$\epsilon$.  In the above example, we can choose $\epsilon = \frac{p}{2}$ and
-show that our game is $\epsilon$-indistinguishable from a coin flip.  We will
-explore this weaker logic in \autoref{sec:epsilon-indistinguishability}.
+In this setting, the adversary can guess a private key and check whether it
+corresponds to the challenger's public key.  This improves the advantage of the
+adversary somewhat, since the private key makes it possible to decrypt the
+message.  If the adversary is allowed to attempt this repeatedly, then the
+advantage will compound.  Neverthelesss, public key cryptography is effective in
+practice: this is because the probability of guessing the private correctly is
+so small, the adversary would have to make a very large number of attempts,
+making the attack impractical.
 
-However, note that this alone does not resolve the situation, since the
-adversary can increase its chances of guessing the private key simply by trying
-more times, potentially enumerating every possible private key to find the
-correct one.  However, while this would certainly be enough to break the
-encryption, such an adversary would take time exponential in the length of
-the key.
+It is thus desirable to be able to express bounds on the resources an adversary
+may use.  We will see a simple form of this in \autoref{sec:games-constraints},
+where we will show how we can bound the number of oracle queries an adversary
+makes.
 
-We thus extend our system in a further two ways.  First of all, we should be
-able to bound the resources available to an adversary.  This includes the usual
-resources of time and space, but also the number of oracle calls an adversary
-can make and the bits of randomness an adversary can use.  Secondly, we should
-consider not only the advantage of an adversary against a single game, but also
-against a family of games indexed by a security parameter.  We will look at
-these notions in \autoref{sec:security-assumptions} and
-\autoref{sec:asymptotic-indistinguishability}.
+In practice, we generally cannot say that an attacker will be able to perform at
+most some number of queries.  Instead, some encryption schemes allow the user to
+choose the key length they want, letting them increase security as necessary.
+In this setting, we want to show that the advantage of the adversary can be made
+arbitrarily small as the key length goes to infinity.  This also suggests a
+new class of constraints on the adversary: we can require that the adversary
+only uses an amount of resources polynomial in the key length.
 
-Finally, many proofs in cryptography rely on assumptions that a certain problem
-cannot be efficiently solved.  For example, many public key cryptography schemes
-rely on the computational difficulty of prime factorisation.  However, we do not
-yet have a proof that no efficient algorithm exists.  It is thus important that
-our system allow for the use of such assumptions without requiring the user to
-prove them.  It turns out that this is strongly related to the problem of
-restricting the class of adversaries, and so we will also discuss it in
-\autoref{sec:security-assumptions}.
+Finally, arguments in cryptography often rely on conjectures such as $P \neq
+NP$.  In order to be able to formalise these arguments we need to be able to
+represent these conjectures, and it turns out that this question is highly relevant
+to the question of asymptotic bounds.
+
+Ensuring that the above notions can be represented within the system we design
+was an important constraint for us.  We will discuss how we achieve them in
+detail in \autoref{sec:security-assumptions}, but they are worth keeping in mind
+throughout the development.
 
 \section{Generalised Games}
 \label{sec:intro-general-games}
 
-So far, we have considered a single game at a time and shown it to be
-($\epsilon$-)indistinguishable to a coin flip.  A straightforward generalisation
-is to take two games, both parametrised by the same adversary, and ask whether
-they are ($\epsilon$-)indistinguishable.
+We will finish this chapter by slightly generalising the kind of argument we
+would like to be able to make.  So far, we have always considered a single game
+as our starting point, and argued that the adversary cannot win at this game.
+However, as the word ``indistinguishability'' suggests, the situation we are
+interested in is somewhat more general: given two games, is there any adversary
+that can distinguish between the two?
 
-We can phrase the previous games we have regarded in this context.  For example,
-given some encryption scheme |enc| and an adversary |adv|, the statement that
-|INDEAV enc adv| is indistinguishable from a coin flip is implied by the
-statement that the following two games are indistinguishable:
+The benefit of this formulation is that a claim phrased this way is much easier
+to reuse in a portion of another game.  If we know that no adversary can
+distinguish between games |X| and |Y|, then we can replace |X| by |Y| in the
+context of another game and know that this is a sound rewriting step.  This also
+relates to the question of how we can express security assumptions that we
+discussed in the previous section.
+
+The games we have seen so far can all be expressed in this manner.  In the case
+of IND-EAV and IND-CPA, instead of asking whether the adversary can tell which
+message was encrypted, we ask whether the adversary can tell whether they are
+in a game where the challenger always encrypts the first message, or in a game
+where the challenger always encrypts the second message.  These two games that
+correspond to IND-EAV are as follows:
+%format INDEAV1 = "\F{IND-EAV\textsubscript{1}}"
+%format INDEAV2 = "\F{IND-EAV\textsubscript{2}}"
 \begin{code}
+INDEAV1 : EncScheme -> Adversary ST -> CryptoExpr ST Bool
 INDEAV1 enc adv = do
   m , _ <- A1 adv
   k <- keygen enc
   ct <- encrypt adv k m
   A2 adv ct
 
+INDEAV2 : EncScheme -> Adversary ST -> CryptoExpr ST Bool
 INDEAV2 enc adv = do
   _ , m <- A1 adv
   k <- keygen enc
@@ -478,41 +566,29 @@ INDEAV2 enc adv = do
   A2 adv ct
 \end{code}
 
-As before, fixing |enc|, the advantage of the adversary is the least $\epsilon$
-such that these games are $\epsilon$-indistinguishable for every adversary.
-
-\todo{Put this in a proof block?  Cut it out?}
-Suppose that |INDEAV1 enc adv| and |INDEAV2 enc adv| are
-$\epsilon$-indistinguishable.  We wish to show that |INDEAV enc adv| is
-$\epsilon$-indistinguishable from a coin flip.  We note that by reordering
-independent instructions, we can show that |INDEAV enc adv| is indistinguishable
-from
+If an adversary |adv| can distinguish between |INDEAV1 enc| and |INDEAV2 enc|
+for some encryption scheme |enc|, then we can construct an adversary that
+reliably wins |INDEAV enc| by noting that |INDEAV| can be rewritten as the
+following game:
+%format INDEAVp = "\F{IND-EAV'}"
 \begin{code}
-do
+INDEAVp : EncScheme -> Adversary ST -> CryptoExpr ST Bool
+INDEAVp enc adv = do
   b <- coin
   b' <- if b then INDEAV1 enc adv else INDEAV2 enc adv
-  return $ isYes (eq b b')
+  return dollar b == b'
 \end{code}
 
-Since |INDEAV1 enc adv| and |INDEAV2 enc adv| are $\epsilon$-indistinguishable,
-this is $\epsilon$-indistinguishable from
-\begin{code}
-do
-  b <- coin
-  b' <- INDEAV1 enc adv
-  return $ isYes (eq b b')
-\end{code}
-which is indistinguishable from a coin flip by the same argument as in
-\autoref{sec:intro-otp-eav}.
+As such, this really is a generalisation of the notion of games we had
+considered up to this point.
 
-Clasically, we can prove the converse by showing that |INDEAV1 enc adv| and
-|INDEAV2 enc adv| are indistinguishable from Bernoulli distributions and showing
-that the difference between the parameters of these distributions is bounded.
-However, this is harder to do constructively.
+This concludes our exploration of the problem space.  We have seen that to
+express game-based proofs we need to be able to represent games, and need some
+set of rules specifying when two games are $\epsilon$-indistinguishable.  If we
+wish to express stronger security guarantees then our system must support the
+use of oracles, while expressing weaker guarantees requires a way of imposing
+constraints on the class of adversaries.  In the next two chapters we will lay
+out the groundwork of our system, and in the rest of this thesis we will show
+various ways in which it can be refined.
 
-By rephrasing statements about games in this way, we gain composability.  In
-particular, if we wish to use a result in a further proof, it is much easier to
-do so if we have shown that two games are $\epsilon$-indistinguishability,
-rather than if we have shown that a game is $\epsilon$-indistinguishable from a
-coin flip.
-
+%}

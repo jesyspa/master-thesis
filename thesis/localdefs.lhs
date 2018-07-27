@@ -100,10 +100,10 @@
 %format G2           = "G\textsubscript{2}"
 %format INDEAV       = "\F{IND-EAV}"
 %format INDCPA       = "\F{IND-CPA}"
-%format simpleINDEAV = "\F{simple-IND-EAV}"
-%format simpleINDCPA = "\F{IND-CPA}"
 %format OTPINDCPA    = "\F{OTP-IND-CPA}"
 %format OTPINDCPAADV = "\F{OTP-IND-CPA-ADV}"
+%format m1           = "m\textsubscript{1}"
+%format m2           = "m\textsubscript{2}"
 
 %% Encryption Schemes
 %format keygenOTP   = "\F{keygenOTP}"
@@ -117,7 +117,7 @@
 %% Helper functions
 %format sample      = "\F{sample}"
 %format interchange = "\F{interchange}"
-%format xor a b     = "{" a "}\mathbin{\F{$\otimes$}}{" b "}"
+%format (xor a b)   = "{" a "}\mathbin{\F{$\otimes$}}{" b "}"
 %format isYes       = "\F{isYes}"
 %format tt          = "\F{tt}"
 %format fmap        = "\F{fmap}"
@@ -211,10 +211,11 @@
 %% Punctuation
 %format dot   = "\hspace{-0.3em}.\,"
 %format comma = "\hspace{-0.3em},"
-%format dollar = "\mathbin{\$}"
+%format dollar = "\mathbin{\F{\$}}"
 %format langle = "\langle"
 %format rangle = "\rangle"
 %format ldots = "\ldots"
+%format do = "\K{do}"
 
 %% Misc stuff
 %format (FORALL (a))  = "\forall\{{"a"}\}\!"
@@ -250,5 +251,5 @@
 %format ==eeD = "\F{$\equiv_{\epsilon_1 + \epsilon_2}^D$}"
 %format ~~eE = "\F{$\approx_\epsilon^E$}"
 %format ~~eR = "\F{$\approx_{\epsilon,st}^R$}"
-%format eq (a) (b) = "{" a "}\mathbin{\F{==}}{" b "}"
+%format (eq (a) (b)) = "{" a "}\mathbin{\F{==}}{" b "}"
 %format congbind = "\F{cong-\textgreater\!\!\textgreater\!=}"
