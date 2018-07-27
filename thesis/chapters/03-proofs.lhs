@@ -1,11 +1,9 @@
 \chapter{The Logic of Games}
 \label{chp:proofs}
 
-Now that we can represent games, we can start the development of a notion of
-indistinguishability between them.  In this chapter, we will introduce a
-relation between games and specify the axioms that it must satisfy, giving rise
-to a logic of games.  In \autoref{chp:interpretation}, we will show that this
-logic is sound by constructing a model of it.
+Now that we can represent games, we can define a notion of indistinguishability
+to relate them to each other.  In this chapter, we will continue with our
+syntactic approach and define indistinguishability in a purely formal manner.
 
 The intuition we want to capture is that two games with outcome |A| are
 indistinguishable when the probability of sampling any |a : A| is equal for
@@ -490,7 +488,7 @@ We will assume that the types |OracleInit|, |OracleArg|, |OracleResult|, and
 relaxed would be a good candidate for further work in this area.
 
 Formally speaking, given |ce| and |cf| of type |OracleExpr AST A| and |impl| and
-|jmpl| of type |Oracle OST|, we say that |ce , impl ==eOE cf , jmpl| iff |eval
+|jmpl| of type |Oracle OST|, we say that |(ce , impl) ==eOE (cf , jmpl)| iff |eval
 ce impl ==eE eval cf jmpl|.  We will write |ce ==eOEimpl cf| if |impl| is the
 same on both sides.  We will also write |impl ==eE jmpl|  iff for every |i :
 OracleInit|, |Init impl i ==eE Init jmpl i|  and for every |a : OracleArg|,
@@ -499,8 +497,8 @@ oracle implementations are analogous.
 
 The following simple results will make our life easier going forward:
 \begin{theorem}
-    If |impl ==E jmpl| and |ce : OracleExpr AST A|, then |ce , impl ==OE ce ,
-    jmpl|.  The same result does not hold for $\epsilon$-indistinguishability,
+    If |impl ==E jmpl| and |ce : OracleExpr AST A|, then |(ce , impl) ==OE (ce ,
+    jmpl)|.  The same result does not hold for $\epsilon$-indistinguishability,
     nor for result-indistinguishability.
 \end{theorem}
 

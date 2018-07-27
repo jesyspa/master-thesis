@@ -1,38 +1,36 @@
 \chapter*{Foreword}
 
-My interests have always been somewhere between mathematics and computer
-science, and this thesis falls between them pretty neatly.  As such, I apologise
-to the mathematicians for the lack of rigour, and to the computer scientists for
-the lack of practical applicability.
+The goal of this research project was initially to develop a system for
+cryptographic proofs in the Agda programming language.  During the process, it
+became clear that the construction of the system as a whole would not be
+feasible, and the project thus became a number of experiments in Agda that were
+intended to investigate a particular feature of the design space.
 
-A thorough introduction to Agda and category theory is beyond the scope of this
-thesis, so I refer the reader to TODO FIND REFERENCES.  I am not using any
-particularly advanced Agda features.  Agda code tends to look like this:
-\begin{code}
-name : Type
-name = body
-\end{code}
-This specifies that |name| is of type |Type| and is by definition equal to
-|body|.  We can pattern match on arguments, we can introduce data types\ldots
-So, yeah, it's too much to put here, I think.
+The purpose of this thesis is to write up the results of these experiments and
+show how they come together in the big picture.  The code is available on
+GitHub\footnote{\url{https://github.com/jesyspa/master-thesis}}, and the text
+will contain references to the files where relevant.  However, I want to
+emphasise that the unified structure is a fiction of the text and
+(unfortunately) does not appear in the code.
 
-From category theory we mostly use the notion of a functor and a monad.  Still,
-the text is way more understandable if you know how functor categories work, but
-it's still all very basic.  Oh, and we use Kan extensions once in a while, you
-don't mind, do you?
+Since formalisation in Agda is the point of the research, I assume that the
+reader is familiar with the Agda programming language.  There are several good
+introductions online, for example by Ulf Norell and James
+Chapman~\cite{agdatut}.  For later chapters, a passing familiarity with category
+theory is also beneficial.
 
-I would like to thank a whole bunch of people; Wouter, Victor, Jaap, Napoleon,
-dstolfa (Freenode, Kan extension stuff).
+I would like to thank Wouter Swierstra for agreeing to be my supervisor (despite
+my thesis being in maths), and, together with Victor Cacciari Miraldo, for their
+time and advice throughout the project.  I would like to thank Jaap van Oosten
+for allowing me to do this project at all (despite my master's being in maths).
 
-\section*{List of Notation}
+Finally, I feel like this thesis is on the border of mathematics and computer
+science.  As such, I would like to apologise to any mathematicians reading for
+the lack of rigour, and to any computer scientists reading for the lack of
+practical applications.
 
-\begin{itemize}
-  \item Implicit universal quantification.
-\end{itemize}
+\begin{flushright}
+  Anton Golov\\
+  27 July, 2018
+\end{flushright}
 
-\section*{A Note on Proofs}
-
-This thesis has for a large part been written in Agda.  Some proofs are a
-combination of Agda code and informal reasoning.  Some claims are partially
-formal and partially not.  We will remark about the difficulties when we
-consider this of interest.

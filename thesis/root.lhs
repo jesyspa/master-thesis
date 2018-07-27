@@ -42,7 +42,7 @@ Swierstra, and Victor Cacciari Miraldo}
 
     \tableofcontents
 
-    %include chapters/foreword.lhs
+    %%include chapters/foreword.lhs
     %include chapters/01-introduction.lhs
     %include chapters/02-games.lhs
     %include chapters/03-proofs.lhs
@@ -53,10 +53,7 @@ Swierstra, and Victor Cacciari Miraldo}
     %include chapters/08-crypto-language.lhs
 
     \begin{appendices}
-        %include chapters/ap01-finite-sets.lhs
-        %include chapters/ap02-rationals.lhs
-        %include chapters/ap03-distributions.lhs
-        %include chapters/ap04-code.lhs
+        %include chapters/ap01-notation.lhs
     \end{appendices}
 
     \nocite{*}
