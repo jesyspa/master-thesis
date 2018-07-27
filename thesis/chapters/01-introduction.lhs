@@ -17,9 +17,9 @@ probability can be made.  We will see several examples of such proofs in this
 chapter.
 
 Given the importance that the security guarantees are satisfied, the question
-arises of whether these proofs can be mechanically verified.  There exist
-several systems for this purpose,
-EasyCrypt\footnote{\url{http://www.easycrypt.info}} and FCF~\cite{fcf} two
+arises of whether these proofs can be mechanically verified.  Several systems exist
+for this purpose,
+EasyCrypt\footnote{\url{http://www.easycrypt.info}} and FCF~\cite{fcf} being two
 notable examples.  In this thesis, we explore how the power of dependent types,
 as implemented by the Agda programming language, can be used to approach this
 problem.  In particular, we show how we can define a language for games
@@ -37,7 +37,9 @@ In this chapter, we will introduce the notion of code-based games and see what
 features a proof system must have in order to be useful.
 
 \section{Motivation for Games}
+\label{sec:games-motivation}
 
+\todo[inline]{Clean up}
 In cryptography, we often wish to prove that a certain function does not exist.
 The prototypical example is when we want to show an encryption scheme is secure:
 we want to show that no function exists that (with high probability) correctly
@@ -61,45 +63,70 @@ derive the upper bound by relating them to such simpler games.
 
 A game is a sequence of operations performed by the players, where later actions
 may depend on the results of earlier actions.  We can regard this as an
-imperative program, where the actions correspond to instructions, and we can use
-the usual functional programming technique of encoding imperative programs using
-monads to obtain a representation in Agda.
+imperative program, where the actions correspond to basic instructions.  The
+players have access to three basic instructions: generating random bits, reading
+from some state, and writing to that state.
 
-In \autoref{chp:games} we will look into the details of how these games can be
-represented.  For now, let us assume that we have a |CryptoExpr ST A| type, 
-monadic in |A|, with the following operations:
+Fortunately, representing imperative-style programs in a functional language is
+a well-studied problem~\cite{monadsforfp}, and can be solved using a monad that
+supports the desired operations.  We will show how this monad can be constructed
+explicitly in \autoref{chp:games}.  For now, we will assume that the internal
+state has type |ST|, and that there is a monad |CryptoExpr| that supports the
+following operations:
 \begin{code}
-uniform    : (n : Nat)  ->  CryptoExpr ST (BitVec n)
-coin       :                CryptoExpr ST Bool
-setState   : ST         ->  CryptoExpr ST top
-getState   :                CryptoExpr ST ST
+uniform    : (n : Nat)  ->  CryptoExpr (BitVec n)
+coin       :                CryptoExpr Bool
+setState   : ST         ->  CryptoExpr top
+getState   :                CryptoExpr ST
 \end{code}
 
-This type represents a stateful computation with a source of randomness, and
-lets us generate uniform bitvectors, flip a coin, set the state, and read from
-the state.
+A term of type |CryptoExpr A| represents a computation that can generate random
+bits and store and retrieve values of type |ST|.  We include both |uniform| and
+|coin| for the sake of convenience, although one could be defined in terms of
+the other.
 
-We can now define what an encryption scheme and an adversary are in this
-context.  These are parametrised over the types of the keys, plaintext messages,
-ciphertext messages, and adversary state.
+We would like to use this monad express an encryption scheme and a game between
+a challenger and an adversary that expresses a security property of this scheme.
+We use the same example as in \autoref{sec:games-motivation},
+indistinguishability in the presence of an eavesdropper.
+
+Let us begin by assuming that we have some type |K| for our keys, |PT| for our
+plaintext messages, and |CT| for our ciphertext messages.  To define an
+encryption scheme, we must give the algorithm for generating a new key and for
+encrypting a message with a given key.  We can express this in Agda as a record.
 
 \begin{code}
-record EncScheme (K PT CT : Set) : Set1 where
+record EncScheme : Set1 where
   field
-    keygen   : (FORALL st) -> CryptoExpr st K
-    encrypt  : (FORALL st) -> K -> PT -> CryptoExpr st CT
-
-record Adversary (PT CT ST : Set) : Set1 where
-  field
-    A1  : CryptoExpr ST (PT * PT)
-    A2  : CT -> CryptoExpr ST Bool
+    keygen   : CryptoExpr K
+    encrypt  : K -> PT -> CryptoExpr CT
 \end{code}
 
-We will now introduce the game itself.
+The adversary is given the chance to act twice during the game, first to
+generate two plaintext messages, and then to guess which message had been
+encrypted. \todo[inline]{Another sentence here.}
 
 \begin{code}
-INDEAV  : EncScheme K PT CT -> Adversary PT CT ST
-        -> CryptoExpr ST Bool
+record Adversary : Set where
+  field
+    A1  : CryptoExpr (PT * PT)
+    A2  : CT -> CryptoExpr Bool
+\end{code}
+
+It may seem strange that the adversary is not given access the plaintext
+messages it generated earlier when it is asked to decide which was encrypted.
+This is because the adversary can use |getState| and |setState| to store
+these messages if it needs to.  We could have made this flow of data explicit,
+but since we are modelling an imperative program that can have internal state,
+this approach feels more natural.
+
+Now we can introduce the game itself.  As before, we let the adversary pick two
+messages, generate a key, encrypt one of the messages based on a coin flip,
+and then let the adversary guess which one it was.  Altogether, this is a
+probabilistic computation that returns |true| iff the adversary wins.
+
+\begin{code}
+INDEAV  : EncScheme -> Adversary -> CryptoExpr Bool
 INDEAV enc adv = do
   m1 , m2 <- A1 adv
   k <- keygen enc
@@ -109,12 +136,13 @@ INDEAV enc adv = do
   return $ isYes (eq b b')
 \end{code}
 
-Now, given any encryption scheme and adversary, we have a specific stateful
-non-deterministic program that we can reason about.  If that program can be
-shown to be indistinguishable from a coin flip, then the encryption scheme is
-secure against that adversary.  On the other hand, if the program can be shown
-to be indistinguishable from |return true|, then we have found an adversary that
-breaks this encryption scheme.
+If we now fix an encryption |enc| and take an arbitrary adversary |adv|, we can
+reason about the probability that evaluating |INDEAV enc adv| returns |true|.
+If we can bound this probability by $\frac{1}{2}$, then we can conclude that
+the encryption scheme |enc| is secure against an eavesdropper attack.  On the
+other hand, if we can find an adversary that wins with high probability, we can
+conclude that the scheme is vulnerable against this attack.
+
 
 \section{Example: One-Time Pad (IND-EAV)}
 \label{sec:intro-otp-eav}
