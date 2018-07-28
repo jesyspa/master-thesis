@@ -81,7 +81,19 @@ bindCE (SetState st cont)  f  = SetState st  \ t -> bindCE (cont t) f
 \end{code}
 
 We will see how we can avoid the repetitiveness of these definitions in
-\autoref{chp:command-structures}.
+\autoref{chp:command-structures}.  For convenience, we also define some
+derived operations:
+\begin{code}
+coin : CryptoExpr ST Bool
+coin = fmap head (uniform 1)
+
+modify : (ST -> ST) -> CryptoExpr ST ST
+modify f = do
+  st <- getState
+  let st' = f st
+  setState st'
+  return st'
+\end{code}
 
 Since proving the equality between two games involves proving that their
 response handlers are equal, we need functional extensionality to prove that

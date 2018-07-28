@@ -20,7 +20,6 @@
 %format OracleState      = "\D{OracleState}"
 %format OracleArg        = "\D{OracleArg}"
 %format OracleResult     = "\D{OracleResult}"
-%format OracleInit       = "\D{OracleInit}"
 %format Adversary        = "\D{Adversary}"
 %format OTP              = "\D{OTP}"
 
@@ -132,12 +131,14 @@
 %format const       = "\F{const}"
 %format left        = "\F{left}"
 %format right       = "\F{right}"
+%format pow         = "\F{pow}"
 %format graphAt     = "\F{graphAt}"
 %format ingraph     = "\F{ingraph}"
 %format IsTrue      = "\F{IsTrue}"
 %format eval        = "\F{eval}"
 %format allbitvecs  = "\F{all-bitvecs}"
 %format all         = "\F{all}"
+%format head        = "\F{head}"
 
 %% Indexed monads
 %format IxFunctor      = "\D{IxFunctor}"

@@ -1,26 +1,46 @@
 \chapter{The Logic of Games}
 \label{chp:proofs}
 
-Now that we can represent games, we can define a notion of indistinguishability
-to relate them to each other.  In this chapter, we will continue with our
-syntactic approach and define indistinguishability in a purely formal manner.
+Throughout \autoref{chp:introduction}, we argued that rewrite steps were valid
+because they produced $\epsilon$-indistinguishable games.  In this chapter,
+we will define this notion of $\epsilon$-indistinguishable formally, thereby
+specifying the logic that can be used to reason about games.  Keeping with the
+style of the previous chapter, we will do this in a purely syntactic way; we
+will consider the semantics of this relation in \autoref{chp:interpretation}.
 
-The intuition we want to capture is that two games with outcome |A| are
-indistinguishable when the probability of sampling any |a : A| is equal for
-both.  Additionally, since this notion is very strong, we also want to relate
-games that are not indistinguishable but that differ by at most some $\epsilon$.
-The latter is a generalisation of the former, since we get it as a special case
-when $\epsilon = 0$.
+Before we dive in to the technical details, let us consider what relation we
+would like to capture.  Two games with result type |A| being
+$\epsilon$-indistinguishable means that up to some error term $\epsilon$, the
+probability of sampling any |a : A| from one is close to the probability of
+sampling |a| from the other.  An interesting point in our construction is that
+we will formalise this notion with no reference to the individual elemenst of
+|A|.
 
-Note: In the syntactic setting we are working in right now, we can formulate our
-conditions with few assumptions on the types involved; in particular, the result
-types of games can be anything in |Set|.  However, once we start looking at
-interpretations, this becomes problematic: the intuitive relation we will want
-to impose on interpretation of games can only be formulated under some
-assumptions.  \todo{What can we do about this?}
+We will start this chapter by looking at how we can define
+$\epsilon$-indistinguishability in classical probability theory, and what
+results hold there.  We will then define the $\epsilon$-indistinguishability
+relation |==eE| on terms of type |CryptoExpr ST A| and prove some results about
+it.  In particular, we will show that the full power of monads is not necessary
+to represent arbitrary games: up to indistinguishability, every game has a fixed
+structure.
 
-Note: Also, we will need rational numbers for all this.  Their construction is
-not relevant to the problem, so we defer it to \autoref{chp:rationals}.
+We will proceed to consider two basic variations of the
+$\epsilon$-indistinguishability relation.  First of all, we will note that the
+relation we defined is too strong: there are games we considered
+$\epsilon$-indistinguishable in \autoref{chp:introduction}, but which are not
+$\epsilon$-indisindistinguishable in this new system.  This is because in our
+earlier examples, we ignored the final adversary state when we reasoned about
+the games.  To correct this, we will introduce a new relation called result
+$\epsilon$-indistinguishability that will make our proofs go through again.  For
+the second variation, we will show how $\epsilon$-indistinguishability can be
+extended to games that make use of an oracle.
+
+Finally, we will consider how this system handles the requirements we posed in
+\autoref{sec:intro-weaker}, such as asymptotic complexity and the usage of
+security assumptions in proofs.  We also discuss a number of problems we have
+been unable to solve.
+
+\todo[inline]{Mention |Q|?}
 
 \section{Properties of Distributions}
 \label{sec:proofs-dists}
@@ -455,24 +475,7 @@ canonical form, which we call the $(\epsilon, st)$-canonical form.
     desired result.
 \end{proof}
 
-\begin{corollary}
-    For every game |ce : CryptoExpr ST Bool|, there is some probability |p| such
-    that |ce| is result-indistinguishable from the
-    Bernoulli distribution |Bp : CryptoExpr ST Bool| with parameter |p|.
-\end{corollary}
-
-\begin{theorem}
-    \label{thm:finite-support}
-    Let |A| be a type with decidable equality.  For any game |X : CryptoExpr ST
-    A|, given |st : ST|, there is a list |f st : List A| representing the
-    support of |X|, in the sense that the following game is
-    result-indistinguishable from |return true|:
-    \begin{code}
-        getState >>= \ st ->
-        X >>= \ a ->
-        return (elem a (f st))
-    \end{code}
-\end{theorem}
+\todo[inline]{Conclusion}
 
 \section{Indistinguishability with Oracles}
 
@@ -614,10 +617,10 @@ do
 do
     a <- G
     b <- G
-    adv (pow g a , pow g b , pow g (mul a b))
+    adv (pow g a , pow g b , pow g (times a b))
 \end{code}
 
-We can then use this assumption to replace the usage of |pow g (mul a b)| in a
+We can then use this assumption to replace the usage of |pow g (times a b)| in a
 proof with |pow g c|.  This is a key step in proving the security of the ElGamal
 encryption scheme, for example.\todo{cite Shoup}  By introducing this assumption
 we show that no adversary can find |a| given |pow g a|, since otherwise they

@@ -26,6 +26,7 @@
 \newtheorem{corollary}[theorem]{Corollary}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
 
 \title{Master Thesis: Formalisation of Cryptographic Proofs in Agda}
 \author{By Anton Golov,\\under the supervision of\\Jaap van Oosten, Wouter
