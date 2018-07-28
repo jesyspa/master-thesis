@@ -81,6 +81,7 @@ constructing a sequence of $\epsilon$-indistinguishable games, we can relate our
 initial (complicated) game to a much simpler one, simplifying our analysis.
 
 \section{Games as Programs}
+\label{sec:intro-programs}
 
 We can regard a game as a sequence of actions performed by the players.  Players
 may perform computations, generate random bits, and make use of memory.
@@ -261,6 +262,7 @@ it follows that it has advantage 0 against |INDEAVOTP1| as well, and thus we
 have shown that |OTP| is secure against an eavesdropper attack.
 
 \section{Oracles}
+\label{sec:intro-oracles}
 
 The above lets us reason about adversaries expressed in terms of the basic
 language of non-determinsitic stateful computation.  This is useful by itself,
@@ -281,7 +283,8 @@ A function provided to the adversary in this opaque way is called an
 have: they may generate random bitstrings and have access to mutable state.
 However, the other players cannot inspect the code or state of the oracle.  This
 lets us precisely control the power of the adversary by adjusting the
-information provided by the oracle.
+information provided by the oracle.  As such, a flexible and easy-to-use system
+for oracles has been an important design goal for us.
 
 For the moment, we will assume that there are two operations provided by the
 oracle: a way to initialise the oracle state with some value of type
@@ -373,6 +376,7 @@ we can store both at once in a state of type |ST * K|.  We will use
 |setState|) when we want to disambiguate which component we are referring to.
 
 \section{Example: One-Time Pad (IND-CPA)}
+\label{sec:intro-otp-cpa}
 
 Let us now show that the One-Time Pad encryption scheme presented above is not
 secure with respect to the IND-CPA game by constructing an adversary that wins

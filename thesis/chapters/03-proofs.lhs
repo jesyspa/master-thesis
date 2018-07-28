@@ -673,8 +673,6 @@ data provided by this instrumentation to reason that the games can only differ
 in a minority of cases.  This is hard to do even in concrete scenarios, and a
 general solution would be useful for formalising existing proofs.
 
-\todo{inline}{Bernoulli?}
-
 We have also been unable to develop the equational theory with oracles to the
 same point as the theory without them.  There does not appear any fundamental
 reason we could not find comparable results for canonical forms.  However, these
