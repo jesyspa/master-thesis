@@ -174,91 +174,48 @@ This has two useful consequences.
 
 \todo[inline]{Explain why this is worth talking about.}
 
-\section{$\epsilon$-Relations}
-
-
-In the rest of the development, we will often want to consider a family of
-relations indexed by some notion of distance that indicate that two elmee
-We will often have to look at relations that are equivalence relations for 
-A recurring theme in our constructions is a binary relation indexed by a
-non-negative rational $\epsilon$ that represents that two 
-
-\begin{definition}
-    $R_\epsilon$ is an \emph{$\epsilon$-relation} on $A$ if
-    \begin{itemize}
-        \item For every $a \in A$, $R_\epsilon(a, a)$;
-        \item For every $a, b \in A$, if $R_\epsilon(a, b)$ then $R_\epsilon(b, a)$;
-        \item For every $a, b, c \in A$, if $R_{\epsilon_1}(a, b)$ and
-        $R_{\epsilon_2}(b, c)$ then $R_{\epsilon_1 + \epsilon_2}(a, c)$.
-        \item For every $a, b \in A$, if $R_{\epsilon_1}(a, b)$ and $\epsilon_1 \le
-        \epsilon_2$ then $R_{\epsilon_2}(a, b)$.
-        \item For every $a, b \in A$, $R_1(a, b)$.
-    \end{itemize}
-\end{definition}
-
-Functorial version: closed under fmap?
-Monadic version: closed under bind?
-
-\begin{theorem}
-    The norm defined above gives rise to an $\epsilon$-relation.
-\end{theorem}
-
 \section{$\epsilon$-Indistinguishability}
-\label{sec:epsilon-indistinguishability}
+\label{sec:proofs-epsilon-ind}
 
-We will now define a family of relations |==eE| that represents that two games,
-seen as probability distributions, are at a distance of at most $\epsilon$,
-where $\epsilon$ is a non-negative rational.  For now, this is a purely
-syntactic construction; we will look at a semantical interpretation in
-\autoref{chp:interpretation}.
+With this classical intuition in hand, we can now define the relation of
+$\epsilon$-indistinguishability on games.  Just like we defined games to be
+purely syntactic constructs, we define this relation in a syntactic manner, by
+specifying an inductive data type that represents the proofs of
+$\epsilon$-indistinguishability.
 
-The full axiomatisation of |==eE| is available in the Agda code.  However, since
-it involves a considerable number of technical details that are not interesting
-from a logical perspective, we will present the axioms here informally.  We say
-that two games |G| and |H| with the same result type are
-$\epsilon$-indistinguishable iff |G ==eE H| holds.  We say that two |A|-indexed
-families of games |f| and |g| are $h$-indistinguishable if for every |a : A|, |f
-a| and |g a| are $h(a)$-indistinguishable.  If $h$ is a constant function equal
-to $\epsilon$, we say |f| and |g| are $\epsilon$-indistinguishable.
+The definition, in full detail, is available in the Agda code.  However, the
+formulation given there is too verbose to be insightful.  We present the same
+inductive rules here in a more understandable manner.  After the definition, we
+will show the definition of one such rule in its entirety; this should make
+clear both the precise meaning of the other rules, and our reluctance to write
+them out in full.
 
-%{
-%format A1 = "A_1"
-%format A2 = "A_2"
-%format An = "A_n"
-%format a1 = "a_1"
-%format a2 = "a_2"
-%format an = "a_n"
-%format B1 = "B_1"
-%format B2 = "B_2"
-%format Bn = "B_n"
-%format b1 = "b_1"
-%format b2 = "b_2"
-%format bn = "b_n"
-When we say |==eE| is closed under some substitution of actions $A_1, A_2, \ldots,
-A_n$ for actions $B_1, B_2, \ldots, B_n$, we mean that for any continuation |cont|
-there exists a continuation |cont'| such that the games
-\begin{code}
-A1 >>= \ a1 -> A2 >>= \ a2 -> ldots -> An >>= \ an -> cont a1 a2 ldots an
-\end{code}
-and
-\begin{code}
-B1 >>= \ a1 -> B2 >>= \ a2 -> ldots -> Bn >>= \ an -> cont' a1 a2 ldots an
-\end{code}
-%}
-are $\epsilon$-indistinguishable.  The definition of |cont'| is typically clear
-from the context.
+As a final preparation, let us introduce two abbreviations that will be useful
+in the definition of |==eE| itself.  Let |A| and |B| be arbitrary types.
+Firstly, given two games |G| and |H|\footnote{That is, terms of type |CryptoExpr
+ST A|.}, we will say ``|G| and |H| are $\epsilon$-indistinguishable'' to mean |G
+==eE H|.  Secondly, given two |B|-indexed families of games |f| and
+|g|\footnote{That is, terms of type |B -> CryptoExpr ST A|.} and a function |h :
+A -> Q|, we say ``|f| and |g| are |h|-indistinguishable'' to mean that for every
+|a : A|, |f a| and |g a| are (|h a|)-indistinguishable.
 
-The axioms of $\epsilon$-indistinguishability are as follows:
-\begin{itemize}
+Without further ado: for every non-negative |epsilon : Q| and every two types
+|A| and |ST|, let |==eE| be the least binary relation on |CryptoExpr ST A| such
+that the following properties hold:
+\begin{enumerate}
     \item |==eE| is reflexive and symmetric.
     \item If |G ==e1E H| and |H ==e2E I| then |G ==eeE I|.
     \item Every two games are $1$-indistinguishable.
-    \item If |f| and |g| are families of games indexed by the result type |R| of
-    a primitive command |c|\footnote{That is, |GetState|, |SetState| or
-    |Uniform|} and |f r ==eE g r| for every |r : R| then |c f ==eE c g|.
-    \item |==eE| is closed under the state laws;
-    \item |==eE| is closed under the reordering of |uniform| and |getState|
-    operations;
+    \item For every |n : Nat|, if |f| and |g| are (|BitVec n|)-indexed families
+    of games and |f v ==eE g v| for every |v : BitVec n|, then |Uniform n f ==eE
+    Uniform n g|.
+    \item If |f| and |g| are |ST|-indexed families of games and |f st ==eE g st|
+    for every |st : ST|, then |GetState f ==eE GetState g|.
+    \item If |f| and |g| are |top|-indexed families of games and |f tt ==eE g
+    tt| then for every |st : ST|, |SetState st f ==eE SetState st g|.
+    \item |==eE| is closed under the state monad laws;
+    \item \label{li:xchg-uni-gs} |==eE| is closed under the reordering of
+    |uniform| and |getState| operations;
     \item |==eE| is closed under the reordering of |uniform| and |setState|
     operations;
     \item |==eE| is closed under the insertion of |uniform| and |getState|
@@ -270,24 +227,36 @@ The axioms of $\epsilon$-indistinguishability are as follows:
     \item If two $2^n$-indexed families of games |f| and |g| are
     $h$-indistinguishable, then |uniform >>= f| and  |uniform >>= g| are
     $\left(\sum_{v : 2^n} h(v)\right)$-indistinguishable.
+\end{enumerate}
+
+Let us write out rule \ref{li:xchg-uni-gs} in its entirety.  In Agda, the
+statement is as follows:
+%format xchgUGS = "\IC{xchg-Uniform-GetState}"
+\begin{code}
+data _==eE_ (ST A : Set) : (ce cf : CryptoExpr ST A) -> Set where
+  ldots
+  xchgUGS  : (FORALL n)
+           -> (cont : BitVec n -> ST -> CryptoExpr ST A)
+           -> (Uniform n \ v -> GetState \ st -> cont v st)
+              ==eE (GetState \ st -> Uniform n \ v -> cont v st)
+  ldots
+\end{code}
+
+Translated to English, this reads: for every |n : Nat| and every continuation
+|cont| that sends a bit vector and a state to a game, the following two actions
+are equivalent:
+\begin{itemize}
+    \item generate a random bit vector |v|, retrieve the state |st|, and call
+    |cont v st|; and
+    \item retrieve the state |st|, generate a random bit vector |v|, and call
+    |cont v st|.
 \end{itemize}
 
-Note that as is common with equational theories, we only specify what equalities
-must hold, but do not specify that any terms may not be
-$\epsilon$-indistinguishable.  We will consider the latter question in more
-detail in \autoref{chp:interpretation}.
+The other rules are similarly simple in meaning and obscure in formal statement.
 
-A special case of this relation arises when $\epsilon = 0$.  We denote this
-relation |==E| and say that two games |a| and |b| satisfying |a ==E b| are
-indistinguishable, dropping the $\epsilon$.  The |==E| relation is of key
-importance to the further development since it is a congruence: this means that
-we can replace all occurences of a subgame with an indistinguishable subgame
-even if we do not know how many occurences there are, and the resulting game
-will be indistinguishable from what we started.  This makes reasoning
-considerably easier than in the case of $\epsilon$-indistinguishability, where
-the number of occurences must be bounded for the result to be meaningful.
-
-The following simple theorem is often useful in practice.
+Let us now go through a number of results that highlight the similarity of
+|==eE| to the notion of $\epsilon$-indistinguishability we defined on
+probability distributions in \autoref{sec:proofs-dists}.
 
 \begin{theorem}
     |==e1E| is a subrelation of |==e2E| if $\epsilon_1 \le \epsilon_2$.
@@ -323,29 +292,36 @@ binding.  These properties can be proved from our axioms.
     many cases, but they are all straightforward.
 \end{proof}
 
-An important result we can obtain using this logic is that every game can be
-rewritten into a canonical form.  This is a first step to being able to perform
-the kind of rewriting steps we required in \autoref{sec:intro-prf}.  We denote
-this form as $\epsilon$-canonical form.\footnote{A possible source of confusion
-is that the normal form does not depend on the value of $\epsilon$: rather, this
-is the $\epsilon$-canonical form as it is canonical with respect to
-$\epsilon$-indistinguishability, as opposed to the other notions of
-indistinguishability introduced later.}
+A special case of |==eE| arises for $\epsilon = 0$.  We denote this relation
+|==E| and say that two games |G| and |H| satisfying |G ==E H| are
+indistinguishable, dropping the $\epsilon$.  The |==E| relation is of great
+practical value since it allows us to replace multiple occurences of a subgame
+at once.  This will be particularly important when we look at games that make
+use of an oracle.
+
+Now that we have investigated the basic properties of this logic, let us look at
+our first useful result: that every game can be rewritten into a canonical form.
+
+\begin{definition}
+    We say that a game |G : CryptoExpr ST A| is in canonical form if there exist
+    functions |f : ST -> Nat|, |g : (st : ST) -> BitVec (f st) -> ST|, and |h :
+    (st : ST) -> BitVec (f st) -> A| such that |G| is provably equal to
+    \begin{code}
+    do
+        st <- getState
+        v <- uniform dollar f st
+        setState dollar g st v
+        return dollar h st v
+    \end{code}
+\end{definition}
 
 \begin{theorem}
-    Every |ce : CryptoExpr ST A| is indistinguishable from some |CryptoExpr ST
-    A| of the form
-    \begin{code}
-        GetState \ st ->
-        Uniform (f st) \ v ->
-        SetState (g st v) \ _ ->
-        Return (h st v)
-    \end{code}
+    Every |G : CryptoExpr ST A| is indistinguishable from a game in canonical
+    form.
 \end{theorem}
 
-Note that we do not assume that the state type |ST| is finite or has decidable
-equality.  Given such an assumption, we could reverse the order of the
-|GetState| and |SetState| call.
+Note that we do not need to assume that the state type |ST| is finite or has
+decidable equality.
 
 \begin{proof}
     The full proof is in the Agda code, and proceeds in two steps: we first
@@ -353,31 +329,22 @@ equality.  Given such an assumption, we could reverse the order of the
     cases, the construction is by recursion on the structure of |ce|.
 
     The key idea of the proof is to explicitly pass around the current state
-    |st| and, in the case of |g| and |h|, a sufficiently long bitvector of
-    random bits.  Since |f| does not have access to such a bitvector (being the
+    |st| and, in the case of |g| and |h|, a sufficiently long vector of
+    random bits.  Since |f| does not have access to such a bit vector (being the
     function that determines how much randomness we require), it must enumerate
-    all bitvectors of the right length when the recursion is on a |Uniform|
-    constructor.  This makes explicitly computing this canonical form
-    impractical, but is not an obstacle to reasoning with it.
+    all vectors of the right length when the recursion is on a |Uniform|
+    constructor.  This makes it unfeasible to explicitly compute this canonical
+    form, but we can nevertheless reason with it.
 
-    The main difficulty in the proof is showing that the vector |v| has
-    sufficient random bits.  This is not a conceptual problem; it is just a
-    technicality caused by the fact that not every branch of a |Uniform|
-    constructor must use the same number of random bits.  This leads to the
-    following problem: the |Uniform n cont| case of |g| requires that |v| have
-    length |n+k|, where |k| is the maximum number of random bits |cont| may
-    use.  If |v| has this length, then we can split it into vectors |l| and |r|
-    of length |n| and |k| respectively, and recurse on |cont l| using |r| as our
-    vector of random bits.  However, suppose now that |cont l| is again of the
-    form |Uniform n' cont'|.  To split |r|, we require that it have length
-    |n'+k'|.  But |r| has length |k|, which is a maximum of a list, and thus not
-    of this form at all.
-
-    Careful manipulation of indices can resolve these issues, but they
-    considerably complicate this otherwise fairly straightforward proof.
+    The main difficulty in the proof is showing that the vector |v : BitVec k|
+    provides a sufficient number of random bits.  This involves showing that
+    whenever we recurse on a call of the form |Uniform n cont|, we can prove |n
+    <= k|.  Careful manipulation of the indices can show this is indeed the
+    case.
 \end{proof}
 
 \section{Result-Indistinguishability}
+\label{sec:proofs-result-ind}
 
 It is tempting to assume that the notion of $\epsilon$-indistinguishability we
 have just defined represents $\epsilon$-indistinguishability as we used the term
@@ -387,227 +354,48 @@ nuanced.
 In \autoref{chp:introduction}, we considered games to be indistinguishable even
 if they had different effects on the state of the adversary.   We did not have
 this luxury when defining the notion of $\epsilon$-indistinguishability above,
-since we wanted |==eE| to be closed under bind.  Without this, the |==eE|
-relation would not be a congruence.
+since we wanted |==eE| to be a congruence, and thus closed under bind.
 
 When it comes to bounding the advantage of the adversary, however, we do
 \emph{not} want to distinguish outcomes based on the state of the adversary: two
 adversaries that both win the game with probability 0.5 are equivalent for our
 purposes, even if we can distinguish between them based on the effect they have
 on the state.  As such, we want a weaker notion of indistinguishability which we
-will call $(\epsilon, st)$-indistinguishability or result-indistinguishability.
-This is the notion which will be used for reasoning about complete games, while
-$\epsilon$-indistinguishability will be used for reasoning about their parts.
-The $st$ refers to the initial value of the state.
+will call result-indistinguishability.
 
-As with $\epsilon$-indistinguishability, we specify the axioms of
-$(\epsilon, st)$-indistinguishability, denoted |==eR|, in Agda and
-provide an informal overview of these axioms here.  The relation |==eR| is
-indexed by |Q * ST| pairs and satisfies the following axioms:
-\begin{itemize}
-    \item |==eE| is a subrelation of |==eR| for each |st|.
-    \item |==eR| is symmetric.
-    \item If |G ==e1R H| and |H ==e2R I| then |G ==eeR I|.
-    \item Every two games are $(1, st)$-indistinguishable.
-    \item If |G ==eR H| and |f| is an |A|-indexed family of games such that for
-    each |a : A|, |f a| does not use state, then |G >>= f ==eR H >>= f|.
-    \item If |G| is a game with result type |A| that does not use state and |f|
-    and |g| are |A|-indexed families of games that are
-    $(\epsilon, st)$-indistinguishable, then |G >>= f ==eR G >>= h|.
-    \item |getState >>= cont| is $(\epsilon, st)$-indistinguishable from |cont
-    st|.
-    \item |ce >>= \ a -> setState (f a) >> return (g a)| is $(\epsilon,
-    st)$-indistinguishable from |fmap g ce| for any |f| and |g|.
-    \item If two $2^n$-indexed families of games |f| and |g| are
-    $(h, st)$-indistinguishable, then |uniform >>= f| and  |uniform >>= g| are
-    $\left(\sum_{v : 2^n} h(v), st\right)$-indistinguishable.
-\end{itemize}
-
-As before, we denote the special case of $(0, st)$-indistinguishability by
-$st$-indistinguishability.  Important to note is the difference between the
-|getState| and |setState| axioms.  In the former case, we know the state to be
-|st|, and so we do not need to restrict whether |cont| may or may not use state.
-In |setState|, on the other hand, we cannot allow an arbitrary continuation, but
-we can allow arbitrary game to precede the |setState| class, since the
-difference in state cannot later be observed.  The |setState| case can be
-generalised to the following theorem, which will prove useful later.
-
-\begin{theorem}
-    \label{thm:post-insert}
-    For any game |X| and family of games |Y|, |fmap g X| is result-indistinguishable
-    from |X >>= \ a -> Y a >> return (g a)|.
-\end{theorem}
-
-\begin{proof}
-    We can assume that |Y a| is in $\epsilon$-canonical form.  Note that the
-    insertion of |getState| and |uniform| operations gives games that are
-    $\epsilon$-indistinguishable.  It follows that |fmap g X| is
-    indistinguishable from
-    \begin{code}
-        X >>= \ a ->
-        getState >>= \ st ->
-        uniform (f a st) >>= \ v ->
-        return (g a)
-    \end{code}
-    By the monad laws, we can reassociate this to
-    \begin{code}
-        (X >>= \ a ->
-        getState >>= \ st ->
-        uniform (f a st) >>= \ v ->
-        return (a , st , v)) >>= \ pr
-        return (g dollar fst dollar snd pr)
-    \end{code}
-
-    We can now use the |setState| axiom to conclude this is
-    result-indistinguishable from
-    \begin{code}
-        (X >>= \ a ->
-        getState >>= \ st ->
-        uniform (f a st) >>= \ v ->
-        return (a , st , v)) >>= \ pr
-        setState (Y dollar fst dollar fst pr) >>= \ _ ->
-        return (g dollar fst dollar snd pr)
-    \end{code}
-
-    By the monad laws, this is equal to the desired result.
-\end{proof}
-
-Games considered up to result-indistinguishability have an even stronger
-canonical form, which we call the $(\epsilon, st)$-canonical form.
-
-\begin{theorem}
-    Every game |ce : CryptoExpr ST A| is result-indistinguishable from a game of
-    the form
-    \begin{code}
-        Uniform n \ v -> Return (f v)
-    \end{code}
-\end{theorem}
-
-\begin{proof}
-    It suffices to show that every $\epsilon$-canonical form is
-    result-indistinguishable from an $(\epsilon, st)$-canonical form.
-    By the |getState| axiom for result-indistinguishability, it is
-    $st$-indistinguishable from
-    \begin{code}
-        Uniform (f' st) \ v ->
-        SetState (g' st v) \ _ ->
-        Return (h' st v)
-    \end{code}
-
-    By the |setState| axiom and using the fact that |Uniform| and |Return| are
-    stateless, we see thisis $st$-indistinguishable from
-    \begin{code}
-        Uniform (f' st) \ v ->
-        Return (h' st v)
-    \end{code}
-
-    Since |st| is fixed, we can take |n = f' st| and |f = h' st|, giving the
-    desired result.
-\end{proof}
-
-\todo[inline]{Conclusion}
+Unfortunately, we have not been able to work out this relation adequately to
+present it here.  We nevertheless feel the need to remark on it, as any system
+based on this work would require such a relation   We show how an alternative
+approach using indexed monads can be used to avoid the need for this relation in
+\autoref{chp:indexed-monads}.
 
 \section{Indistinguishability with Oracles}
 
-In order to reason about games involving oracles, we want to extend the notions
-of $\epsilon$-indistinguishability and $(\epsilon, st)$-indistinguishability to
-pairs of games involving oracles and oracle definitions for these games.  Since
-we can compile such a pair into a game not involving oracles, we can lift these
-notions directly, which we shall do.  We will then look at the consequences of
-this definition, and the rewrite rules we can derive.
+In order to reason about games involving oracles, we want to extend the notion
+of $\epsilon$-indistinguishability to pairs of games involving oracles and
+oracle definitions for these games.  We use the fact that we have the |eval|
+funcion, which can combine a game involving an oracle and an oracle definition
+into a game that makes no mention of oracles.  This gives us a direct way of
+defining $\epsilon$-indistinguishability on oracle game-implementation pairs.
 
-We will assume that the types |OracleInit|, |OracleArg|, |OracleResult|, and
-|OST| all have decidable equality.  Finding where these restrictions can be
-relaxed would be a good candidate for further work in this area.
+%format ocl1 = "ocl\textsubscript{1}"
+%format ocl2 = "ocl\textsubscript{2}"
+%format ==OE = "\F{$\equiv^{O\!E}$}"
+%format ==eOE = "\F{$\equiv_\epsilon^{O\!E}$}"
+%format ==eOEocl = "\F{$\equiv_{\epsilon, ocl}^{O\!E}$}"
+%format ==eOR = "\F{$\equiv_\epsilon^{O\!R}$}"
+Formally speaking, given |G| and |H| of type |OracleExpr AST A| and |ocl1| and
+|ocl2| of type |Oracle OST|, we say that |(G , ocl1) ==eOE (H , ocl2)| iff |eval
+ce ocl1 ==eE eval cf ocl2|.  We will write |G ==eOEocl H| if |ocl| is the
+same on both sides.  We will also write |ocl1 ==eE ocl2|  iff for every |ost :
+OracleState|, |Init ocl1 ost ==eE Init ocl2 ost|  and for every |arg : OracleArg|,
+|Call ocl1 arg ==eE Call ocl2 arg|.
 
-Formally speaking, given |ce| and |cf| of type |OracleExpr AST A| and |impl| and
-|jmpl| of type |Oracle OST|, we say that |(ce , impl) ==eOE (cf , jmpl)| iff |eval
-ce impl ==eE eval cf jmpl|.  We will write |ce ==eOEimpl cf| if |impl| is the
-same on both sides.  We will also write |impl ==eE jmpl|  iff for every |i :
-OracleInit|, |Init impl i ==eE Init jmpl i|  and for every |a : OracleArg|,
-|Call impl arg ==eE Call jmpl arg|.  The definitions for |==eOR| and |==eR| on
-oracle implementations are analogous.
+This is a somewhat unsatisfactory solution, since this does not give us any
+reasoning principles for |==eOE|, making the process of proof extremely manual.
+We will consider this shortcoming in greater generality in
+\autoref{sec:cs-future-work}.
 
-The following simple results will make our life easier going forward:
-\begin{theorem}
-    If |impl ==E jmpl| and |ce : OracleExpr AST A|, then |(ce , impl) ==OE (ce ,
-    jmpl)|.  The same result does not hold for $\epsilon$-indistinguishability,
-    nor for result-indistinguishability.
-\end{theorem}
-
-\begin{proof}
-    This is easy to show by induction on the structure of |ce|.  The |GetState|,
-    |SetState|, and |Uniform| cases hold by reflixivity, while |impl ==E jmpl|
-    gives us the |InitOracle| and |CallOracle| cases.
-
-    The failure for $\epsilon$-indistinguishability can be seen in the following
-    game: let $0 < \epsilon < 1$ and consider an oracle that returns |true| with
-    probability $\epsilon$, and a game which calls the oracle $n$ times and
-    return |true| iff any oracle call returned |true|.  The probability that the
-    game returns true is $1 - (1 - \epsilon)^n$, which goes to $1$ as $n$ goes
-    to infinity and so is not bounded by $\epsilon$.
-
-    The failure for result-indistinguishability can be seen as follows: every
-    oracle implementation is result-indistinguishable from one where the
-    initialisation is |return tt|.  This would thus imply that every game
-    involving an oracle is result-indistinguishable to one where the oracle is
-    not initialised, which is clealy not the case.
-\end{proof}
-
-Since every game is indistinguishable from a game in $\epsilon$-canonical form,
-it follows that every oracle implementation |impl| is indistinguishable from an
-implementation |impl'| such that each |Init impl' i| and |Call impl' arg| are in
-$\epsilon$-canonical form.  Going forward, we will assume all our oracle
-implementations are of this form unless we specify otherwise.
-
-We would now like to find an $(\epsilon, st)$-canonical form for games that make
-use of oracles.  We start by studying the reordering and insertion rules of
-these games.
-
-\begin{theorem}
-    Games that do not make use of the oracle can be reordered with games that do
-    not make use of the state, in the following sense: for any game |X| that
-    does not make use of the oracle, any game |Y| that does not make use of the
-    state, and any continuation |cont|, the following games are
-    indistinguishable:
-    \begin{code}
-        X >>= \ a ->  Y >>= \ b ->  cont a b
-        Y >>= \ b ->  X >>= \ a ->  cont a b
-    \end{code}
-\end{theorem}
-
-\begin{proof}
-    The proof consists of several proofs by induction.  First, we show that
-    every |GetState|, |SetState|, and |Uniform| operation can be reordered with
-    an |OracleInit|, |OracleCall|, or |Uniform| operation, in the same sense as
-    this theorem.  We can then show, by induction on |X|, that we can reorder
-    |X| with the first operation on |Y|.  By induction on |Y|, we iterate this
-    construction to show that |X| and |Y| can be fully reordered.
-
-    The key insight is that the |SetState| and |GetState| operations of the game
-    and of the oracle can be reordered, since they always act on distinct
-    components of the state tuple.
-\end{proof}
-
-\begin{theorem}
-    Up to oracle result-indistinguishability, any game |X| can be extended with
-    any family of games |Y|, in the sense that |fmap g X| is
-    result-indistinguishable from |X >>= \ a -> Y a >> return (g a)|.
-\end{theorem}
-
-\begin{proof}
-    Note that this is just a restatement of \autoref{thm:post-insert} in the oracle
-    setting, and follows directly from that theorem.
-\end{proof}
-
-We conjecture that the canonical form results we obtained earlier can be
-generalised to the oracle case.  Unfortunately, these results are much harder to
-state than the non-oracle equivalents, since we must allow for the alternation
-of an arbitrary number of |OracleInit| and |OracleCall| operations.  In
-practice, we will usually wish to assume the order is specified by some proof
-term such as |BoundedOracleUse| from \autoref{sec:games-constraints}.  Given
-such a proof term, we expect to be able to compute the canonical form.  However,
-due to time constraints we have not been able to show this in Agda.
 
 \section{Generalised Security}
 \label{sec:security-assumptions}
@@ -636,33 +424,41 @@ that it is hard to distinguish the triple $(g^a, g^b, g^c)$ with $a, b, c$ all
 uniformly random (with $0 \le a < |G|$) from $(g^a, g^b, g^{ab})$, with $a, b$
 uniformly random.  We can phrase this as follows: let |G| be the uniform
 distribution over $G$.  Then there is some $\epsilon$ such that the following
-two games are $(\epsilon, st)$-indistinguishable for any adversary |adv|:
+two games are $\epsilon$-indistinguishable for
+any adversary |adv|:
 \begin{code}
 do
+    st <- getState
     a <- G
     b <- G
     c <- G
     adv (pow g a , pow g b , pow g c)
+    setState st
 
 do
+    st <- getState
     a <- G
     b <- G
     adv (pow g a , pow g b , pow g (times a b))
+    setState st
 \end{code}
 
-We can then use this assumption to replace the usage of |pow g (times a b)| in a
-proof with |pow g c|.  This is a key step in proving the security of the ElGamal
-encryption scheme, for example.\todo{cite Shoup}  By introducing this assumption
-we show that no adversary can find |a| given |pow g a|, since otherwise they
-could take |pow (pow g b) a| and compare it to the third component of the tuple.
+Notice that we need to explicitly preserve the state due to our lack of a proper
+notion of result-indistinguishability.
 
-A significant downside to this approach is that our assumptions must all be
-phrased as decision problems.\todo{Why is this bad?}
+Nevertheless, we can then use this assumption to replace the usage of |pow g
+(times a b)| in a proof with |pow g c|.  For example, this is a key step in
+proving the security of the ElGamal encryption scheme~\cite{gameexamples}.  By
+introducing this assumption we show that no adversary can find |a| given |pow g
+a|, since otherwise they could take |pow (pow g b) a| and compare it to the
+third component of the tuple.
 
-Another issue with this approach is that while this allows us to reason about an
-arbitrary adversary as if it satisfied our assumptions, it does not restrict the
-class of adversaries that we may use as a counterexample: it is thus necessary
-to check the validity of any constructed adversaries by hand.
+A possible downside to this approach is that our assumptions must all be phrased
+as statements of indistinguishability. Another issue with this approach is that
+while this allows us to reason about an arbitrary adversary as if it satisfied
+our assumptions, it does not restrict the class of adversaries that we may use
+as a counterexample: it is thus necessary to check the validity of any
+constructed adversaries by hand.
 
 Finally, an assumption of this kind only states that such an $\epsilon$ exists,
 without any bounds on the size of this $\epsilon$.  This is unsurprising: for
@@ -672,16 +468,16 @@ vacuous if the problem size is fixed.
 
 This is not as severe an issue as it may seem: we can assume (without
 formalising it in Agda) that $\epsilon$ is small, and interpret the
-indistinguishability results we come to in this light.  This is how many proofs
-in the literature are written as is.\todo{cite something}  On the other hand, a
-more elegant approach is to look at asymptotic indistinguishability.
+indistinguishability results we come to in this light.  This is not uncommon in
+existing proofs~\cite{gameexamples}.  However, if we want a more formal
+resolution to this problem, we can reason about asymptotic indistinguishability.
 
-Instead of assuming that games |G adv| and |H adv| are
-$\epsilon$-indistinguishable, we can assume that the families of games |G n adv|
-and |H n adv| are $f(n)$-indistinguishable, where $f$ is a function with limit
-$0$ as $n$ goes to infinity.  The value $n$ is typically called the
-\emph{security parameter}.  This approach allows us to show within Agda that |G|
-and |H| are harder to distinguish at higher security levels.
+Instead of attempting to prove that games |G| and |H| are
+$\epsilon$-indistinguishable, we can instead look at families of games |G| and
+|H| parametrised by a security paraeter, and show that they are
+$f$-indistinguishable for some vanishing function $f$.  
+
+\todo[inline]{This section still needs some cleanup.}
 
 \section{Future Work}
 
@@ -710,17 +506,9 @@ We have also been unable to develop the equational theory with oracles to the
 same point as the theory without them.  There does not appear any fundamental
 reason we could not find comparable results for canonical forms.  However, these
 developments may be better done in the context of \autoref{sec:cs-multiplayer},
-where we perform a further generalisation of oracles.
-
-The distinction between indistinguishability and result-indistinguishability
-is a considerable source of complexity throughout this chapter.  We have not
-thoroughly studied the connection between the two: we conjecture that we can
-recover indistinguishability from result-indistinguishability by defining a
-|preserve| map that sends a game |X| to |getState >>= \ st -> X >>= \ a ->
-setState st >> return a| and arguing that if games |X| and |Y| are
-result-indistinguishable, then |preserve X| and |preserve Y| are
-indistinguishable.  However, even this is not very satisfactory, and we explore
-a better approach in \autoref{sec:im-player-state-types}.
+where we perform a further generalisation of oracles.  The possible interactions
+between oracles and result-indistinguishability are also an interesting matter
+of further study.
 
 Finally, not all conseuences of the point-free presentation of
 indistinguishability we have given here are clear to us.  In particular, we

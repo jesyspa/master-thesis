@@ -139,6 +139,14 @@
 %format allbitvecs  = "\F{all-bitvecs}"
 %format all         = "\F{all}"
 %format head        = "\F{head}"
+%format refl        = "\IC{refl}"
+%format epsilon     = "\epsilon"
+%format sum         = "\F{sum}"
+%format support     = "\F{support}"
+%format uniques     = "\F{uniques}"
+%format filter      = "\F{filter}"
+%format distance    = "\F{distance}"
+%format union       = "\F{union}"
 
 %% Indexed monads
 %format IxFunctor      = "\D{IxFunctor}"
@@ -170,10 +178,16 @@
 %format s2                   = "s_2"
 %format IS1                  = "I\!S_1"
 %format IS2                  = "I\!S_2"
+%format IxStateT             = "\D{IxStateT}"
+%format Atkey                = "\D{Atkey}"
+%format V                    = "\F{V}"
+%format DepAtkey             = "\D{DepAtkey}"
+%format DepV                 = "\F{DepV}"
 
 %% Free Monads
 %format FreeMonad            = "\D{FreeMonad}"
 %format ReturnFM             = "\F{Return-FM}"
+%format returnFM             = "\F{return-FM}"
 %format InvokeFM             = "\F{Invoke-FM}"
 %format fmapFM               = "\F{fmap-FM}"
 %format apFM                 = "\F{ap-FM}"
@@ -187,14 +201,21 @@
 %format Forget                   = "\D{Forget}"
 %format C1                       = "C_1"
 %format C2                       = "C_2"
-%format CommandAlgebra           = "\F{CommandAlgebra}"
-%format MonadicCommandAlgebra    = "\F{MonadicCommandAlgebra}"
+%format CommandAlgebra           = "\D{CommandAlgebra}"
+%format MonadicCommandAlgebra    = "\D{MCommandAlgebra}"
+%format CryptoCmd                = "\F{CryptoCmd}"
+%format CryptoCS                 = "\F{CryptoCS}"
+%format OracleCmd                = "\F{OracleCmd}"
+%format OracleCS                 = "\F{OracleCS}"
+%format BaseOracleCS             = "\F{BaseOracleCS}"
+%format GameCS                   = "\F{GameCS}"
 %format foldalgebra              = "\F{fold-algebra}"
 %format idAlg                    = "\F{id-Alg}"
 %format demonadisealgebra        = "\F{demonadise-algebra}"
 %format foldmonadicalgebra       = "\F{fold-monadic-algebra}"
 %format fmapCSMAlg               = "\F{fmap-CS-MAlg}"
 %format fmapCSFM                 = "\F{fmap-CS-FM}"
+%format Implementation           = "\D{Implementation}"
 
 %% Not sure where to put
 %format Injective = "\F{Injective}"
@@ -205,7 +226,9 @@
 %format _*_ = "\F{\_\hspace{-0.1em}*\hspace{-0.1em}\_}"
 %format _<_ = "\F{\_\hspace{-0.1em}\textless\hspace{-0.1em}\_}"
 %format _oplus_ = "\F{\_\hspace{-0.1em}$\oplus$\hspace{-0.1em}\_}"
+%format _bindi_ = "\RF{\_$>\!>\!=$\textsuperscript{i}\hspace{-0.1em}\_}"
 %format _qoplus_ = "\F{\_\hspace{-0.1em}$\oplus/\sim$\hspace{-0.1em}\_}"
+%format _+CS_ = "\F{\_$\uplus^{C\!S}$\hspace{-0.1em}\_}"
 
 %% Punctuation
 %format dot   = "\hspace{-0.3em}.\,"
@@ -215,6 +238,7 @@
 %format rangle = "\rangle"
 %format ldots = "\ldots"
 %format do = "\K{do}"
+%format +CS = "\mathbin{\F{$\uplus^{C\!S}$}}"
 
 %% Misc stuff
 %format (FORALL (a))  = "\forall\{{"a"}\}\!"
@@ -227,6 +251,7 @@
 %% Things annoying to :Align
 %format ==E = "\F{$\equiv^E$}"
 %format ==eE = "\F{$\equiv_\epsilon^E$}"
+%format _==eE_ = "\F{\_$\equiv_\epsilon^E$\!\!\_}"
 %format ==e1E = "\F{$\equiv_{\epsilon_1}^E$}"
 %format ==e2E = "\F{$\equiv_{\epsilon_2}^E$}"
 %format ==eeE = "\F{$\equiv_{\epsilon_1 + \epsilon_2}^E$}"
@@ -239,10 +264,6 @@
 %format ==eeR = "\F{$\equiv_{\epsilon_1 + \epsilon_2, st}^R$}"
 %format ==1R = "\F{$\equiv_{1, st}^R$}"
 %format ==geR = "\F{$\equiv_{g(v)}^R$}"
-%format ==OE = "\F{$\equiv^{O\!E}$}"
-%format ==eOE = "\F{$\equiv_\epsilon^{O\!E}$}"
-%format ==eOEimpl = "\F{$\equiv_{\epsilon, impl}^{O\!E}$}"
-%format ==eOR = "\F{$\equiv_\epsilon^{O\!R}$}"
 %format ==D = "\F{$\equiv^D$}"
 %format ==eD = "\F{$\equiv_\epsilon^D$}"
 %format ==e1D = "\F{$\equiv_{\epsilon_1}^D$}"

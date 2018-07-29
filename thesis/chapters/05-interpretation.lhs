@@ -20,6 +20,51 @@ For the purpose of this chapter, we we will fix the state type |ST| and assume
 that it has decidable equality.  As in \autoref{chp:proofs}, we also fix a type
 of rational numbers |Q|.
 
+\section{Distance Relations}
+
+In order to simplify the definition of a model of game logic, we will look at
+the properties of |==eE| and |==eR| we defined in \autoref{chp:games} to
+highlight the structure that we want a model to have.
+
+Let us take a step back and look at the commonalities of
+$\epsilon$-indistinguishability in the classical case
+(\autoref{sec:proofs-dists}), $\epsilon$-indistinguishability on games (|==eE|,
+\autoref{sec:proofs-epsilon-ind}), and $(\epsilon, st)$-indistinguishability
+(|==eR|, \autoref{sec:proofs-result-ind}).
+
+In all three cases, the relation represents a bound on the distance between two
+elements of some set or type.  However, while in \autoref{sec:proofs-dists} we
+can explicitly express this distance, we cannot do the same in the last two
+cases.
+
+
+
+In the rest of the development, we will often want to consider a family of
+relations indexed by some notion of distance that indicate that two elmee
+We will often have to look at relations that are equivalence relations for 
+A recurring theme in our constructions is a binary relation indexed by a
+non-negative rational $\epsilon$ that represents that two 
+
+\begin{definition}
+    $R_\epsilon$ is an \emph{$\epsilon$-relation} on $A$ if
+    \begin{itemize}
+        \item For every $a \in A$, $R_\epsilon(a, a)$;
+        \item For every $a, b \in A$, if $R_\epsilon(a, b)$ then $R_\epsilon(b, a)$;
+        \item For every $a, b, c \in A$, if $R_{\epsilon_1}(a, b)$ and
+        $R_{\epsilon_2}(b, c)$ then $R_{\epsilon_1 + \epsilon_2}(a, c)$.
+        \item For every $a, b \in A$, if $R_{\epsilon_1}(a, b)$ and $\epsilon_1 \le
+        \epsilon_2$ then $R_{\epsilon_2}(a, b)$.
+        \item For every $a, b \in A$, $R_1(a, b)$.
+    \end{itemize}
+\end{definition}
+
+Functorial version: closed under fmap?
+Monadic version: closed under bind?
+
+\begin{theorem}
+    The norm defined above gives rise to an $\epsilon$-relation.
+\end{theorem}
+
 \section{Models of Game Logic}
 
 We have already found one model for our logic: the syntactic model, consisting

@@ -50,7 +50,6 @@ Swierstra, and Victor Cacciari Miraldo}
     %include chapters/04-command-structures.lhs
     %include chapters/05-interpretation.lhs
     %include chapters/06-indexed-monads.lhs
-    %include chapters/07-interaction-structures.lhs
     %include chapters/08-crypto-language.lhs
 
     \begin{appendices}

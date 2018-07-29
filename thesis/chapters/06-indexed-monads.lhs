@@ -78,6 +78,9 @@ _bindi_ : M A s -> (A ~> M B) -> M B s
 m bindi cont = joini (fmapi cont m)
 \end{code}
 
+This type signature looks a lot more familiar if we flip the order of the
+arguments to get |(A ~> M B) -> (M A -> M B)|.
+
 A useful intuition is that a term |m : M A s| is a computation that starts at
 state |s| and ends at some (unknown) state |s'|.  Since |s'| is not known, the
 continuation must work for \emph{any} |s'|.  This is essential to avoid the
@@ -263,7 +266,112 @@ new message type, the new message, and give as result the new message wrapped in
 an Atkey.  The definitions of |get| and |set| can, fortunately, be derived from
 this, and the definitions of bind and return are straightforward.
 
-\todo{conclusion?}
+\todo[inline]{conclusion?}
+
+\section{Interaction Structures}
+% backported
+\label{chp:interaction-structures}
+
+In \autoref{chp:command-structures}, we saw a way of encoding the
+command-response structure in a way that allowed us to generate the
+corresponding free monad automatically.  Interaction structures allow us to do
+the same in the indexed context.
+
+Let |S| be our index type.  An interaction structure consists of a type of
+commands |Command s| for each |s : S|, a type of responses |Response c| for each
+command |c : Command s|, and a next state |next c r| for each |c : Command s|
+and |r : Response c|.
+We can implement this in Agda:
+
+\begin{code}
+record IStruct (S : Set) : Set where
+  field
+    Command   : S -> Set
+    Response  : {s : S} -> Command s -> Set
+    next      : {s : S}(c : Command s)(r : Response c) -> S
+\end{code}
+
+An interaction structure over a state type |S| gives rise to a free indexed
+monad over |S| as follows:
+\begin{code}
+data FreeMonad (IS : IStruct S) : (S -> Set) -> (S -> Set) where
+  ReturnFM  : A s -> FreeMonad IS A s
+  InvokeFM  : (c : Command IS s) -> ((r : Response IS c)
+            -> FreeMonad IS A (next IS c r))
+            -> FreeMonad IS A s
+\end{code}
+
+This follows the usual pattern we have seen before: to invoke a particular
+operation, we specify it (with all parameters) and then we provide a
+continuation that handles the possible responses.  The fmap and bind functions
+are also straightforward generalisations:
+
+\begin{code}
+fmapFM : A ~> B -> FreeMonad IS A ~> FreeMonad IS B
+fmapFM f (ReturnFM a)       = ReturnFM (f a)
+fmapFM f (InvokeFM c cont)  = InvokeFM c \ r -> fmapFM f (cont r)
+
+bindFM : A ~> FreeMonad IS B -> FreeMonad IS A ~> FreeMonad IS B
+bindFM f (ReturnFM a)       = f a
+bindFM f (InvokeFM c cont)  = InvokeFM c \ r -> bindFM f (cont r)
+\end{code}
+
+We have flipped the arguments of |bindFM| to emphasise the indexed structure.
+
+\section{Multiplayer Systems}
+
+Just like in the non-indexed case, we can consider the situation where a list of
+players is implemented in terms of each other and some base language.  The
+essential construction does not change, but we have to define the implementation
+and the |+CS| operation in this context.
+
+For the definition of |Implementation|, we need the |DepAtkey| construction we
+defined earlier. 
+\todo[inline]{Explain |Sf| and how this works.}
+\begin{code}
+Implementation  : (IS : IStruct S1)(M : (S2 -> Set) -> S2 -> Set)(Sf : S1 -> S2)
+                -> Set
+Implementation IS M Sf
+  = (c : Command IS s) -> M (DepAtkey (Response IS c) (Sf . next IS c)) (Sf s)
+\end{code}
+
+
+\todo[inline]{Incorporate this into the narrative}
+We can define a |_oplus_| construction that takes two interaction structures and
+gives their combined system, with each operation changing one dimension.  This
+is good when some player is implemented in terms of the instructions for A and
+the instructions for B.
+\begin{code}
+_oplus_ : (IS1 : IStruct S1)(IS2 : IStruct S2) -> IStruct (S1 * S2)
+Command   (oplus IS1 IS2) (s1 , s2) = Command IS1 s1 + Command IS2 s2
+Response  (oplus IS1 IS2) {s1 , s2}  (left  c)  = Response IS1 c
+Response  (oplus IS1 IS2) {s1 , s2}  (right c)  = Response IS2 c
+next      (oplus IS1 IS2) {s1 , s2}  (left  c) r  = next IS1 c r , s2
+next      (oplus IS1 IS2) {s1 , s2}  (right c) r  = s1 , next IS2 c r
+\end{code}
+
+This thing has a unit.  It's sometimes useful.
+\begin{code}
+TensorUnitIS : IStruct top 
+Command   TensorUnitIS  tt  = bot
+Response  TensorUnitIS  {tt} ()
+next      TensorUnitIS  {tt} ()
+\end{code}
+
+We can also define a dependent version where the first component is already
+aware of the state of the second, and so we can omit the second component's
+state.  We denote this by |_qoplus_|.
+
+\begin{code}
+_qoplus_ : IStruct (S1 * S2) -> IStruct S2 -> IStruct (S1 * S2)
+Command   (qoplus IS1 IS2) (s1 , s2) = Command IS1 (s1 , s2) + Command IS2 s2
+Response  (qoplus IS1 IS2) {s1 , s2} (left  c)  = Response IS1 c
+Response  (qoplus IS1 IS2) {s1 , s2} (right c)  = Response IS2 c
+next      (qoplus IS1 IS2) {s1 , s2} (left  c) r = next IS1 c r
+next      (qoplus IS1 IS2) {s1 , s2} (right c) r = s1 , next IS2 c r
+\end{code}
+
+\todo[inline]{"We can build these telescopes now"}
 
 \section{Future Work}
 \label{sec:indexed-monads-future-work}
@@ -285,4 +393,3 @@ al.}~\cite{definterp}, and appears to rely on a categorical structure on the
 index set.  Expressing the conditions and resulting definition of bind
 explicitly could be of interest.
 
-\todo{Maybe add IND-CCA idea?}
