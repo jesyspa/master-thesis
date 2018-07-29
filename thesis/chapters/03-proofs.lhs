@@ -40,31 +40,51 @@ Finally, we will consider how this system handles the requirements we posed in
 security assumptions in proofs.  We also discuss a number of problems we have
 been unable to solve.
 
-\todo[inline]{Mention |Q|?}
-
 \section{Properties of Distributions}
 \label{sec:proofs-dists}
 
-Since we are interested in modelling the (equational) logic of probability
-distributions, we will start by looking at the laws that these distributions
-satisfy in classical mathematics.  Fortunately, we are only interested in
-discrete probability distributions with finite support.  We can thus model a
-probability distribution $X$ over a set $A$ as a function $A \to \mathbb{R}$
-giving the probability of sampling $a \in A$ from $X$.
+Before we start on a formalisation in Agda, let us recall how probability
+distributions behave in classical mathematics.  All of the material in this
+section is long-known and completely standard, but we feel that this brief recap
+will serve as motivation for our definition of |==eE|   In particular, we are
+interested in exploring how |==eE| should interact with monadic binding.
 
-To start, a little notation: we will use $2^n$ to denote the bitvectors of
-length $n$, and $U_n$ to denote the uniform distribution over $2^n$.  The
-Dirac delta distribution that gives an element $a \in A$ probability 1 is
-denoted $1_a$.  Given a distribution $X$ over $A$ and an $A$-indexed family of
-distributions $Y$ over $B$, we denote the composite distribution obtained by
-sampling $a$ from $X$ and then $b$ from $Y_a$ as $XY$, defined by
-\[ XY(b) = \sum_{a \in A} X(a)Y_a(b). \]
-Finally, given distributions $X$ and $Y$ over the same set $A$, we define the
-distance between them as follows:
+Since all of the distributions we will consider arise from a bounded number of
+coin flips, we are interested exclusively in discrete probability distributions
+with finite support.  We will model a probability distribution $X$ over a set
+$A$ as a function $f_X : A \to \mathbf{R}$, where for every $a \in A$, $f_X(a)$
+gives the probability of drawing $a$ from $X$.  As usual, these functions
+satisfy $f_X(a) \in [0, 1]$ and $\sum_{a \in A} f_X(a) = 1$.  If there is no
+risk of confusion, we will write $X(a)$ for $f_X(a)$.
+
+To give a better understanding of this presentation, let us consider two
+examples that we will need later:
+\begin{itemize}
+    \item For any set $A$ and any $a \in A$, the Dirac delta distribution $1_a$
+    is the distribution that always gives $A$, given by $1_a(a) = 1$ and $1_a(x)
+    = 0$ if $x \neq a$.
+    \item Let $2^n$ be the set of bit vectors of length $n$.  The uniform
+    distribution $U_n$ is defined by $U_n(v) = 2^{-n}$ for every $v \in 2^n$.
+\end{itemize}
+
+Given a distribution $X$ over $A$ and an $A$-indexed family of distributions $Y$
+over $B$, we define the composite distribution $XY$ over $B$ by
+\[
+    XY(b) = \sum_{a \in A} X(a)Y_a(b).
+\]
+
+It is an easy exercise to show that this this defines a probability
+distribution, and that if $X$ and each $Y_a$ have finite support, then $XY$ also
+has finite support.
+
+Given two distributions $X$ and $Y$ over the same set $A$, we denote the
+distance between them as $\norm{X - Y}$ and define it as
 \[ \norm{X-Y} = \frac{1}{2} \sum_{a \in A} \abs{X(a) - Y(a)}. \]
 
-The following theorem motivates the $\frac{1}{2}$ in the definition of the
-distance:
+The reader may notice that this is simply the $l^1$ or Manhattan norm from
+linear algebra scaled by $\frac{1}{2}$.  The following theorem motivates this
+scaling:
+
 \begin{theorem}
     For every two probability distributions $X, Y$ over some set $A$,
     \[ \norm{X - Y} \le 1. \]
@@ -81,17 +101,24 @@ distance:
     \]
 \end{proof}
 
-The composition of distributions operation corresponds to the monadic bind
-operation.  The monad, in this case, sends a set $A$ to the set of all
-probability distributions over $A$, and the unit sends an element $a \in A$ to
-the Dirac delta distribution $1_a$.
+There is a connection between this notion of composition of probability
+distributions and the way in which our games form a monad.  Namely, let $D_A$
+denote the set of probability distributions over a set $A$.  We can regard
+$D_{-}$ as a functor on $\mathbf{Set}$ and define the action on a function $f :
+A \to B$ by \[ D_f(X)(b) = \sum_{a \in f^*(b)} X(a). \]  More importantly for
+us, $D_{-}$ has the structure of a monad, with $1_{-}$ being the unit and
+composition of distributions being the bind!
+\todo[inline]{Monad laws?}
 
-The logic of this monadic bind is of particular interest to is, since we are
-interested in knowing how much changing a single step of a game will influence
-the game as a whole.  The following results tell us that the effect of such a
-substitution is at most linear in the number of occurences.
+Let us say that two probability distributions $X$ and $Y$ are
+\emph{$\epsilon$-indistinguishable} iff $\norm{X - Y} \le \epsilon$.  We will
+now demonstrate a number of properties that show how composition of probability
+distributions interacts with $\epsilon$-indistinguishibility of distributions.
+While this does not directly prove anything about games, it suggests what
+properties we can reasonably expect to hold for them, and can thus guide what
+assumptions we make.
 
-We use $A$ and $B$ to denote arbitrary sets in the following.
+For the rest of this section, let $A$ and $B$ denote arbitrary sets.
 
 \begin{theorem}
     Let $X, Y$ be distributions over $A$ and let $Z$ be an $A$-indexed
@@ -101,7 +128,7 @@ We use $A$ and $B$ to denote arbitrary sets in the following.
 
 \begin{proof}
     Writing out the definition, for any $b \in B$, \[ \abs{XZ(b) - YZ(b)} =
-    \abs{\sum_{a \in A} (X(a) - Y(a))(Z_a(b))}.\]  By the triangle inequality,
+    \abs{\sum_{a \in A} (X(a) - Y(a))Z_a(b)}.\]  By the triangle inequality,
     \[ \sum_{b \in B} \abs{XZ(b) - YZ(b)}
         \le \sum_{b \in B}\sum_{a \in A} \abs{X(a) - Y(a)}\abs{Z_a(b)}. \]
     Since each $Z_a$ is a probability distribution, $\sum_{b \in B}\abs{Z_a(b)}
@@ -123,8 +150,8 @@ We use $A$ and $B$ to denote arbitrary sets in the following.
     \[ \sum_{b \in B} \abs{XY(b) - XZ(b)} \le
         \sum_{b \in B}\sum_{a \in A} \abs{X(a)}\abs{Y_a(b) - Z_a(b)} \]
     and now using the non-negativity of $X$ we get
-    \[ \sum_{b \in B} \abs{XY(b) - XZ(b)} \le
-        \sum_{a \in A} X(a)\left(\sum_{b \in B}\abs{Y_a(b) - Z_a(b)}\right)
+    \[ \frac{1}{2}\sum_{b \in B} \abs{XY(b) - XZ(b)} \le
+        \frac{1}{2}\sum_{a \in A} X(a)\left(\sum_{b \in B}\abs{Y_a(b) - Z_a(b)}\right)
         = \sum_{a \in A} X(a)\norm{Y_a - Z_a} \]
 \end{proof}
 
@@ -145,11 +172,16 @@ This has two useful consequences.
     \]
 \end{corollary}
 
+\todo[inline]{Explain why this is worth talking about.}
+
 \section{$\epsilon$-Relations}
 
-A recurring theme in our constructions is a relation indexed by a non-negative
-rational $\epsilon$, and  that is an equivalence relation for $\epsilon = 0$,
-and that is weakenable.
+
+In the rest of the development, we will often want to consider a family of
+relations indexed by some notion of distance that indicate that two elmee
+We will often have to look at relations that are equivalence relations for 
+A recurring theme in our constructions is a binary relation indexed by a
+non-negative rational $\epsilon$ that represents that two 
 
 \begin{definition}
     $R_\epsilon$ is an \emph{$\epsilon$-relation} on $A$ if
@@ -174,8 +206,6 @@ Monadic version: closed under bind?
 \section{$\epsilon$-Indistinguishability}
 \label{sec:epsilon-indistinguishability}
 
-\todo{This kind of family of relations is a common theme here; maybe give it a
-name?}
 We will now define a family of relations |==eE| that represents that two games,
 seen as probability distributions, are at a distance of at most $\epsilon$,
 where $\epsilon$ is a non-negative rational.  For now, this is a purely

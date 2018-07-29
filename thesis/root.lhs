@@ -25,7 +25,7 @@
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{corollary}[theorem]{Corollary}
 \theoremstyle{definition}
-\newtheorem{definition}{Definition}
+\newtheorem{definition}[theorem]{Definition}
 \newtheorem{remark}{Remark}
 
 \title{Master Thesis: Formalisation of Cryptographic Proofs in Agda}
