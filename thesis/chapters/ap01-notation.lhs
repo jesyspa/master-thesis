@@ -1,18 +1,11 @@
 \chapter{Notation}
 \label{chp:notation}
 
-Maybe discuss some notation here, like
-
-\begin{itemize}
-  \item Agda definitions
-  \item Data types
-  \item Record types
-  \item Do notation
-  \item Equality and |isYes|.
-\end{itemize}
+\todo[inline]{Introduction}
 
 \section{Built-in Types}
 
+\todo[inline]{Expand}
 Since we are using Ulf Norell's
 prelude\footnote{\url{http://github.com/UlfNorell/agda-prelude}}, there are a
 number of types that are defined for us.  For example, |Nat|, bottom, top,
@@ -20,6 +13,7 @@ products, sums, function types.
 
 \section{Value Definitions}
 
+\todo[inline]{Expand}
 In Agda, we can introduce a name by specifying its type and then giving its
 definition.  Here are some examples:
 \begin{code}
@@ -32,6 +26,7 @@ square x = (times x x)
 
 \section{Type Definitions}
 
+\todo[inline]{Expand}
 Agda supports two ways of defining data types: |data| and |record| definition.
 
 A |data| definition inductively defines a type by specifying all of the ways in
@@ -50,3 +45,13 @@ define functions by induction on the constructors:
 plus zero m = m
 plus (suc n) m = suc ((plus n m))
 \end{code}
+
+\todo[inline]{record types}
+
+\section{Equality}
+
+\todo[inline]{Write}
+
+\section{Monads}
+
+\todo[inline]{Write}

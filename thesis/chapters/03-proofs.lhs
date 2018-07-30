@@ -190,6 +190,8 @@ will show the definition of one such rule in its entirety; this should make
 clear both the precise meaning of the other rules, and our reluctance to write
 them out in full.
 
+\todo[inline]{Introduce |Q|}
+
 As a final preparation, let us introduce two abbreviations that will be useful
 in the definition of |==eE| itself.  Let |A| and |B| be arbitrary types.
 Firstly, given two games |G| and |H|\footnote{That is, terms of type |CryptoExpr

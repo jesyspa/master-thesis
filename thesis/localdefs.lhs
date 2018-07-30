@@ -8,6 +8,7 @@
 %format Semiring         = "\D{Semiring}"
 %format Ord              = "\D{Ord}"
 %format Dist             = "\D{Dist}"
+%format ValidDist        = "\D{ValidDist}"
 %format ListDist         = "\D{ListDist}"
 %format StateDist        = "\D{StatefulDist}"
 %format Writer           = "\D{Writer}"

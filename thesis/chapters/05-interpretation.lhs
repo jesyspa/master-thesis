@@ -4,11 +4,12 @@
 With the logic we have developed in hand, we can tackle questions about games
 being $\epsilon$-indistinguishable.  However, if we are to be convinced that our
 results have any meaning, we must first show that our system is at the very
-least not trivial: if \emph{every} game |ce : CryptoExpr ST Bool| could be shown
+least not trivial: if \emph{every} game |G : CryptoExpr ST Bool| could be shown
 to be $\epsilon$-indistinguishable from |coin| then our proof would have little
 weight behind it.  It would be even better if we could show that our notion of
-indistinguishability can be expressed as a relation on probability
-distributions.
+indistinguishability can be expressed as a relation on a type that explicitly
+models probability distributions, rather than on a purely syntactic description
+of games.
 
 To this end, we will define the notion of a \emph{model} of our logic and
 construct a non-trivial model based on the Haskell |Dist| monad due to Erwig and
@@ -16,71 +17,48 @@ Kollmansberger~\cite{probfunproghaskell}.  Using this model, we can show that
 our logic does not prove |coin ==R return true| or |return false ==R return
 true|.
 
-For the purpose of this chapter, we we will fix the state type |ST| and assume
-that it has decidable equality.  As in \autoref{chp:proofs}, we also fix a type
-of rational numbers |Q|.
+For the purpose of this chapter, we we will fix a state type |ST| with decidable
+equality.  We have not encountered existing proofs that relied on a state type
+with non-decidable equality, so we do not consider this a significant issue.
 
 \section{Distance Relations}
 
-In order to simplify the definition of a model of game logic, we will look at
-the properties of |==eE| and |==eR| we defined in \autoref{chp:games} to
-highlight the structure that we want a model to have.
+In \autoref{sec:proofs-epsilon-ind}, we defined the |==eE| family of relations.
+This family captures the notion that the distance between two games is bounded
+by some constant $\epsilon$.  We will now define a more general notion of
+\emph{distance relation} that captures this idea.
+\todo[inline]{Note why this is useful.}
 
-Let us take a step back and look at the commonalities of
-$\epsilon$-indistinguishability in the classical case
-(\autoref{sec:proofs-dists}), $\epsilon$-indistinguishability on games (|==eE|,
-\autoref{sec:proofs-epsilon-ind}), and $(\epsilon, st)$-indistinguishability
-(|==eR|, \autoref{sec:proofs-result-ind}).
-
-In all three cases, the relation represents a bound on the distance between two
-elements of some set or type.  However, while in \autoref{sec:proofs-dists} we
-can explicitly express this distance, we cannot do the same in the last two
-cases.
-
-
-
-In the rest of the development, we will often want to consider a family of
-relations indexed by some notion of distance that indicate that two elmee
-We will often have to look at relations that are equivalence relations for 
-A recurring theme in our constructions is a binary relation indexed by a
-non-negative rational $\epsilon$ that represents that two 
-
+We give our definition in plain mathematical terms.  \todo[inline]{Why?}
 \begin{definition}
-    $R_\epsilon$ is an \emph{$\epsilon$-relation} on $A$ if
+    \todo[inline]{Make this more formal}
+    A family of binary relations $R_{-}$ indexed by non-negative rationals is a
+    \emph{distance relation} on $A$ if
     \begin{itemize}
-        \item For every $a \in A$, $R_\epsilon(a, a)$;
-        \item For every $a, b \in A$, if $R_\epsilon(a, b)$ then $R_\epsilon(b, a)$;
-        \item For every $a, b, c \in A$, if $R_{\epsilon_1}(a, b)$ and
+        \item For every $a : A$, $R_\epsilon(a, a)$;
+        \item For every $a, b : A$, if $R_\epsilon(a, b)$ then $R_\epsilon(b, a)$;
+        \item For every $a, b, c : A$, if $R_{\epsilon_1}(a, b)$ and
         $R_{\epsilon_2}(b, c)$ then $R_{\epsilon_1 + \epsilon_2}(a, c)$.
-        \item For every $a, b \in A$, if $R_{\epsilon_1}(a, b)$ and $\epsilon_1 \le
+        \item For every $a, b : A$, if $R_{\epsilon_1}(a, b)$ and $\epsilon_1 \le
         \epsilon_2$ then $R_{\epsilon_2}(a, b)$.
-        \item For every $a, b \in A$, $R_1(a, b)$.
     \end{itemize}
 \end{definition}
 
-Functorial version: closed under fmap?
-Monadic version: closed under bind?
-
-\begin{theorem}
-    The norm defined above gives rise to an $\epsilon$-relation.
-\end{theorem}
+\todo[inline]{Functional version}
+\todo[inline]{Monadic version}
 
 \section{Models of Game Logic}
 
 We have already found one model for our logic: the syntactic model, consisting
-of a monad |CryptoExpr ST| together with a monadic $\epsilon$-relation |==eE|
-and a functorial $\epsilon$-relation |==eR|.  We will denote this model by
-|CE|. Our definition of a relation is a direct generalisation of this.
+of a monad |CryptoExpr ST| together with the $\epsilon$-relation |==eE|.  We
+will denote this model by |CE|. Our definition of a relation is a direct
+generalisation of this.
 
 \begin{definition}
   A \emph{model of game logic} is a monad |M| together with a monadic
-  $\epsilon$-relation |~~eE|, a functorial $\epsilon$-relation |~~eR|, and a
-  valuation function |VAL _ : CryptoExpr ST A -> M A| such that |~~eE| is a
-  subrelation of |~~eR| and for any games |ce| and |cf|,
-  \begin{itemize}
-    \item if |ce ==eE cf|, then |(VAL ce) ~~eE (VAL cf)|; and
-    \item if |ce ==eR cf|, then |(VAL ce) ~~eR (VAL cf)|.
-  \end{itemize}
+  $\epsilon$-relation |~~eE| and a
+  valuation function |VAL _ : CryptoExpr ST A -> M A| such that for any games
+  |G| and |H|, if |G ==eE H|, then |(VAL G) ~~eE (VAL H)|.
 \end{definition}
 
 This definition can be rephrased in categorical terms by considering the
@@ -88,10 +66,8 @@ syntactic model in a suitable category and taking the coslice:
 
 \begin{definition}
   Let $\PreMGL$ (pre-models of game logic) be the category whose
-  objects are monads |M| together with a monadic $\epsilon$-relation |~~eE| and
-  a functorial $\epsilon$-relation |~~eR|, where |~~eE| is a subrelation of
-  |~~eR|, and whose morphisms are monad morphisms that preserve the structure of
-  both relations.
+  objects are monads |M| together with a monadic distance relation |~~eE| and
+  whose morphisms are monad morphisms that preserve |~~eE|.
 \end{definition}
 
 Recall that given a category $\mathcal{C}$ and an object $A$ of $\mathcal{C}$,
@@ -109,9 +85,9 @@ $\MGL$.
 
 \begin{proof}
   Let $\mathcal{M}$ be a model of game logic.  The underlying monad and the
-  $\epsilon$-relations give rise to an object in $\PreMGL$.  The
+  distance relations give rise to an object in $\PreMGL$.  The
   valuation function gives a monad morphism which, by definition of a model of
-  game logic, preserves the $\epsilon$-relations.
+  game logic, preserves the distance relation.
 
   On the other hand, let $\mathcal{M}$ be an object in $\MGL$.  Its
   codomain is a $\PreMGL$ object.  Regarding $\mathcal{M}$ as a
@@ -129,7 +105,7 @@ $\PreMGL$~\cite{maclane}.
 
 \section{List Model}
 
-\todo{Clarify how incomplete things are.}
+\todo[inline]{Clarify how incomplete things are.}
 Let us now regard a specific model based on the |Dist|
 monad~\cite{probfunproghaskell}, in which we can compute whether two games over
 a finite type |A| are $\epsilon$-indistinguishable.  This material has not been
@@ -166,7 +142,7 @@ from the monad laws for |Writer| and |List|.  However, the difference is
 insignificant to us here, and the direct presentation is clearer.
 
 There is a slight complication that we need to address here.  We require that an
-$\epsilon$-relation on $A$ identify every two elements of $A$ at $\epsilon = 1$.
+distance relation on $A$ identify every two elements of $A$ at $\epsilon = 1$.
 We would like to define the $\epsilon$-indistinguishability relation on
 distributions with the help of a distance function, much as we did in
 \autoref{sec:proofs-dists}.  However, this definition fails if we allow
@@ -219,11 +195,11 @@ We can now verify that our definition of bind corresponds to the one defined in
 This is a result we have been unable to show in Agda.  The difficulty lies in
 finding a suitable value to perform induction on: in our attempts, neither |xs|
 nor |support xs| provided enough structure to carry through the argument.
-\todo{Discuss more about this?}  This is made only all the more frustrating by
+\todo[inline]{Discuss more about this?}  This is made only all the more frustrating by
 how simple the proof is on paper:
 
 \begin{proof}
-  \todo{It's the same sum in two different ways.}
+  \todo[inline]{It's the same sum in two different ways.}
 \end{proof}
 
 The monad |Dist| provides us with a suitable interpretation of probability, but
@@ -251,35 +227,23 @@ We say that |g1 ~~eE g2| iff for every |st : ST|, |distance (g1 st) (g2 st) <=
 epsilon|.
 
 \begin{theorem}
-  |~~eE| is an $\epsilon$-relation.
+  |~~eE| is an distance relation.
 \end{theorem}
 
 \begin{proof}
   TODO: Sketch
 \end{proof}
 
-We say that |g1 ~~eR g2| iff |distance (fst dollar g1 st) (fst dollar g2 st) <=
-epsilon|.
-
-\begin{theorem}
-  |~~eR| is an $\epsilon$-relation.
-\end{theorem}
-
-\begin{proof}
-  TODO: Sketch
-\end{proof}
-
-\todo[inline]{Discuss preservation of relations}
+\todo[inline]{Discuss preservation of relation}
 
 Throughout this section, we have assumed that every type has decidable equality.
 This is, of course, not the case.  It is not clear how we can best deal with
-this.  The following trick allows us to nevertheless define the |~~eE| and
-|~~eR| relations: for |g1| and |g2| in |StateT ST Dist A|, we say that |g1 ~~eE
-g2| iff for every |st : ST| \emph{and every proof that |A| has decidable
-equality}, |distance (g1 st) (g2 st) <= epsilon|.  This is a type that behaves
-as our earlier definition for decidable |A|.  However, we cannot prove
-properties such as congruence under |fmap| if indistinguishability is defined
-this way.
+this.  The following trick allows us to nevertheless define the |~~eE|
+relations: for |g1| and |g2| in |StateT ST Dist A|, we say that |g1 ~~eE g2| iff
+for every |st : ST| \emph{and every proof that |A| has decidable equality},
+|distance (g1 st) (g2 st) <= epsilon|.  This is a type that behaves as our
+earlier definition for decidable |A|.  However, we cannot prove properties such
+as congruence under |fmap| if indistinguishability is defined this way.
 
 Another option is to only define indistinguishability for result types that have
 decidable equality.  This, however, means that this is no longer a model of game
@@ -293,8 +257,10 @@ whether all games we may want to express can be expressed this way.
 
 \section{Future Work}
 
-TODO: Finish off list model, develop continuation-passing model, explore
-possibility of other models, explore completeness properties.
+\todo[inline]{Future work: Finish off list model}
+\todo[inline]{Future work: Develop continuation-passing model}
+\todo[inline]{Future work: Explore possibilities of other models}
+\todo[inline]{Future work: Explore completeness properties}
 
 One possible avenue of development relates to the definition of a model of game
 logic.  As we have seen in \autoref{chp:command-structures}, a monad morphism
