@@ -40,6 +40,10 @@ Finally, we will consider how this system handles the requirements we posed in
 security assumptions in proofs.  We also discuss a number of problems we have
 been unable to solve.
 
+Throughout this chapter, we will make use of the type |Q| of rational numbers to
+represent probabilities.  Our construction is independent of the implementation
+of the rationals used, as long as arithmetic and ordering is supported.
+
 \section{Properties of Distributions}
 \label{sec:proofs-dists}
 
@@ -105,10 +109,13 @@ There is a connection between this notion of composition of probability
 distributions and the way in which our games form a monad.  Namely, let $D_A$
 denote the set of probability distributions over a set $A$.  We can regard
 $D_{-}$ as a functor on $\mathbf{Set}$ and define the action on a function $f :
-A \to B$ by \[ D_f(X)(b) = \sum_{a \in f^*(b)} X(a). \]  More importantly for
+A \to B$ by \[ D_f(X)(b) = \sum_{a \in f^{-1}(b)} X(a). \]  More importantly for
 us, $D_{-}$ has the structure of a monad, with $1_{-}$ being the unit and
 composition of distributions being the bind!
-\todo[inline]{Monad laws?}
+
+We encourage the motivated reader to derive the monad multiplication and check
+the monad laws.  Our focus, however, lies on the interaction between the monadic
+structure and the norm we defined.
 
 Let us say that two probability distributions $X$ and $Y$ are
 \emph{$\epsilon$-indistinguishable} iff $\norm{X - Y} \le \epsilon$.  We will
@@ -190,16 +197,15 @@ will show the definition of one such rule in its entirety; this should make
 clear both the precise meaning of the other rules, and our reluctance to write
 them out in full.
 
-\todo[inline]{Introduce |Q|}
-
 As a final preparation, let us introduce two abbreviations that will be useful
-in the definition of |==eE| itself.  Let |A| and |B| be arbitrary types.
-Firstly, given two games |G| and |H|\footnote{That is, terms of type |CryptoExpr
-ST A|.}, we will say ``|G| and |H| are $\epsilon$-indistinguishable'' to mean |G
-==eE H|.  Secondly, given two |B|-indexed families of games |f| and
-|g|\footnote{That is, terms of type |B -> CryptoExpr ST A|.} and a function |h :
-A -> Q|, we say ``|f| and |g| are |h|-indistinguishable'' to mean that for every
-|a : A|, |f a| and |g a| are (|h a|)-indistinguishable.
+in the (recursive) definition of |==eE| itself.  Let |A| and |B| be arbitrary
+types.  Firstly, given two games |G| and |H|\footnote{That is, terms of type
+|CryptoExpr ST A|.}, we will say ``|G| and |H| are
+$\epsilon$-indistinguishable'' to mean |G ==eE H|.  Secondly, given two
+|B|-indexed families of games |f| and |g|\footnote{That is, terms of type |B ->
+CryptoExpr ST A|.} and a function |h : A -> Q|, we say ``|f| and |g| are
+|h|-indistinguishable'' to mean that for every |a : A|, |f a| and |g a| are (|h
+a|)-indistinguishable.
 
 Without further ado: for every non-negative |epsilon : Q| and every two types
 |A| and |ST|, let |==eE| be the least binary relation on |CryptoExpr ST A| such

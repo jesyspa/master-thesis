@@ -121,12 +121,12 @@ with an |OracleResult|.  We define |OracleExpr ST|, the type of games that use
 an oracle, as follows:
 \begin{code}
 data OracleExpr (ST : Set) : Set -> Set where
-  Return      : A                                                    -> OracleExpr ST A
-  Uniform     : (n : Nat)   ->  (BitVec n      ->  OracleExpr ST A)  -> OracleExpr ST A
-  GetState    :                 (ST            ->  OracleExpr ST A)  -> OracleExpr ST A
-  SetState    : ST          ->  (top           ->  OracleExpr ST A)  -> OracleExpr ST A
-  InitOracle  : OracleInit  ->  (top           ->  OracleExpr ST A)  -> OracleExpr ST A
-  CallOracle  : OracleArg   ->  (OracleResult  ->  OracleExpr ST A)  -> OracleExpr ST A
+  Return      : A                                                     -> OracleExpr ST A
+  Uniform     : (n : Nat)    ->  (BitVec n      ->  OracleExpr ST A)  -> OracleExpr ST A
+  GetState    :                  (ST            ->  OracleExpr ST A)  -> OracleExpr ST A
+  SetState    : ST           ->  (top           ->  OracleExpr ST A)  -> OracleExpr ST A
+  InitOracle  : OracleState  ->  (top           ->  OracleExpr ST A)  -> OracleExpr ST A
+  CallOracle  : OracleArg    ->  (OracleResult  ->  OracleExpr ST A)  -> OracleExpr ST A
 \end{code}
 
 We could have used different names for the constructors that were already used
@@ -309,7 +309,7 @@ the kind of work we would like to automate.
 The straightforward way to do this in Agda would be to traverse the |CryptoExpr
 ST A| structure and check that the conditions we impose are satisfied.  In the
 case of |Stateless|, this can be done, since |BitVec n| is finite.  Given an
-enumeration |allbitvecs : (n : Nat) -> List (BitVec n)| of all bitvectors of a
+enumeration |allbitvecs : (n : Nat) -> List (BitVec n)| of all bit vectors of a
 given length, we can define a runtime predicate |isStateless| by recursion:
 \begin{code}
 isStateless : CryptoExpr ST A -> Bool
@@ -321,10 +321,10 @@ isStateless (SetState _ _) = false
 \end{code}
 
 We can express the soundness of |isStateless| in Agda by defining a function
-|isStatelessSound| that takes a proof that |isStateless ce| is |true| and gives
-a proof of |Stateless ce|.  Unfortunately, even though this allows us to compute
-these proofs automatically, this approach is not useful in practice:
-enumerating all bitvectors of length $n$ will take time $\Omega(2^n)$.
+that takes a proof that |isStateless ce| is |true| and gives a proof of
+|Stateless ce|.  Unfortunately, even though this allows us to compute these
+proofs automatically, this approach is not useful in practice: enumerating all
+bit vectors of length $n$ will take time $\Omega(2^n)$.
 
 Instead, we require some way of generating a proof term based on the syntactic
 structure of a term.  In \autoref{chp:indexed-monads} we will show how we can

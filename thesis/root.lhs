@@ -39,6 +39,7 @@ Swierstra, and Victor Cacciari Miraldo}
         When we use cryptographic algorithms, we rely that they provide the
         security guarantees they claim.  We develop a system for reasoning about
         such guarantees in the Agda programming language.
+        \todo[inline]{Extend}
     \end{abstract}
 
     \tableofcontents
