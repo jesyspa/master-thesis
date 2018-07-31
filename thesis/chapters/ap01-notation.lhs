@@ -46,6 +46,8 @@ plus zero m = m
 plus (suc n) m = suc ((plus n m))
 \end{code}
 
+\todo[inline]{Empty pattern matches}
+
 \todo[inline]{record types}
 
 \section{Equality}

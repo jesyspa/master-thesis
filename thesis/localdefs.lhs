@@ -208,7 +208,7 @@
 %format CryptoCS                 = "\F{CryptoCS}"
 %format OracleCmd                = "\F{OracleCmd}"
 %format OracleCS                 = "\F{OracleCS}"
-%format BaseOracleCS             = "\F{BaseOracleCS}"
+%format OracleBaseCS             = "\F{OracleBaseCS}"
 %format GameCS                   = "\F{GameCS}"
 %format foldalgebra              = "\F{fold-algebra}"
 %format idAlg                    = "\F{id-Alg}"
@@ -216,7 +216,7 @@
 %format foldmonadicalgebra       = "\F{fold-monadic-algebra}"
 %format fmapCSMAlg               = "\F{fmap-CS-MAlg}"
 %format fmapCSFM                 = "\F{fmap-CS-FM}"
-%format Implementation           = "\D{Implementation}"
+%format Implementation           = "\D{Impl}"
 
 %% Not sure where to put
 %format Injective = "\F{Injective}"
