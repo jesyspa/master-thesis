@@ -17,13 +17,13 @@ open import Probability.PropsClass (probability)
 
 module _ {A : Set}{{_ : Eq A}} where
   refl-D : {D : F A} → D ≡D D
-  refl-D = sample-equality λ a → refl
+  refl-D = sample-equiv λ a → refl
   
   sym-D : {D₁ D₂ : F A} → D₁ ≡D D₂ → D₂ ≡D D₁
-  sym-D p = sample-equality (sym ∘ sample-invariant p)
+  sym-D p = sample-equiv (sym ∘ sample-invariant p)
   
   trans-D : {D₁ D₂ D₃ : F A} → D₁ ≡D D₂ → D₂ ≡D D₃ → D₁ ≡D D₃
-  trans-D p q = sample-equality λ a → sample-invariant p a ⟨≡⟩ sample-invariant q a
+  trans-D p q = sample-equiv λ a → sample-invariant p a ⟨≡⟩ sample-invariant q a
 
   lift-D-eq : {D₁ D₂ : F A} → D₁ ≡ D₂ → D₁ ≡D D₂
   lift-D-eq refl = refl-D

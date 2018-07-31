@@ -76,7 +76,7 @@ module _ {{PPQ : ProbabilityProps}} where
     ∎
 
   uniform-proper-LD : ∀ n → ProperDist {{VecUniqueListable n}} (uniform-LD n)
-  NonNegative (uniform-proper-LD n) = nonneg-lemma {!uniform-LD n!} {!!}
+  NonNegative (uniform-proper-LD n) = ?
   SumOne      (uniform-proper-LD n) = {!!}
 
   >>=-proper-LD : ∀{A B}{{_ : UniqueListable A}}{{_ : UniqueListable B}}
@@ -230,5 +230,6 @@ module _ {{PPQ : ProbabilityProps}} where
                                ; return-sample-1 = return-sample-1-LD
                                ; return-sample-0 = return-sample-0-LD
                                ; return-proper = return-proper-LD
+                               ; >>=-proper = {!!}
                                }
 
