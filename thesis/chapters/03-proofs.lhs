@@ -82,8 +82,8 @@ distribution, and that if $X$ and each $Y_a$ have finite support, then $XY$ also
 has finite support.
 
 Given two distributions $X$ and $Y$ over the same set $A$, we denote the
-distance between them as $\norm{X - Y}$ and define it as
-\[ \norm{X-Y} = \frac{1}{2} \sum_{a \in A} \abs{X(a) - Y(a)}. \]
+distance between them as $d(X, Y)$ and define it as
+\[ d(x, y) = \frac{1}{2} \sum_{a \in A} \abs{X(a) - Y(a)}. \]
 
 The reader may notice that this is simply the $l^1$ or Manhattan norm from
 linear algebra scaled by $\frac{1}{2}$.  The following theorem motivates this
@@ -91,7 +91,7 @@ scaling:
 
 \begin{theorem}
     For every two probability distributions $X, Y$ over some set $A$,
-    \[ \norm{X - Y} \le 1. \]
+    \[ d(X, Y) \le 1. \]
 \end{theorem}
 
 \begin{proof}
@@ -118,7 +118,7 @@ the monad laws.  Our focus, however, lies on the interaction between the monadic
 structure and the norm we defined.
 
 Let us say that two probability distributions $X$ and $Y$ are
-\emph{$\epsilon$-indistinguishable} iff $\norm{X - Y} \le \epsilon$.  We will
+\emph{$\epsilon$-indistinguishable} iff $d(X, Y) \le \epsilon$.  We will
 now demonstrate a number of properties that show how composition of probability
 distributions interacts with $\epsilon$-indistinguishibility of distributions.
 While this does not directly prove anything about games, it suggests what
@@ -130,7 +130,7 @@ For the rest of this section, let $A$ and $B$ denote arbitrary sets.
 \begin{theorem}
     Let $X, Y$ be distributions over $A$ and let $Z$ be an $A$-indexed
     family of distributions over $B$.  Then
-    \[ \norm{XZ - YZ} \le \norm{X - Y}. \]
+    \[ d(XZ, YZ) \le d(X, Y). \]
 \end{theorem}
 
 \begin{proof}
@@ -147,7 +147,7 @@ For the rest of this section, let $A$ and $B$ denote arbitrary sets.
 \begin{theorem}
     Let $X$ be a distribution over $A$ and let $Y, Z$ be $A$-indexed
     families of distributions over $B$.  Then
-    \[ \norm{XY - XZ} \le \sum_{a \in A} X(a)\norm{Y_a - Z_a}. \]
+    \[ d(XY, XZ) \le \sum_{a \in A} X(a)d(Y_a, Z_a). \]
 \end{theorem}
 
 \begin{proof}
@@ -159,23 +159,23 @@ For the rest of this section, let $A$ and $B$ denote arbitrary sets.
     and now using the non-negativity of $X$ we get
     \[ \frac{1}{2}\sum_{b \in B} \abs{XY(b) - XZ(b)} \le
         \frac{1}{2}\sum_{a \in A} X(a)\left(\sum_{b \in B}\abs{Y_a(b) - Z_a(b)}\right)
-        = \sum_{a \in A} X(a)\norm{Y_a - Z_a} \]
+        = \sum_{a \in A} X(a)d(Y_a, Z_a) \]
 \end{proof}
 
 This has two useful consequences.
 
 \begin{corollary}
     Let $X$ be a distribution over $A$ and let $Y, Z$ be $A$-indexed families of
-    distributions over $B$.  If there is an $\epsilon$ such that $\norm{Y_a -
-    Z_a} \le \epsilon$ for every $a \in A$, then
-    \[ \norm{XY - XZ} \le \epsilon. \]
+    distributions over $B$.  If there is an $\epsilon$ such that $d(Y_a,
+        Z_a) \le \epsilon$ for every $a \in A$, then
+    \[ d(XY, XZ) \le \epsilon. \]
 \end{corollary}
 
 \begin{corollary}
     Let $n \in \mathbb{N}$ and let $X, Y$ be $2^n$-indexed families of
     probability distributions over $A$.  Then
     \[
-        \norm{U_nX - U_nY} \le \frac{1}{2^n} \sum_{v \in 2^n} \norm{X_v - Y_v}.
+        d(U_nX, U_nY) \le \frac{1}{2^n} \sum_{v \in 2^n} d(X_v, Y_v).
     \]
 \end{corollary}
 

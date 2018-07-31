@@ -313,8 +313,8 @@ follows:
   \item an implementation of the adversary in terms of the oracle and the base
   language;
   \item an implementation of the encryption scheme in terms of the base
-  language;
-  \item and an implementation of the challenger in terms of the encryption
+  language; and
+  \item an implementation of the challenger in terms of the encryption
   scheme, adversary, and the oracle.
 \end{itemize}
 

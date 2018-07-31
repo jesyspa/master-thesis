@@ -17,48 +17,109 @@ Kollmansberger~\cite{probfunproghaskell}.  Using this model, we can show that
 our logic does not prove |coin ==R return true| or |return false ==R return
 true|.
 
-For the purpose of this chapter, we we will fix a state type |ST| with decidable
-equality.  We have not encountered existing proofs that relied on a state type
-with non-decidable equality, so we do not consider this a significant issue.
+Although our model will be internal to Agda, we see at present no reason to
+formalise the model theory: in particular, the notion of a distance
+relation and the category of models of game logic that we introduce in this
+chapter are tools for conceptual understanding, not constructions in Agda.
 
 \section{Distance Relations}
 
-In \autoref{sec:proofs-epsilon-ind}, we defined the |==eE| family of relations.
-This family captures the notion that the distance between two games is bounded
-by some constant $\epsilon$.  We will now define a more general notion of
-\emph{distance relation} that captures this idea.
-\todo[inline]{Note why this is useful.}
+Before we set about defining our models, we would like to identify the key
+properties of |==eE| and give a name to relations of this kind.  This is merely
+a matter of convenience, to save us the trouble of listing these properties
+every time we wish to use them.
 
-We give our definition in plain mathematical terms.  \todo[inline]{Why?}
+Our definition of |==eE| in \autoref{sec:proofs-epsilon-ind} was inspired by the
+notion of $\epsilon$-indistinguishability we defined in
+\autoref{sec:proofs-dists}.  The latter expressed that an upper bound held on
+the distance between two elements.  In the case of |==eE|, we cannot express
+this distance function directly, but this is nevertheless the intuition we are
+attempting to capture.  This inspires the following definition:
+
 \begin{definition}
-    \todo[inline]{Make this more formal}
     A family of binary relations $R_{-}$ indexed by non-negative rationals is a
-    \emph{distance relation} on $A$ if
+    \emph{distance relation} on $A$ if for all $a, b, c : A$ and all
+    non-negative $\epsilon_1, \epsilon_2 : Q$,
     \begin{itemize}
-        \item For every $a : A$, $R_\epsilon(a, a)$;
-        \item For every $a, b : A$, if $R_\epsilon(a, b)$ then $R_\epsilon(b, a)$;
-        \item For every $a, b, c : A$, if $R_{\epsilon_1}(a, b)$ and
-        $R_{\epsilon_2}(b, c)$ then $R_{\epsilon_1 + \epsilon_2}(a, c)$.
-        \item For every $a, b : A$, if $R_{\epsilon_1}(a, b)$ and $\epsilon_1 \le
+        \item $R_\epsilon(a, a)$;
+        \item if $R_\epsilon(a, b)$ then $R_\epsilon(b, a)$;
+        \item if $R_{\epsilon_1}(a, b)$ and $R_{\epsilon_2}(b, c)$ then
+        $R_{\epsilon_1 + \epsilon_2}(a, c)$; and
+        \item if $R_{\epsilon_1}(a, b)$ and $\epsilon_1 \le
         \epsilon_2$ then $R_{\epsilon_2}(a, b)$.
     \end{itemize}
 \end{definition}
 
-\todo[inline]{Functional version}
-\todo[inline]{Monadic version}
+Clasically, it is easy to see that if $d$ is a metric on a set $A$, then
+$R_\epsilon(a, b) := d(a, b) \le \epsilon$ defines a distance relation on $A$.
+However, the notion of a distance relation is more flexible.  Note, in
+particular, that a binary relation on $A$ is, in Agda, a function |A -> A ->
+Set|, meaning that there may be multiple proofs that $R_\epsilon(a, b)$ holds.
+This is indeed the case with |==eE|, since we can use symmetry twice to obtain a
+new proof, unequal to the previous.
+
+We will now use the fact that the objects we are working with have more
+structure than plain sets, or even types: they are in the domain of a monad.  In
+\autoref{sec:proofs-dists}, we have seen that there is a certain interaction
+between $\epsilon$-indistinguishability and the monadic structure.  We capture
+this with the following two definitions:
+
+\begin{definition}
+    We say a family of distance relations $R^{-}_{-}$ defined on the range of a
+    functor $F$ is \emph{functorial} if whenever $R^{F(A)}_\epsilon(a, b)$ and
+    $f : A \to B$, then $R^{F(B)}_\epsilon(F(f)(a), F(f)(b))$.
+\end{definition}
+
+For the following definition we will denote monadic binding of $a : M(A)$ with
+$f : A \to M(B)$ by $a \rhd f := \mu_M(M(f)(a))$.
+
+\begin{definition}
+    We say a functorial family of distance relations $R^{-}_{-}$ defined on the
+    range of a monad $M$ is \emph{monadic} if the following two conditions hold:
+    \begin{itemize}
+        \item if $R^{M(A)}(a, b)$ and $f : A \to M(B)$, then $R^{M(B)}(a \rhd f,
+        b \rhd f)$; and
+        \item if $f, g : A \to M(B)$ and for every $x : A$, $R^{M(B)}(f(x),
+        g(x)))$, then for any $a : M(A)$, $R^{M(B)}(a \rhd f, a \rhd g)$.
+    \end{itemize}
+\end{definition}
+
+In other words, a functorial family of distance relations is closed under
+|fmap|, while a monadic family of distance relations is closed under bind.
+Closure under |return| does not need to be assumed, since distance relations are
+reflexive.
+
+Once again, we have chosen to present this notion in a mathematical manner,
+since we feel this gives a better understanding.  Translating this formalisation
+into Agda is a straightforward exercise, but introduces considerable clutter
+that obstructs the meaning.
 
 \section{Models of Game Logic}
 
-We have already found one model for our logic: the syntactic model, consisting
-of a monad |CryptoExpr ST| together with the $\epsilon$-relation |==eE|.  We
-will denote this model by |CE|. Our definition of a relation is a direct
-generalisation of this.
+In \autoref{chp:games}, we defined games in a purely syntactic manner, and we
+then defined a syntactic distance relation on these games.  We can regard this
+as our first example of a model of game logic.  However, this model gives us few
+tools to show that two games are \emph{not} $\epsilon$-indistinguishable.  As
+such, we would like to define other models, where such a proof is easier to
+perform.
+
+Since our construction of games was parametrised over a state type |ST|, so too
+we will parametrise our construction of models of game logic.  However, for
+convenience, we will assume that |ST| has decidable equality.  We have not
+encountered existing proofs that relied on a state type with non-decidable
+equality, so we do not consider this a particularly great limitation.
+
+In the following, we define what it means to be a model, and then construct a
+category of these models.  The categorically disinclined reader may ignore
+everything except \autoref{def:mgl}, but we feel that this brief exposition
+highlights the structure of the matter at hand.
 
 \begin{definition}
-  A \emph{model of game logic} is a monad |M| together with a monadic
-  $\epsilon$-relation |~~eE| and a
-  valuation function |VAL _ : CryptoExpr ST A -> M A| such that for any games
-  |G| and |H|, if |G ==eE H|, then |(VAL G) ~~eE (VAL H)|.
+    \label{def:mgl}
+    A \emph{model of game logic} is a monad |M| together with a monadic distance
+    relation |~~eE| and a valuation function |VAL _ : CryptoExpr ST A -> M A|
+    such that for any games |G| and |H|, if |G ==eE H|, then |(VAL G) ~~eE (VAL
+    H)|.
 \end{definition}
 
 This definition can be rephrased in categorical terms by considering the
