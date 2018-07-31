@@ -12,6 +12,7 @@
 %format ListDist         = "\D{ListDist}"
 %format StateDist        = "\D{StatefulDist}"
 %format Writer           = "\D{Writer}"
+%format State            = "\D{State}"
 %format StateT           = "\D{StateT}"
 %format MaybeT           = "\D{MaybeT}"
 %format ProbabilityProps = "\D{ProbabilityProps}"
@@ -221,11 +222,15 @@
 %% Not sure where to put
 %format Injective = "\F{Injective}"
 %format Sum = "\F{$\sum$}"
+%format >>= = "\F{$>\!>\!=$}"
+%format >> = "\F{$>\!>$}"
 
 %% Infix operator standalones
 %format _+_ = "\F{\_\hspace{-0.1em}+\hspace{-0.1em}\_}"
 %format _*_ = "\F{\_\hspace{-0.1em}*\hspace{-0.1em}\_}"
 %format _<_ = "\F{\_\hspace{-0.1em}\textless\hspace{-0.1em}\_}"
+%format _>>=_ = "\F{\_\hspace{-0.1em}$>\!>\!=$\hspace{-0.1em}\_}"
+%format _>>_ = "\F{\_\hspace{-0.1em}$>\!>$\hspace{-0.1em}\_}"
 %format _oplus_ = "\F{\_\hspace{-0.1em}$\oplus$\hspace{-0.1em}\_}"
 %format _bindi_ = "\RF{\_$>\!>\!=$\textsuperscript{i}\hspace{-0.1em}\_}"
 %format _qoplus_ = "\F{\_\hspace{-0.1em}$\oplus/\sim$\hspace{-0.1em}\_}"

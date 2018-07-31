@@ -58,12 +58,15 @@ definitions of names to choose a different syntax for their use.  This is done
 by denoting the locations of the arguments by underscores.  We will see this
 usage in the definition of |_+_| below, which defines addition as an infix
 operator.  Another common usage is for the if-then-else construction:
+%format ifthenelse = "\F{if\_then\_else\_}"
 \begin{code}
-if_then_else_ : Bool -> A -> A -> A
+ifthenelse : Bool -> A -> A -> A
 if true   then e1 else e2 = e1
 if false  then e1 else e2 = e2
 \end{code}
 
+%format five = "\F{five}"
+%format square = "\F{square}"
 Most syntax we use will be based on mathematical notation, and so will be
 familiar to the reader.  One important exception is the |dollar| operator, which
 is another way of denoting function application.  The expression |a dollar b|
@@ -122,6 +125,8 @@ Agda allows recursive definitions like the above, as long as it can prove that
 the recursion is well-founded.  If the set of possible cases is empty, we can
 replace the argument by |()| and omit the body, such as in the following
 example:
+%format absurd = "\F{absurd}"
+%format pred = "\F{pred}"
 \begin{code}
 absurd : bot -> A
 absurd ()
@@ -139,6 +144,7 @@ defines a type by the fields it must provide.  For example, the following
 defines the type of monoids over a type |A|:\footnote{Technically, a proper
 definition would include the monoid laws, but these are typically omitted.}
 %format Monoid = "\D{Monoid}"
+%format Addition = "\D{Addition}"
 %format operation = "\RF{op}"
 %format identity = "\RF{e}"
 \begin{code}
@@ -179,6 +185,7 @@ the case, there is a single constructor |refl : a == a|; otherwise, the type is
 empty.  The Agda type system is aware of this, so pattern matching on |refl|
 simplifies type goals.  For example, the following expresses the symmetry of
 equality:
+%format sym = "\F{sym}"
 \begin{code}
 sym : forall {a b} ->  a == b -> b == a
 sym pf = ?
@@ -223,6 +230,9 @@ The situation is best illustrated by an example.  The product-exponent
 adjunction gives rise to a monad |State S A = S -> (S * A)|.  In addition to the
 action on morphisms (denoted |fmap|), unit (denoted |return|) and multiplication
 (denoted |join|), we can construct the following monadic actions:
+%format get = "\F{get}"
+%format set = "\F{set}"
+%format counter = "\F{counter}"
 \begin{code}
 _>>=_ : State S A -> (A -> State S B) -> State S B
 a >>= f = join (fmap f a)
@@ -241,8 +251,8 @@ This allows us to write code like the following:
 \begin{code}
 counter : State Nat Nat
 counter =  get >>= \ n
-           set (n + 1) >>
-           return (n + 1)
+           set ((plus n 1)) >>
+           return ((plus n 1))
 \end{code}
 
 We can use this to encode stateful programs in a functional programming
@@ -253,8 +263,8 @@ follows:
 counter : State Nat Nat
 counter = do
   n <- get
-  set (n + 1)
-  return (n + 1)
+  set dollar (plus n 1)
+  return dollar (plus n 1)
 \end{code}
 
 Apart from the state monad, numerous others have been found to be useful.  A

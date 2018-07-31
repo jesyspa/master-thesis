@@ -186,6 +186,7 @@ is in fact, up to isomorphism, an example of an implementation.  In the next
 section, we will make this explicit.
 
 \section{Example: Oracle Implementations}
+\label{sec:cs-oracles}
 
 Previously, we defined |CryptoCS| and |OracleCS| entirely independently.
 However, the latter is an extension of the former.  Using the |_+CS_| operation
@@ -225,7 +226,7 @@ We can rectify this by parametrising |CryptoCS| by the type of the state, and
 then showing that there is an implementation of |CryptoCS AST +CS CryptoCS OST|
 in terms of |CryptoCS (AST * OST)|.  With this change in place, the composition
 of implementations corresponds to the |eval| function defined in
-\autoref{chp:games-oracles}.  However, unlike in the earlier development, we
+\autoref{sec:games-oracles}.  However, unlike in the earlier development, we
 have been left with no ad-hoc choices once we specified what the permitted
 commands were.  We could use this technique to add further players, for example
 to specify the adversary as a player explicitly, or to modify the oracle
@@ -368,6 +369,7 @@ command structures.  This is a direct generalisation of the constructs in
 \autoref{chp:games}.
 
 \section{Future Work}
+\label{sec:cs-future-work}
 
 While the notion of an $N$-player implementation is helpful in constructing
 games, by itself it does not solve our problem of reasoning about games.  For

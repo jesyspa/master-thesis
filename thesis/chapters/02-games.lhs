@@ -34,7 +34,7 @@ From a syntactic point of view, a game with result type |A| can be do one of two
 things: immediately yield a value of type |A|, or execute some command and then
 map the response to another game with result type |A|.  Treating this as an
 inductive definition is the key insight of the free monad
-construction~\cite{tctotalylfree}.  For our three commands, the free monad can
+construction~\cite{tctotallyfree}.  For our three commands, the free monad can
 be defined as follows:
 \begin{code}
 data CryptoExpr (ST : Set) : Set -> Set where
