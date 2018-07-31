@@ -1,6 +1,6 @@
 open import ThesisPrelude using (Monad)
 open import Algebra.Parametrised.Monad 
-module Utility.State.Parametrised.Transformer {l l′}{T : Set l′}(M : T → T → Set l → Set l){{PMM : ParMonad T M}} where
+module Utility.State.Parametrised.Transformer {l l′}{T : Set l′}(M : T → T → Set l → Set l){{PMM : ParMonad M}} where
 
 open import ThesisPrelude
 
@@ -25,7 +25,7 @@ bindᵖ-ST {_ , _} {_ , _} {_ , _} st f = λ s → st s >>=ᵖ uncurry f
 
 instance
   -- I have no clue why the explicit annotations are necessary here.
-  ParMonadStateT : ParMonad (T × Set l) ParStateT
+  ParMonadStateT : ParMonad {𝑺 = T × Set l} ParStateT
   ParMonad.returnᵖ       ParMonadStateT {S} a = returnᵖ-ST {S} a
   ParMonad._>>=ᵖ_        ParMonadStateT {S₀} {S₁} {S₂} st f = bindᵖ-ST {S₀} {S₁} {S₂} st f
   ParMonad.super-functor ParMonadStateT {S} {S′} = FunctorStateT {S} {S′}

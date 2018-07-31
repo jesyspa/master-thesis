@@ -2,7 +2,6 @@ module Interaction.Complete.InteractionStructure where
 
 open import ThesisPrelude
 open import Algebra.Proposition
-open import Interaction.Complete.Elem 
 
 record InteractionStructure : Set₁ where
   field

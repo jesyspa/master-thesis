@@ -9,7 +9,7 @@ Lifted _ _ = M
 
 
 instance
-  LiftedMonad : ParMonad 𝑺 Lifted 
+  LiftedMonad : ParMonad Lifted 
   LiftedMonad = record { returnᵖ = return ; _>>=ᵖ_ = _>>=_ }
 
 open import Algebra.MonadProps M

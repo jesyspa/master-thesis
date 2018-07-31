@@ -1,5 +1,5 @@
 open import Algebra.Parametrised.Monad using (ParMonad)
-module Algebra.Parametrised.MonadProps {l l′}(𝑺 : Set l′)(M : 𝑺 → 𝑺 → Set l → Set l){{PMM : ParMonad 𝑺 M}} where
+module Algebra.Parametrised.MonadProps {l l′}(𝑺 : Set l′)(M : 𝑺 → 𝑺 → Set l → Set l){{PMM : ParMonad M}} where
 
 open import ThesisPrelude
 open import Algebra.FunctorProps

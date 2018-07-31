@@ -4,7 +4,6 @@ open import ThesisPrelude
 open import Algebra.Proposition
 open import Interaction.Complete.InteractionStructure 
 open import Interaction.Complete.FreeMonad 
-open import Interaction.Complete.Elem 
 open import Interaction.Complete.Implementation 
 open import Interaction.Complete.SyntacticImplementation 
 

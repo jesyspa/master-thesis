@@ -43,8 +43,8 @@ addState : (S : Set) → InteractionStructure → InteractionStructure
 addState S IS = IS ⊎-IS StateE S
 
 implState : ∀{S IS M}{{_ : Monad M}} → Implementation IS M → Implementation (addState S IS) (StateT S M)
-implState I (false , c) = lift (I c)
-implState I (true , modState f) = modify f
+implState I (false , c) = liftT (I c)
+implState I (true , modState f) = modifyT f
 
 combineState : ∀{IS S₁ S₂}
              → SynImpl (addState S₁ IS ⊎-IS addState S₂ IS) (addState (S₁ × S₂) IS)
