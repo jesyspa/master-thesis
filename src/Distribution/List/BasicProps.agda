@@ -9,6 +9,7 @@ open import Distribution.List.SupportProps Q
 open import Algebra.Function
 open import Algebra.Monoid
 open import Algebra.Equality
+open import Algebra.FiniteSet
 open import Algebra.SemiringProps Q
 open import Probability.Class
 open import Probability.PropsClass Q
@@ -22,6 +23,7 @@ open import Distribution.List.MonadProps Q
 import Utility.Writer.Transformer Q List as WriterT
 
 open Probability PQ
+open DistMonad DistMonadListDist
 
 module _ {{PPQ : ProbabilityProps}} where
   open ProbabilityProps PPQ
@@ -33,9 +35,6 @@ module _ {{PPQ : ProbabilityProps}} where
 
 
   module _ {A} {{_ : Eq A}} where
-    sample-invariant-LD : {xs ys : ListDist A} → xs ≡LD ys → (a : A) → sample-LD xs a ≡ sample-LD ys a
-    sample-invariant-LD (sample-equiv p) a = p a
-
     normalize-correct-lemma : (xs : ListDist A) (a : A)
                             → sample-LD xs a ≡ sum (map (sample-LD xs) $ filter (isYes ∘ (_==_ a)) $ support-LD xs)
     normalize-correct-lemma xs a with decide-Index a xs
@@ -58,7 +57,7 @@ module _ {{PPQ : ProbabilityProps}} where
       map (sample-LD xs) (filter (isYes ∘ (_==_ a)) $ support-LD xs)
       ∎
 
-    normalize-correct-LD : (xs : ListDist A) → xs ≡LD normalize-LD xs
+    normalize-correct-LD : (xs : ListDist A) → xs ≡D normalize-LD xs
     normalize-correct-LD xs = sample-equiv λ a →
       sum (filter-vals a xs)
         ≡⟨ normalize-correct-lemma xs a ⟩
@@ -113,16 +112,25 @@ module _ {{PPQ : ProbabilityProps}} where
   strong-bind-universal-prop xs f b =
     sample-LD (xs >>= f) b                             
       ≡⟨ {!!} ⟩
-    {!!}
-      ≡⟨ {!!} ⟩
-    {!!}
-      ≡⟨ {!!} ⟩
     sum (map (λ x → sample-LD xs x * sample-LD (f x) b) (support-LD xs))
     ∎
 
   sample-over-ext : ∀{A B : Set}{{_ : Eq B}}
                     (f g : A → ListDist B)(b : B)
-                    (eq : ∀ a → f a ≡LD g a)
+                    (eq : ∀ a → f a ≡D g a)
                     (aq : A × Q)
                   → sample-over-LD f b aq ≡ sample-over-LD g b aq
-  sample-over-ext f g b eq (a , p) = cong (_*_ p) (sample-invariant-LD (eq a) b)
+  sample-over-ext f g b eq (a , p) = cong (_*_ p) (sample-invariant (eq a) b)
+
+  nonneg-lemma′ : ∀{A : Set}(xs : List A)(f : A → Q)
+                → (∀{a} → a ∈ xs → zro ≤ f a)
+                → zro ≤ sum (map f xs)
+  nonneg-lemma′ xs f pf = nonnegative-sum (map f xs) (strong-map-preserves-prop f (λ q → zro ≤ q) xs pf)
+
+
+  module _ {A}{{_ : Eq A}} where
+    nonneg-lemma : (xs : ListDist A)
+                 → (∀{a}{p} → (a , p) ∈ xs → zro ≤ p)
+                 → (a : A) → zro ≤ sample-LD xs a
+    nonneg-lemma xs pf a = nonneg-lemma′ (filter-eq a xs) snd λ { {a′ , p} el → pf (filter-eq-correct a xs el) }
+
