@@ -5,9 +5,10 @@ open import ThesisPrelude
 open import Algebra.FunctorProps
 open import Algebra.Parametrised.Monad
 
+open ParMonad PMM
 infixl 1 _>>M=ᵖ_
 _>>M=ᵖ_ : ∀{S₀ S₁ S₂ A B} → M S₀ S₁ A → (A → M S₁ S₂ B) → M S₀ S₂ B
-_>>M=ᵖ_ = ParMonad._>>=ᵖ_ PMM
+_>>M=ᵖ_ = _>>=ᵖ_
 
 record ParMonadProps : Set (lsuc l ⊔ l′) where
   field
