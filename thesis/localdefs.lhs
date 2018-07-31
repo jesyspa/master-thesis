@@ -23,6 +23,7 @@
 %format OracleResult     = "\D{OracleResult}"
 %format Adversary        = "\D{Adversary}"
 %format OTP              = "\D{OTP}"
+%format Q                = "\D{$\mathbb{Q}$}"
 
 %% Constructors
 %format encscheme    = "\IC{enc-scheme}"
@@ -67,7 +68,6 @@
 %format SetState         = "\IC{SetState}"
 %format InitOracle       = "\IC{InitOracle}"
 %format CallOracle       = "\IC{CallOracle}"
-%format Repeat           = "\IC{Repeat}"
 
 
 %format OracleImpl      = "\D{OracleImpl}"
