@@ -33,4 +33,3 @@ syntax eq-as A x y = x ≡ y as A
 infixr 2 _⊎_
 _⊎_ : ∀{l} → Set l → Set l → Set l
 _⊎_ = Either
-

@@ -6,21 +6,16 @@ open import Algebra.Equality
 open import Algebra.ExactSize
 open import Utility.Num
 open import Utility.Product
+open import Utility.Vector.Definition
 open import Utility.Vector.Functions
 open import Utility.Vector.Props
 open import Utility.List
 open import Utility.Bool
 open import Utility.Writer
 
-BitVec : Nat → Set
-BitVec = Vec Bool
-
 ∷-vec-Inj : ∀{l} {n : Nat} {A : Set l} (x : A)
         → Injective (Vec._∷_ {A = A} {n = n} x)
 ∷-vec-Inj x refl = refl
-
-bitvec-xor : ∀{n} → BitVec n → BitVec n → BitVec n
-bitvec-xor = vzip xor
 
 bitvec-xorʳ : ∀{n} → BitVec n → BitVec n → BitVec n
 bitvec-xorʳ = flip bitvec-xor
