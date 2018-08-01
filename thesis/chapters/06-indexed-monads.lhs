@@ -320,14 +320,16 @@ We have flipped the arguments of |bindFM| to emphasise the indexed structure.
 
 \section{Multiplayer Systems}
 
-Just like in the non-indexed case, we can consider the situation where a list of
-players is implemented in terms of each other and some base language.  The
-essential construction does not change, but we have to define the implementation
-and the |+CS| operation in this context.
+Just like in the non-indexed case, we can consider the question of how to
+create an $N$-player implementation.  The essential construction does not
+change, but we have to redefine the implementation and the |+CS| operation in
+this context.
 
 For the definition of |Implementation|, we need the |DepAtkey| construction we
-defined earlier. 
-\todo[inline]{Explain |Sf| and how this works.}
+defined earlier.  An important note here is that the structure we are
+interpreting may be indexed over a different set than the structure we are
+interpreting it in.  For this purpose we take the |Sf| map, which relates states
+in the one to states in the other.
 \begin{code}
 Implementation  : (IS : IStruct S1)(M : (S2 -> Set) -> S2 -> Set)(Sf : S1 -> S2)
                 -> Set
@@ -335,14 +337,23 @@ Implementation IS M Sf
   = (c : Command IS s) -> M (DepAtkey (Response IS c) (Sf . next IS c)) (Sf s)
 \end{code}
 
+Note that if both |S1| and |S2| are singletons then this definition is
+equivalent to the definition of |Implementation| from
+\autoref{chp:command-structures}.
 
-\todo[inline]{Incorporate this into the narrative}
-We can define a |_oplus_| construction that takes two interaction structures and
-gives their combined system, with each operation changing one dimension.  This
-is good when some player is implemented in terms of the instructions for A and
-the instructions for B.
+
+The definition of |+CS| in this context is more complicated.  The problem is
+that in general, while |C +CS C| can be implemented in terms of |C|, this does
+not carry over into the indexed case.  This can be resolved by defining two
+different constructions on interaction structures, one of which is used for
+combining interfaces and the other for combining base languages.
+
+Let us start with the construction for base languages.  The essential property
+we use is that our base languages do not in any way influence each other's
+state.  This allows us to use the following definition, which appears to be a
+straightforward generalisation of |+CS|:
 \begin{code}
-_oplus_ : (IS1 : IStruct S1)(IS2 : IStruct S2) -> IStruct (S1 * S2)
+_oplus_ : IStruct S1 -> IStruct S2 -> IStruct (S1 * S2)
 Command   (oplus IS1 IS2) (s1 , s2) = Command IS1 s1 + Command IS2 s2
 Response  (oplus IS1 IS2) {s1 , s2}  (left  c)  = Response IS1 c
 Response  (oplus IS1 IS2) {s1 , s2}  (right c)  = Response IS2 c
@@ -350,7 +361,7 @@ next      (oplus IS1 IS2) {s1 , s2}  (left  c) r  = next IS1 c r , s2
 next      (oplus IS1 IS2) {s1 , s2}  (right c) r  = s1 , next IS2 c r
 \end{code}
 
-This thing has a unit.  It's sometimes useful.
+Just like the |+CS| construction, this construction has a unit:
 \begin{code}
 TensorUnitIS : IStruct top 
 Command   TensorUnitIS  tt  = bot
@@ -358,9 +369,16 @@ Response  TensorUnitIS  {tt} ()
 next      TensorUnitIS  {tt} ()
 \end{code}
 
-We can also define a dependent version where the first component is already
-aware of the state of the second, and so we can omit the second component's
-state.  We denote this by |_qoplus_|.
+The |_oplus_| construction defined above can be seen as taking two interaction
+structures and combining their state orthogonally, so that commands that
+influence one state component do not influence the other.  However, this is not
+how players interact: if the oracle may be queried $n$ times and an adversary
+command uses $k$ of these queries, the challenger must be aware of this.
+Essentially, the state of every player must include the state of all
+players that they can issue commands to.  To capture this notion, we introduce a
+second operation on interaction structures denoted |_qoplus_|.  It can be seen
+as the |_oplus_| operation from above with a quotient applied to the state
+space.
 
 \begin{code}
 _qoplus_ : IStruct (S1 * S2) -> IStruct S2 -> IStruct (S1 * S2)
@@ -371,7 +389,19 @@ next      (qoplus IS1 IS2) {s1 , s2} (left  c) r = next IS1 c r
 next      (qoplus IS1 IS2) {s1 , s2} (right c) r = s1 , next IS2 c r
 \end{code}
 
-\todo[inline]{"We can build these telescopes now"}
+With these choices in place, we can construct the telescopes as before.  The
+Agda formulation is not enlightening, so we will not present it here.  The
+essential point is that just as we could use an implementation of |C1| in terms
+of |D1| and |SumCS CS| and an implementation of |SumCS CS| in terms of |SumCS
+DS| to obtain an implementation of |C1 +CS SumCS CS| in terms of |D1 +CS SumCS
+DS| in the command structure case, here we achieve the same result, with the
+important distinction that we now have two ways of combining interaction
+structures.  The choice that has worked for our purposes is as follows: an
+implementatino of |C1| in terms of |oplus D1 (QSum CS)| and an implementation
+of |QSum CS| in terms of |TSum DS| gives an implementation of |qoplus C1 (QSum
+CS)| in terms of |oplus D1 (TSum DS)|.
+
+\todo[inline]{Say something more?}
 
 \section{Future Work}
 \label{sec:indexed-monads-future-work}
