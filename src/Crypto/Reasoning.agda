@@ -10,6 +10,7 @@ open import Utility.Vector
 open import Utility.Bool
 open import Algebra.ApplicativeProps F
 open import Algebra.MonadProps F
+open import Algebra.Function
 open import Distribution.Class
 open import Distribution.PropsClass F
 open import Distribution.Reasoning F
@@ -24,32 +25,57 @@ open MonadProps is-monad
 open ApplicativeProps aprops
 open Probability probability-super
 
-cong->>= : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A){F G : A → CryptoExpr B}
+cong->>= : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A)(F G : A → CryptoExpr B)
          → (∀ a → ⟦ F a ⟧ ≡D ⟦ G a ⟧)
          → ⟦ E >>= F ⟧ ≡D ⟦ E >>= G ⟧
-cong->>= E {F} {G} eq =
+cong->>= E F G eq =
   ⟦ E >>= F ⟧
-    ≡D⟨ bind-interpretation F E ⟩ˡʳ
+    ≡D⟨ bind-interpretation E F ⟩ˡʳ
   ⟦ E ⟧ >>= ⟦_⟧ ∘′ F
     ≡D⟨ >>=-D-ext ⟦ E ⟧ (⟦_⟧ ∘′ F) (⟦_⟧ ∘′ G) eq  ⟩
   ⟦ E ⟧ >>= ⟦_⟧ ∘′ G
-    ≡D⟨  bind-interpretation G E ⟩ˡ
+    ≡D⟨  bind-interpretation E G ⟩ˡ
   ⟦ E >>= G ⟧
   ∎D
 
-cong->>=ˡ : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A){F G : A → CryptoExpr B}
+cong->>=ˡ : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A)(F G : A → CryptoExpr B)
           → (∀ a → ⟦ F a ⟧ ≡ ⟦ G a ⟧)
           → ⟦ E >>= F ⟧ ≡ ⟦ E >>= G ⟧
-cong->>=ˡ E {F} {G} eq =
+cong->>=ˡ E F G eq =
   ⟦ E >>= F ⟧
-    ≡⟨ bind-interpretation F E ⟩ʳ
+    ≡⟨ bind-interpretation E F ⟩ʳ
   ⟦ E ⟧ >>= ⟦_⟧ ∘′ F
     ≡⟨ >>=-ext ⟦ E ⟧ (⟦_⟧ ∘′ F) (⟦_⟧ ∘′ G) eq  ⟩
   ⟦ E ⟧ >>= ⟦_⟧ ∘′ G
-    ≡⟨ bind-interpretation G E ⟩
+    ≡⟨ bind-interpretation E G ⟩
   ⟦ E >>= G ⟧
   ∎
-  
+
+congl->>= : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}(E F : CryptoExpr A)(G : A → CryptoExpr B)
+          → ⟦ E ⟧ ≡D ⟦ F ⟧
+          → ⟦ E >>= G ⟧ ≡D ⟦ F >>= G ⟧
+congl->>= E F G eq =
+  ⟦ E >>= G ⟧
+    ≡D⟨ bind-interpretation E G ⟩ˡʳ
+  ⟦ E ⟧ >>= ⟦_⟧ ∘′ G
+    ≡D⟨ >>=-D-inv ⟦ E ⟧ ⟦ F ⟧ (⟦_⟧ ∘′ G) eq ⟩
+  ⟦ F ⟧ >>= ⟦_⟧ ∘′ G
+    ≡D⟨ bind-interpretation F G ⟩ˡ
+  ⟦ F >>= G ⟧
+  ∎D
+
+congl->>=ˡ : ∀{A B}{{_ : Eq A}}{{_ : Eq B}}(E F : CryptoExpr A)(G : A → CryptoExpr B)
+          → ⟦ E ⟧ ≡ ⟦ F ⟧
+          → ⟦ E >>= G ⟧ ≡ ⟦ F >>= G ⟧
+congl->>=ˡ E F G eq =
+  ⟦ E >>= G ⟧
+    ≡⟨ bind-interpretation E G ⟩ʳ
+  ⟦ E ⟧ >>= ⟦_⟧ ∘′ G
+    ≡⟨ cong (λ e → e >>= ⟦_⟧ ∘′ G) eq ⟩
+  ⟦ F ⟧ >>= ⟦_⟧ ∘′ G
+    ≡⟨ bind-interpretation F G ⟩
+  ⟦ F >>= G ⟧
+  ∎
 
 interchange-interpretation : ∀{A B C}{{_ : Eq C}}(EA : CryptoExpr A)(EB : CryptoExpr B)
                               (f : A → B → CryptoExpr C)
@@ -68,11 +94,75 @@ interchange-interpretation {C = C} EA EB f =
         → ⟦ (EA′ >>= λ a → EB′ >>= f′ a) ⟧ ≡ (⟦ EA′ ⟧ >>= λ a → ⟦ EB′ ⟧ >>= λ b → ⟦ f′ a b ⟧)
     lem EA′ EB′ f′ =
       ⟦ (EA′ >>= λ a → EB′ >>= f′ a) ⟧
-        ≡⟨ bind-interpretation (λ a → EB′ >>= f′ a) EA′ ⟩ʳ
+        ≡⟨ bind-interpretation EA′ (λ a → EB′ >>= f′ a) ⟩ʳ
       (⟦ EA′ ⟧ >>= λ a → ⟦ EB′ >>= f′ a ⟧)
         ≡⟨ >>=-ext ⟦ EA′ ⟧
                     (λ a → ⟦ EB′ >>= f′ a ⟧)
                     (λ a → ⟦ EB′ ⟧ >>= λ b → ⟦ f′ a b ⟧)
-                    (λ a → sym (bind-interpretation (f′ a) EB′)) ⟩
+                    (λ a → sym (bind-interpretation EB′ (f′ a))) ⟩
       (⟦ EA′ ⟧ >>= λ a → ⟦ EB′ ⟧ >>= λ b → ⟦ f′ a b ⟧)
       ∎
+
+if-cong : ∀{A}{{_ : Eq A}}(b : Bool)(E E′ F F′ : CryptoExpr A)
+        → (⟦ E ⟧ ≡D ⟦ E′ ⟧) → (⟦ F ⟧ ≡D ⟦ F′ ⟧)
+        → ⟦( if b then E else F )⟧ ≡D ⟦( if b then E′ else F′ )⟧
+if-cong false E E′ F F′ pE pF = pF
+if-cong true E E′ F F′ pE pF = pE
+
+return-simplify-interpretation : ∀{A B}(f : A → B)(E : CryptoExpr A)
+                               → ⟦ fmap-CE f E ⟧ ≡ ⟦ E >>= return ∘′ f ⟧
+return-simplify-interpretation f E =
+  ⟦ fmap-CE f E ⟧
+    ≡⟨ fmap-interpretation f E ⟩ʳ
+  fmap f ⟦ E ⟧
+    ≡⟨ return-simplify f ⟦ E ⟧ ⟩
+  ⟦ E ⟧ >>= return ∘′ f 
+    ≡⟨ bind-interpretation E (return ∘′ f) ⟩
+  ⟦ E >>= return ∘′ f ⟧
+  ∎
+
+>>=-assoc-interpretation : ∀{A B C}(E : CryptoExpr A)(F : A → CryptoExpr B)(G : B → CryptoExpr C)
+                         → ⟦ E >>= F >>= G ⟧ ≡ ⟦ E >>= (λ a → F a >>= G) ⟧
+>>=-assoc-interpretation E F G =
+  ⟦ E >>= F >>= G ⟧
+    ≡⟨ bind-interpretation (E >>= F) G ⟩ʳ
+  ⟦ E >>= F ⟧ >>= ⟦_⟧ ∘′ G 
+    ≡⟨ cong (λ e → e >>= ⟦_⟧ ∘′ G) (bind-interpretation E F) ⟩ʳ
+  ⟦ E ⟧ >>= (λ a → ⟦ F a ⟧) >>= ⟦_⟧ ∘′ G
+    ≡⟨ >>=-assoc ⟦ E ⟧ (λ a → ⟦ F a ⟧) (⟦_⟧ ∘′ G) ⟩
+  ⟦ E ⟧ >>= (λ a → ⟦ F a ⟧ >>= ⟦_⟧ ∘′ G)
+    ≡⟨ >>=-ext ⟦ E ⟧ ((λ a → ⟦ F a ⟧ >>= ⟦_⟧ ∘′ G)) (λ a → ⟦ F a >>= G ⟧) (λ a → bind-interpretation (F a) G) ⟩
+  ⟦ E ⟧ >>= (λ a → ⟦ F a >>= G ⟧)
+    ≡⟨ bind-interpretation E (λ a → F a >>= G) ⟩
+  ⟦ E >>= (λ a → F a >>= G) ⟧
+  ∎
+
+uniform-bijection-invariant-interpretation : ∀ n (f : BitVec n → BitVec n)
+                                           → Bijective f
+                                           → ⟦ uniform-expr n ⟧ ≡D ⟦ fmap f (uniform-expr n) ⟧
+uniform-bijection-invariant-interpretation n f pf =
+  ⟦ uniform-expr n ⟧
+    ≡D⟨ uniform-dist-interpretation n ⟩ˡʳ
+  uniform n
+    ≡D⟨ uniform-bijection-invariant n f pf ⟩
+  fmap f (uniform n)
+    ≡D⟨ cong (fmap f) (uniform-dist-interpretation n) ⟩ˡ
+  fmap f ⟦ uniform-expr n ⟧
+    ≡D⟨ fmap-interpretation f (uniform-expr n) ⟩ˡ
+  ⟦ fmap f (uniform-expr n) ⟧
+  ∎D
+
+irrelevance-interpretation : ∀{A B}{{_ : Eq B}}(E : CryptoExpr A)(F : CryptoExpr B)
+                    → ⟦ F ⟧ ≡D ⟦ E >>= const F ⟧
+irrelevance-interpretation (returnCE a) F = sample-equiv λ b → refl
+irrelevance-interpretation (uniformCE n cont) F = sample-equiv λ b → 
+  sample ⟦ F ⟧ b
+    ≡⟨ flip sample-invariant b $ irrelevance n ⟦ F ⟧  ⟩
+  sample (uniform n >>= (λ xs → ⟦ F ⟧)) b
+    ≡⟨ flip sample-invariant b
+                           $ >>=-D-ext (uniform n)
+                                       (const ⟦ F ⟧)
+                                       (λ xs → ⟦ cont xs >>= const F ⟧)
+                                       (λ xs → irrelevance-interpretation (cont xs) F) ⟩
+  sample (uniform n >>= (λ xs → ⟦ cont xs >>= const F ⟧)) b
+  ∎

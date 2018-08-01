@@ -22,6 +22,9 @@ BitVec = Vec Bool
 bitvec-xor : ∀{n} → BitVec n → BitVec n → BitVec n
 bitvec-xor = vzip xor
 
+bitvec-xorʳ : ∀{n} → BitVec n → BitVec n → BitVec n
+bitvec-xorʳ = flip bitvec-xor
+
 bitvec-xor-self-inverse : ∀{n} → (xs ys : BitVec n)
                         → ys ≡ bitvec-xor xs (bitvec-xor xs ys) 
 bitvec-xor-self-inverse [] [] = refl
@@ -30,6 +33,15 @@ bitvec-xor-self-inverse (x ∷ xs) (y ∷ ys) = cong₂ _∷_ (xor-self-inverse 
 bitvec-xor-Bij : ∀{n} → (xs : BitVec n)
                → Bijective (bitvec-xor xs)
 bitvec-xor-Bij xs = bitvec-xor xs , bitvec-xor-self-inverse xs , bitvec-xor-self-inverse xs
+
+bitvec-xorʳ-self-inverse : ∀{n} → (xs ys : BitVec n)
+                         → ys ≡ bitvec-xorʳ xs (bitvec-xorʳ xs ys) 
+bitvec-xorʳ-self-inverse [] [] = refl
+bitvec-xorʳ-self-inverse (x ∷ xs) (y ∷ ys) = cong₂ _∷_ (xorʳ-self-inverse x y) (bitvec-xorʳ-self-inverse xs ys)
+
+bitvec-xorʳ-Bij : ∀{n} → (xs : BitVec n)
+                → Bijective (bitvec-xorʳ xs) 
+bitvec-xorʳ-Bij xs = bitvec-xorʳ xs , bitvec-xorʳ-self-inverse xs , bitvec-xorʳ-self-inverse xs
 
 all-bitvecs : ∀ n → List (BitVec n)
 all-bitvecs zero = [ [] ]

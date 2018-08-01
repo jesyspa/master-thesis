@@ -49,8 +49,17 @@ coin-sample-2 b =
           ⟦ coin-expr >>= (λ b′ → return (nxor b b′)) ⟧
           ∎
 
+coin-sample-2ʳ : ∀ b → ⟦ coin-expr ⟧ ≡D ⟦ coin-expr >>= (λ b′ → return (nxor b′ b)) ⟧
+coin-sample-2ʳ b =
+  ⟦ coin-expr ⟧
+    ≡D⟨ coin-sample-2 b ⟩
+  ⟦ coin-expr >>= (λ b′ → return (nxor b b′)) ⟧
+    ≡D⟨ cong->>=ˡ coin-expr (λ b′ → return (nxor b b′)) (λ b′ → return (nxor b′ b)) (λ b′ → cong return (nxor-symmetric b b′)) ⟩ˡ
+  ⟦ coin-expr >>= (λ b′ → return (nxor b′ b)) ⟧
+  ∎D
+
 coin-sample-3 : ∀{A} (E : CryptoExpr A) → ⟦ coin-expr ⟧ ≡D ⟦ (E >>= λ _ → coin-expr) ⟧
-coin-sample-3 (returnCE a) = sample-equality λ x → refl
+coin-sample-3 (returnCE a) = sample-equiv λ x → refl
 coin-sample-3 (uniformCE n cont) =
   ⟦ coin-expr ⟧
     ≡D⟨ irrelevance n ⟦ coin-expr ⟧ ⟩

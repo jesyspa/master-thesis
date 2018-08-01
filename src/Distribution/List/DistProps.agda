@@ -76,7 +76,7 @@ module _ {{PPQ : ProbabilityProps}} where
     ∎
 
   uniform-proper-LD : ∀ n → ProperDist {{VecUniqueListable n}} (uniform-LD n)
-  NonNegative (uniform-proper-LD n) = ?
+  NonNegative (uniform-proper-LD n) = {!!}
   SumOne      (uniform-proper-LD n) = {!!}
 
   >>=-proper-LD : ∀{A B}{{_ : UniqueListable A}}{{_ : UniqueListable B}}
@@ -210,7 +210,7 @@ module _ {{PPQ : ProbabilityProps}} where
       open UniqueListable ULA
                
   open import Distribution.PropsClass ListDist
-  
+
   instance
     DistMonadPropsListDist : DistMonadProps
     DistMonadPropsListDist = record
