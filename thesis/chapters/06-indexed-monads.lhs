@@ -411,7 +411,15 @@ implementatino of |C1| in terms of |oplus D1 (QSum CS)| and an implementation
 of |QSum CS| in terms of |TSum DS| gives an implementation of |qoplus C1 (QSum
 CS)| in terms of |oplus D1 (TSum DS)|.
 
-\todo[inline]{Say something more?}
+This gives rise to the same kind of $N$-player implementation that we already
+discussed in the case of command structures in \autoref{chp:command-structures}.
+In fact, this saves us a considerable amount of work: the generalisation of
+simple games to games with oracles follows in its entirety from this
+construction.  However, we also run into the same issue: we do not yet know how
+to generalise $\epsilon$-indistinguishability from a definition on the base
+language to a general definition.  As such, just like in the previous case, the
+proofs of equality will necessarily be low-level compared to the expressions of
+the games themselves.
 
 \section{Future Work}
 \label{sec:indexed-monads-future-work}
@@ -432,4 +440,3 @@ OracleExpr A k| we only need an |f : A i -> OracleExpr A i| that works for $i
 al.}~\cite{definterp}, and appears to rely on a categorical structure on the
 index set.  Expressing the conditions and resulting definition of bind
 explicitly could be of interest.
-
