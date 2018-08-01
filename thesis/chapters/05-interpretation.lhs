@@ -166,17 +166,16 @@ $\PreMGL$~\cite{maclane}.
 
 \section{List Model}
 
-\todo[inline]{Clarify how incomplete things are.}
 Let us now regard a specific model based on the |Dist|
 monad~\cite{probfunproghaskell}, in which we can compute whether two games over
-a finite type |A| are $\epsilon$-indistinguishable.  This material has not been
-fully worked out in Agda, but the claims we make pertain to finite objects
-(lists of rational numbers) and, as such, can be shown to hold constructively.
-Furthermore, the construction relies in several places on equality being
-decidable.  This is a serious issue.  However, we think that the results we
-present here are worth stating despite this. For now, we will assume that all
-types involved have decidable equality, and analyse this assumption at the end
-of this section.
+a type |A| with decidable equality are $\epsilon$-indistinguishable.  This
+material has not been fully worked out in Agda, but the claims we make pertain
+to finite objects (lists of rational numbers) and, as such, can be shown to hold
+constructively.  Furthermore, the construction relies in several places on
+equality being decidable.  This is a serious issue.  However, we think that the
+results we present here are worth stating despite this. For now, we will assume
+that all types involved have decidable equality, and analyse this assumption at
+the end of this section.
 
 We represent a probability distribution over a type |A| as a list of pairs of
 elements of |A| and their corresponding probabilities.  Our two basic
@@ -186,14 +185,14 @@ distributions, |return a| and |coin|, can thus be represented as follows:
   return a = (a , 1) :: []
 
   coin : Dist Bool
-  coin = (false , 1/2) :: (true , 1/2) :: []
+  coin = (false , half) :: (true , half) :: []
 \end{code}
 
 Any uniform distribution can be constructed by repeated calls to |coin|.
 We can define bind as follows:
 \begin{code}
   [] >>= f = []
-  ((a , p) :: xs) >>= f = map (times p) (f a) ++ (xs >>= f)
+  ((a , p) :: xs) >>= f = map (\ q -> (times p q)) (f a) ++ (xs >>= f)
 \end{code}
 
 The resulting |Dist| monad structure is in fact isomorphic to the |WriterT (Q ,
@@ -256,12 +255,6 @@ We can now verify that our definition of bind corresponds to the one defined in
 This is a result we have been unable to show in Agda.  The difficulty lies in
 finding a suitable value to perform induction on: in our attempts, neither |xs|
 nor |support xs| provided enough structure to carry through the argument.
-\todo[inline]{Discuss more about this?}  This is made only all the more frustrating by
-how simple the proof is on paper:
-
-\begin{proof}
-  \todo[inline]{It's the same sum in two different ways.}
-\end{proof}
 
 The monad |Dist| provides us with a suitable interpretation of probability, but
 it does not allow us to interpret stateful computations.  For this last
@@ -279,23 +272,17 @@ We can now define a notion of distance between distributions.  We make use of a
 |union| function that merges two lists and removes duplicates.
 \begin{code}
 distance : (xs ys : Dist A) -> Q
-distance xs ys = times (1/2) (sum (map (\ a -> sample xs a - sample ys
-a) sup))
+distance xs ys = times half (sum (map f sup))
   where sup = union (support xs) (support ys)
+        f a = sample xs a - sample ys a
 \end{code}
 
 We say that |g1 ~~eE g2| iff for every |st : ST|, |distance (g1 st) (g2 st) <=
-epsilon|.
-
-\begin{theorem}
-  |~~eE| is an distance relation.
-\end{theorem}
-
-\begin{proof}
-  TODO: Sketch
-\end{proof}
-
-\todo[inline]{Discuss preservation of relation}
+epsilon|.  Unfortunately, we have not shown that this relation is a distance
+relation within Agda, nor that it is preserved under the valuation.  Since these
+statements can be shown constructively in a classical phrasing of this problem,
+and the statements we make are about finite objects, we expect the proofs to be
+formalisable in Agda as well.
 
 Throughout this section, we have assumed that every type has decidable equality.
 This is, of course, not the case.  It is not clear how we can best deal with
@@ -318,19 +305,24 @@ whether all games we may want to express can be expressed this way.
 
 \section{Future Work}
 
-\todo[inline]{Future work: Finish off list model}
-\todo[inline]{Future work: Develop continuation-passing model}
-\todo[inline]{Future work: Explore possibilities of other models}
-\todo[inline]{Future work: Explore completeness properties}
+Throughout this chapter, it is clear that our work on the list model is
+incomplete.  We have intentionally chosen not to prioritise this aspect of the
+development, since our primary concern was with the development of the logic of
+games.  As we have seen, indistinguishability can be used both when proving that
+a game does and that a game does not have a winning strategy, so proofs that two
+games are not indistinguishable are of less interest.  However, a completely
+formalised model would nevertheless put the logic on firmer footing.
 
-One possible avenue of development relates to the definition of a model of game
-logic.  As we have seen in \autoref{chp:command-structures}, a monad morphism
-|CryptoExpr ST A -> M A| is completely determined by its action on the base
-operations |Uniform|, |GetState|, and |SetState|.  It is thus sufficient to
-require the existence of the terms |uniform|, |getState|, and |setState|, since
-the valuation is then obtained by taking the unique extension to a monad
-morphism.  However, the preservation conditions nevertheless require considering
-arbitrary games.  If the preservation conditions could be reformulated to not
-refer to such games, this could considerably simplify the construction of
-models.
+In this chapter, we have considered an approach where probability is formalised
+using lists.  This is not the only possibility, and has the considerable
+drawback that it only works for distributions with finite support.  Another
+approach is to use the continuation monad |(A -> Q) -> Q|.  Work in this
+direction has been done by Ramsey and Pfeffer~\cite{stochasticlambdacalculus}.
+Of course, our general formulation of the notion of a model allows for the
+posing of questions such as the nature of the product of two models.
 
+Finally, the focus of this chapter has been on models that satisfy soundness
+properties with respect to our logic.  We have not given any attention to
+questions of completeness.  What extensions would have to be made to our axioms
+to make the list model complete, for example, would be an interesting further
+research question.

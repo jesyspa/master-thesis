@@ -149,13 +149,16 @@
 %format filter      = "\F{filter}"
 %format distance    = "\F{distance}"
 %format union       = "\F{union}"
+%format half        = "1/2"
+%format get         = "\F{get}"
+%format set         = "\F{set}"
 
 %% Indexed monads
 %format IxFunctor      = "\D{IxFunctor}"
 %format IxMonad        = "\D{IxMonad}"
 %format ixfunctorsuper = "\RF{ixfunctor-super}"
 %format fmapi          = "\RF{fmap\textsuperscript{i}}"
-%format bindi          = "\RF{$>\!>\!=$\textsuperscript{i}}"
+%format bindi          = "\RF{$>\!\!>\!=$\textsuperscript{i}}"
 %format joini          = "\RF{join\textsuperscript{i}}"
 %format returni        = "\RF{return\textsuperscript{i}}"
 %format _=>_           = "\F{\_$\Rightarrow$\_}"
@@ -166,6 +169,7 @@
 %% Interaction Structures
 %format InteractionStructure = "\D{InteractionStructure}"
 %format IntStruct            = "\D{IntStruct}"
+%format IStruct              = "\D{IntStruct}"
 %format ISMorphism           = "\D{ISMorphism}"
 %format Command              = "\RF{Command}"
 %format Response             = "\RF{Response}"
@@ -222,8 +226,8 @@
 %% Not sure where to put
 %format Injective = "\F{Injective}"
 %format Sum = "\F{$\sum$}"
-%format >>= = "\F{$>\!>\!=$}"
-%format >> = "\F{$>\!>$}"
+%format >>= = "\F{$>\!\!>\!=$}"
+%format >> = "\F{$>\!\!>$}"
 
 %% Infix operator standalones
 %format _+_ = "\F{\_\hspace{-0.1em}+\hspace{-0.1em}\_}"
@@ -232,7 +236,7 @@
 %format _>>=_ = "\F{\_\hspace{-0.1em}$>\!>\!=$\hspace{-0.1em}\_}"
 %format _>>_ = "\F{\_\hspace{-0.1em}$>\!>$\hspace{-0.1em}\_}"
 %format _oplus_ = "\F{\_\hspace{-0.1em}$\oplus$\hspace{-0.1em}\_}"
-%format _bindi_ = "\RF{\_$>\!>\!=$\textsuperscript{i}\hspace{-0.1em}\_}"
+%format _bindi_ = "\RF{\_$>\!\!>\!=$\textsuperscript{i}\hspace{-0.1em}\_}"
 %format _qoplus_ = "\F{\_\hspace{-0.1em}$\oplus/\sim$\hspace{-0.1em}\_}"
 %format _+CS_ = "\F{\_$\uplus^{C\!S}$\hspace{-0.1em}\_}"
 
