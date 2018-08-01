@@ -62,7 +62,6 @@ Swierstra, and Victor Cacciari Miraldo}
         %include chapters/ap01-notation.lhs
     \end{appendices}
 
-    \nocite{*}
     \bibliography{thesis}
     \bibliographystyle{alpha}
 \end{document}
