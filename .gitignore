@@ -8,4 +8,9 @@ sources/
 *.log
 *.aux
 *.pdf
-
+*.bbl
+*.blg
+*.out
+*.ptb
+*.toc
+thesis.tex
