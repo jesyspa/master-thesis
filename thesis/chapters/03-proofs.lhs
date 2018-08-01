@@ -2,11 +2,13 @@
 \label{chp:proofs}
 
 Throughout \autoref{chp:introduction}, we argued that rewrite steps were valid
-because they produced $\epsilon$-indistinguishable games.  In this chapter,
-we will define this notion of $\epsilon$-indistinguishable formally, thereby
-specifying the logic that can be used to reason about games.  Keeping with the
-style of the previous chapter, we will do this in a purely syntactic way; we
-will consider the semantics of this relation in \autoref{chp:interpretation}.
+because the games they produced did not significantly differ from the games we
+started with.  In this chapter, we will define the notion of
+$\epsilon$-indistinguishable to formalise this concept of `not significantly
+different', thereby specifying the logic that can be used to reason about games.
+Keeping with the style of the previous chapter, our definition of
+$\epsilon$-indistinguishability will be purely syntactic, with no reference to
+an interpretation, which we will discuss in \autoref{chp:interpretation}.
 
 Before we dive in to the technical details, let us consider what relation we
 would like to capture.  Two games with result type |A| being
@@ -56,7 +58,7 @@ interested in exploring how |==eE| should interact with monadic binding.
 Since all of the distributions we will consider arise from a bounded number of
 coin flips, we are interested exclusively in discrete probability distributions
 with finite support.  We will model a probability distribution $X$ over a set
-$A$ as a function $f_X : A \to \mathbf{R}$, where for every $a \in A$, $f_X(a)$
+$A$ as a function $f_X : A \to \mathbb{R}$, where for every $a \in A$, $f_X(a)$
 gives the probability of drawing $a$ from $X$.  As usual, these functions
 satisfy $f_X(a) \in [0, 1]$ and $\sum_{a \in A} f_X(a) = 1$.  If there is no
 risk of confusion, we will write $X(a)$ for $f_X(a)$.
@@ -179,7 +181,9 @@ This has two useful consequences.
     \]
 \end{corollary}
 
-\todo[inline]{Explain why this is worth talking about.}
+We hope that by providing this brief overview of the properties that hold of
+probability distributions in classical mathematics, we have given the reader an
+intuition for what can be expected from the Agda formalisation.
 
 \section{$\epsilon$-Indistinguishability}
 \label{sec:proofs-epsilon-ind}
@@ -371,11 +375,9 @@ purposes, even if we can distinguish between them based on the effect they have
 on the state.  As such, we want a weaker notion of indistinguishability which we
 will call result-indistinguishability.
 
-Unfortunately, we have not been able to work out this relation adequately to
-present it here.  We nevertheless feel the need to remark on it, as any system
-based on this work would require such a relation   We show how an alternative
-approach using indexed monads can be used to avoid the need for this relation in
-\autoref{chp:indexed-monads}.
+We do not have an axiomatisation of this relation, like we do of the
+$\epsilon$-indistinguishability relation, but we present a way of achieving a
+similar result in \autoref{chp:indexed-monads}.
 
 \section{Indistinguishability with Oracles}
 
@@ -409,8 +411,8 @@ We will consider this shortcoming in greater generality in
 \label{sec:security-assumptions}
 \label{sec:asymptotic-indistinguishability}
 
-As we have already remarked in \autoref{sec:intro-weaker}, there are many cases
-when we want to show security only against adversaries that are restricted in
+As we have already remarked in \autoref{sec:intro-weaker}, in practice we
+often want to show security only against adversaries that are restricted in
 the resources they may use.  The prime example of this is a restriction to
 adversaries that run in polynomial time.  Restricting the problem in this way
 allows us to use assumptions about what a polynomial-time algorithm cannot do.
@@ -462,10 +464,10 @@ a|, since otherwise they could take |pow (pow g b) a| and compare it to the
 third component of the tuple.
 
 A possible downside to this approach is that our assumptions must all be phrased
-as statements of indistinguishability. Another issue with this approach is that
-while this allows us to reason about an arbitrary adversary as if it satisfied
-our assumptions, it does not restrict the class of adversaries that we may use
-as a counterexample: it is thus necessary to check the validity of any
+as statements of indistinguishability of games. Another issue with this approach
+is that while this allows us to reason about an arbitrary adversary as if it
+satisfied our assumptions, it does not restrict the class of adversaries that we
+may use as a counterexample: it is thus necessary to check the validity of any
 constructed adversaries by hand.
 
 Finally, an assumption of this kind only states that such an $\epsilon$ exists,

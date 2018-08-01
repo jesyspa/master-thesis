@@ -177,7 +177,9 @@
 %format CommandF             = "\RF{CommandF}"
 %format ResponseF            = "\RF{ResponseF}"
 %format nextF                = "\RF{nextF}"
-%format TensorUnitIS         = "\D{$1$}"
+%format TensorUnitIS         = "\D{$1^{I\!S}$}"
+%format TSum                 = "\F{sum$^{I\!S}$}"
+%format QSum                 = "\F{sum$^{I\!S}_{/\sim}$}"
 %format S1                   = "S_1"
 %format S2                   = "S_2"
 %format s1                   = "s_1"
@@ -237,7 +239,7 @@
 %format _>>_ = "\F{\_\hspace{-0.1em}$>\!>$\hspace{-0.1em}\_}"
 %format _oplus_ = "\F{\_\hspace{-0.1em}$\oplus$\hspace{-0.1em}\_}"
 %format _bindi_ = "\RF{\_$>\!\!>\!=$\textsuperscript{i}\hspace{-0.1em}\_}"
-%format _qoplus_ = "\F{\_\hspace{-0.1em}$\oplus/\sim$\hspace{-0.1em}\_}"
+%format _qoplus_ = "\F{\_\hspace{-0.1em}$\oplus_{/\sim}$\hspace{-0.1em}\_}"
 %format _+CS_ = "\F{\_$\uplus^{C\!S}$\hspace{-0.1em}\_}"
 
 %% Punctuation
@@ -255,7 +257,7 @@
 %format (plus (a) (b))  = "{" a "}\mathbin{\F{+}}{" b "}"
 %format (times (a) (b)) = "{" a "}\mathbin{\F{$\cdot$}}{" b "}"
 %format oplus (a) (b) = "{" a "}\mathbin{\F{$\oplus$}}{" b "}"
-%format qoplus (a) (b) = "{" a "}\mathbin{\F{$\oplus/\sim$}}{" b "}"
+%format qoplus (a) (b) = "{" a "}\mathbin{\F{$\oplus_{/\sim}$}}{" b "}"
 %format (VAL (a))       = "\llbracket {" a "} \rrbracket"
 
 %% Things annoying to :Align

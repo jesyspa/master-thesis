@@ -10,7 +10,7 @@ define this monad explicitly.  A monad constructed this way supports all the
 required operations, but treats them syntactically, without giving them any
 further interpretation.
 
-Given that there exist monads both for stateful\todo{cite?} and
+Given that there exist monads both for stateful and
 probabilistic~\cite{probfunproghaskell} computations, a natural question is why
 we do not define our games in terms of those.  This would be possible, but makes
 the subsequent development considerably harder.  The syntactic approach we take
@@ -30,7 +30,7 @@ representation can be used to impose constraints on an adversary.
 
 \section{Free Monads}
 
-From a syntactic point of view, a game with result type |A| can be do one of two
+From a syntactic point of view, a game with result type |A| can do one of two
 things: immediately yield a value of type |A|, or execute some command and then
 map the response to another game with result type |A|.  Treating this as an
 inductive definition is the key insight of the free monad
@@ -50,6 +50,13 @@ the \emph{command}, and the second argument as the \emph{response handler} or
 type |X|, we could have used |ST -> CryptoExpr ST A -> CryptoExpr ST A| as the
 type of |SetState|.  However, we use the more verbose form for the sake of
 consistency with the other constructors.
+
+Although this definition is entirely syntactic, there is an intended semantic
+meaning we keep in mind: |Uniform| represents the generation of a uniformly
+random bit vector, |GetState| represents a read from the state and |SetState|
+represents a write to the state.  We will only define this interpretation in
+\autoref{chp:interpretation}, but provides a useful intuition for the
+constructions we do in this chapter and the next.
 
 We can define the monadic actions |uniform|, |setState| and |getState| as terms
 in the |CryptoExpr ST| monad by passing |Return| as the response handler:
@@ -240,11 +247,14 @@ Let us tackle the opposite problem: how can we place a restriction on what a
 |CryptoExpr| or |OracleExpr| term may do, for example to restrict the class of
 adversaries?
 
-We can start by considering a simple example: suppose that we do not want allow
-|A1| and |A2| from the earlier |INDEAV| example to communicate via the state.
-To achieve this, we define a |Stateless| predicate on terms |ce : CryptoExpr ST
-A| that holds only if |ce| does not use the |GetState| or |SetState|
-constructors.  We can define this as follows:
+We can start by considering a simple example: suppose that we want some portion
+of our game to not have access to the state; for example, if we want to express
+that an implementation of the oracle may not use the state.  We could achieve
+this by removing state from the games entirely, or by setting its type to |top|,
+but both of these are big changes that affect the system as a whole.
+Instead, we can define a |Stateless| predicate on terms |ce : CryptoExpr ST A|
+that holds only if |ce| does not use the |GetState| or |SetState| constructors.
+We can define this as follows:
 \begin{code}
 data Stateless : CryptoExpr ST A -> Set where
   ReturnS   : forall a -> Stateless (Return a)

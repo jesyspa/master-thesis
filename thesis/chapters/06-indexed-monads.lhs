@@ -348,6 +348,8 @@ not carry over into the indexed case.  This can be resolved by defining two
 different constructions on interaction structures, one of which is used for
 combining interfaces and the other for combining base languages.
 
+%format QSum = 
+
 Let us start with the construction for base languages.  The essential property
 we use is that our base languages do not in any way influence each other's
 state.  This allows us to use the following definition, which appears to be a
@@ -361,12 +363,18 @@ next      (oplus IS1 IS2) {s1 , s2}  (left  c) r  = next IS1 c r , s2
 next      (oplus IS1 IS2) {s1 , s2}  (right c) r  = s1 , next IS2 c r
 \end{code}
 
-Just like the |+CS| construction, this construction has a unit:
+Just like the |+CS| construction, this construction has a unit, and we can fold
+over this construction.  We are cheating slightly here: in reality, the argument
+to |TSum| is not simply a list, since it may store elements of type |IStruct S|
+for any |S|.  We correct this in the code, but the difference is not essential
+here.
 \begin{code}
 TensorUnitIS : IStruct top 
 Command   TensorUnitIS  tt  = bot
 Response  TensorUnitIS  {tt} ()
 next      TensorUnitIS  {tt} ()
+
+TSum = foldr _oplus_ TensorUnitIS
 \end{code}
 
 The |_oplus_| construction defined above can be seen as taking two interaction
@@ -378,7 +386,7 @@ Essentially, the state of every player must include the state of all
 players that they can issue commands to.  To capture this notion, we introduce a
 second operation on interaction structures denoted |_qoplus_|.  It can be seen
 as the |_oplus_| operation from above with a quotient applied to the state
-space.
+space.  Again, we define a fold over this operation as well.
 
 \begin{code}
 _qoplus_ : IStruct (S1 * S2) -> IStruct S2 -> IStruct (S1 * S2)
@@ -387,6 +395,8 @@ Response  (qoplus IS1 IS2) {s1 , s2} (left  c)  = Response IS1 c
 Response  (qoplus IS1 IS2) {s1 , s2} (right c)  = Response IS2 c
 next      (qoplus IS1 IS2) {s1 , s2} (left  c) r = next IS1 c r
 next      (qoplus IS1 IS2) {s1 , s2} (right c) r = s1 , next IS2 c r
+
+QSum = foldr _qoplus_ TensorUnitIS
 \end{code}
 
 With these choices in place, we can construct the telescopes as before.  The

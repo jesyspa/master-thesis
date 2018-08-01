@@ -9,7 +9,7 @@ can be done in a modular manner using command or interaction structures.  One
 question remains: what must be done to turn these developments into a practical
 system for reasoning about cryptography?
 
-\section{Unfinished Work}
+\section{A Complete System}
 
 There are a number of questions that fall within the scope of this thesis, but
 that have not been able to resolve due to time constraints.  We have already

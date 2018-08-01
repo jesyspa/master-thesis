@@ -8,42 +8,11 @@ our online activity, banking information, and whatever else we wish to keep
 private.  As such, it is important to be able to verify that such primitives
 provide the guarantees they promise.
 
-A powerful tool for this verification is the technique of code-based
-games~\cite{codebasedgames, gameexamples}, whereby the security condition is
-formulated as a game between a \emph{challenger} and an \emph{adversary}.  The
-condition is satisfied if no adversary has a high probability of winning the
-game.  A typical proof proceeds by rewriting the game in ways that preserve the
-probability of the adversary winning, until a direct argument for the victory
-probability can be made.  We will see several examples of such proofs in this
-chapter.
-
-Given the importance that the security guarantees are satisfied, the question
-arises of whether these proofs can be mechanically verified.  Several systems exist
-for this purpose,
-EasyCrypt\footnote{\url{http://www.easycrypt.info}} and FCF~\cite{fcf} being two
-notable examples.  In this thesis, we explore how the power of dependent types,
-as implemented by the Agda programming language, can be used to approach this
-problem.  In particular, we show how we can define a language for games
-(\autoref{chp:games}) and a logic for reasoning about this language
-(\autoref{chp:proofs}).  We also remark on the models of this logic
-(\autoref{chp:interpretation}), and how we can use dependent types to further
-constrain the language for our purposes (\autoref{chp:indexed-monads}).  In
-\autoref{chp:command-structures} and \autoref{chp:interaction-structures}, we
-look at how this can be implemented in a flexible manner, and what issues arise
-from a straightforward implementation in Agda.  Finally, in
-\autoref{chp:language} we describe a possible design for a domain-specific
-language for cryptographic proofs based on these ideas.
-
-In this chapter, we will introduce the notion of code-based games and see what
-features a proof system must have in order to be useful.
-
-\section{Motivation for Games}
-\label{sec:games-motivation}
-
-In cryptography, we often wish to prove that no program can distinguish between
-two or more possibilities.  The standard example we will use is that a good
-encryption scheme should not allow an attacker to tell what message had been
-encrypted, even if the set of possible messages is very small.
+These guarantees are typically phrased as stating that no program can
+distinguish between two possibilities.  The standard example, which we will
+return to often, is that a good encryption scheme should not allow an attacker
+to tell what message had been encrypted, even if the set of possible messages is
+very small.
 
 Following Bellare and Rogaway~\cite{codebasedgames}, we will frame questions of
 this form as games between a challenger and an adversary.  The challenger
@@ -54,23 +23,26 @@ can reliably win the game, we conclude that our system is secure.  On the other
 hand, we can prove a system to be vulnerable by exhibiting an adversary that
 has a winning strategy.
 
-An important example of a game is indistinguishability against an eavesdropper,
-abbreviated IND-EAV.  The premise is that we have an encryption scheme which we
-wish to prove secure against an attacker that can intercept our encrypted
-messages.  The attacker wins if he can distinguish between any two encrypted
-messages; we win if he cannot.
+In our presentation, we will often return to the following example: if an
+adversary can choose two messages and the challenger encrypts one of them, can
+the adversary tell which message was encrypted?  In the simplest form, this is
+known as IND-EAV, indistinguishability against an eavesdropper.  Whether the
+adversary can tell which message was encrypted tells us something about the
+security of the encryption scheme used.  This example expresses confidentiality;
+similar games can be made to express other properties, such as unforgeability.
 
-Let Alice be the challenger and Bob be the adversary.  The protocol they follow
-to play the game is as follows: Bob gives Alice two messages, |m1| and |m2|.
-Alice generates an encryption key and uses it to encrypt one of the messages,
-chosen at random.  Alice gives Bob the resulting ciphertext and poses the
-challenge: did she encrypt |m1| or |m2|?  Bob wins if his answer is correct.
+In order to reason about the above game, we need to describe it somewhat more
+formally.  Let Alice be the challenger and Eve be the adversary.  The protocol
+they follow to play the game is as follows: Eve gives Alice two messages, |m1|
+and |m2|.  Alice generates an encryption key and uses it to encrypt one of the
+messages, chosen at random.  Alice gives Eve the resulting ciphertext and poses
+the challenge: did she encrypt |m1| or |m2|?  Eve wins if her answer is correct.
 
-Bob can definitely win half of his games, just by choosing an answer at random.
-How much better Bob can do is called his \emph{advantage}.  In order to show
+Eve can definitely win half of her games, just by choosing an answer at random.
+How much better Eve can do is called his \emph{advantage}.  In order to show
 that an encryption scheme is secure, we must show that any adversary's advantage
 is close to zero.  In order to show that a scheme is not secure, we must show
-that some adversary has high advantage.
+that there exists some adversary that has high advantage.
 
 When we want to put an upper bound on the advantage, we could analyse the game
 and attempt to derive this bound directly.  However, an approach that is often
@@ -79,6 +51,8 @@ the advantage considerably.  We say that two games between which the difference
 in advantage is at most $\epsilon$ are $\epsilon$-indistinguishable.  By
 constructing a sequence of $\epsilon$-indistinguishable games, we can relate our
 initial (complicated) game to a much simpler one, simplifying our analysis.
+
+\todo[inline]{Remove this split?}
 
 \section{Games as Programs}
 \label{sec:intro-programs}
@@ -89,12 +63,12 @@ As such, a description of a game or player can be seen as an imperative
 program in a non-determinsitic, stateful programming language, the instructions
 of which correspond to the actions that players may take.
 
-Fortunately, representing imperative programs in a functional language is a
-well-studied problem~\cite{monadsforfp}, and can be solved using a monad that
-has operations corresponding to the imperative instructions.  We will show how
-this monad can be constructed explicitly in \autoref{chp:games}.  For now, we
-will assume that there is a monad |CryptoExpr ST| that supports the following
-operations, where |ST| is the type of the state:
+Representing imperative programs in a functional language is a well-studied
+problem~\cite{monadsforfp}, and can be solved using a monad that has operations
+corresponding to the imperative instructions.  We will show how this monad can
+be constructed explicitly in \autoref{chp:games}.  For now, we will assume that
+there is a monad |CryptoExpr ST| that supports the following operations, where
+|ST| is the type of the state that the players may store:
 \begin{code}
 uniform    : (n : Nat)  ->  CryptoExpr ST (BitVec n)
 coin       :                CryptoExpr ST Bool
@@ -107,10 +81,10 @@ random bits and store and retrieve values of type |ST|, and that has a result of
 type |A|.  We include both |uniform| and |coin| for the sake of convenience,
 although one could be defined in terms of the other.
 
-We would like to use this monad express an encryption scheme and a game between
-a challenger and an adversary that expresses a security property of this scheme.
-We use the same example as in \autoref{sec:games-motivation},
-indistinguishability in the presence of an eavesdropper.
+We would like to use this monad to formally specify an encryption scheme and a
+game between a challenger and an adversary that expresses a security property of
+this scheme.  We use the same example as above, indistinguishability in the
+presence of an eavesdropper.
 
 Let us begin by assuming that we have some type |K| for our keys, |PT| for our
 plaintext messages, and |CT| for our ciphertext messages.  To define an
@@ -284,7 +258,7 @@ have: they may generate random bitstrings and have access to mutable state.
 However, the other players cannot inspect the code or state of the oracle.  This
 lets us precisely control the power of the adversary by adjusting the
 information provided by the oracle.  As such, a flexible and easy-to-use system
-for oracles has been an important design goal for us.
+for oracles has been central to this work.
 
 For the moment, we will assume that there are two operations provided by the
 oracle: a way to initialise the oracle state with some value of type
@@ -299,13 +273,7 @@ callOracle  : OracleArg    -> CryptoExpr ST OracleResult
 
 In \autoref{chp:command-structures} we will show how this approach can be
 generalised to allow oracles with different signatures in a straightforward
-manner.  We consider this a noteworthy feature of our system.
-
-Note that the state of the oracle is not represented by |ST|: otherwise, the
-adversary could use |getState| to inspect the oracle state.  We will for now
-leave the oracle state hidden, and look at how it can be implemented in
-\autoref{chp:games}.  We assume that only the challenger can use |initOracle|
-and only the adversary can use |callOracle|.
+manner, which is a noteworthy feature of our system.
 
 We can now express a game that expresses a stronger security condition than
 IND-EAV.  In IND-EAV, we assumed that the adversary could choose two messages
@@ -407,10 +375,6 @@ A2 INDCPAOTPADV ct = do
   return dollar (eq ct r)
 \end{code}
 
-The attentive reader will notice that this kind of attack will work on any
-deterministic encryption scheme.  We only present this special case, since the
-general proof involves an encoding of determinism in Agda.
-
 Let us write out |INDCPA| with |OTP|, |INDCPAOTPADV|, and the definition of the
 oracle filled in.  As we mentioned, the combination of the adversary and oracle
 state results in the state type being |top * K|.
@@ -487,15 +451,18 @@ adversary is guaranteed to win it.
 \label{sec:intro-weaker}
 
 Having introduced oracles to allow for the strengthening of our security
-conditions, let us consider the opposite problem: in what ways can a security
-condition be weakened?
+conditions, let us consider the problem of expressing weaker notions of
+security.  So far, we have looked at concrete, information-theoretic security:
+the error term $\epsilon$ gave an explicit bound on the advantage of the
+adversary, and our results followed from information theory.  In this section,
+we will look at asymptotic and computational security.
 
-A strong motivation to look for such variations arises in public key
-cryptography.  Instead of generating a single key that is used for both
-encryption and decryption, a public key encryption scheme generates a public key
-that can be used for encrypting messages and a private key that is needed to
-decrypt them.  As the name suggests, the public key is available to both the
-challenger and adversary, while only the challenger has the private key.
+A strong motivation to consider these topics arises in public key cryptography.
+Instead of generating a single key that is used for both encryption and
+decryption, a public key encryption scheme generates a public key that can be
+used for encrypting messages and a private key that is needed to decrypt them.
+As the name suggests, the public key is available to both the challenger and
+adversary, while only the challenger has the private key.
 
 In this setting, the adversary can guess a private key and check whether it
 corresponds to the challenger's public key.  This improves the advantage of the
@@ -524,20 +491,19 @@ NP$.  In order to be able to formalise these arguments we need to be able to
 represent these conjectures, and it turns out that this question is highly relevant
 to the question of asymptotic bounds.
 
-Ensuring that the above notions can be represented within the system we design
-was an important constraint for us.  We will discuss how we achieve them in
-detail in \autoref{sec:security-assumptions}, but they are worth keeping in mind
+Ensuring that the above notions can be represented within our system was a key
+design constraint for us.  We will discuss how we achieve them in detail in
+\autoref{sec:security-assumptions}, but they are worth keeping in mind
 throughout the development.
 
 \section{Generalised Games}
 \label{sec:intro-general-games}
 
-We will finish this chapter by slightly generalising the kind of argument we
-would like to be able to make.  So far, we have always considered a single game
-as our starting point, and argued that the adversary cannot win at this game.
-However, as the word ``indistinguishability'' suggests, the situation we are
-interested in is somewhat more general: given two games, is there any adversary
-that can distinguish between the two?
+In the introduction, we described games as being a formalisation of the notion
+that no adversary can distinguish between two situations.  We then introduced
+the challenger, who would decide which of the situations occured.  However, we
+could have also posed the question more directly: is there any adversary that
+can reliably give different results for the two situations?
 
 The benefit of this formulation is that a claim phrased this way is much easier
 to reuse in a portion of another game.  If we know that no adversary can
@@ -548,10 +514,9 @@ discussed in the previous section.
 
 The games we have seen so far can all be expressed in this manner.  In the case
 of IND-EAV and IND-CPA, instead of asking whether the adversary can tell which
-message was encrypted, we ask whether the adversary can tell whether they are
-in a game where the challenger always encrypts the first message, or in a game
-where the challenger always encrypts the second message.  These two games that
-correspond to IND-EAV are as follows:
+message was encrypted, we ask whether the adversary can tell whether they are in
+a game where the encrypted message is always the first or always the second.
+These two games that correspond to IND-EAV are as follows:
 %format INDEAV1 = "\F{IND-EAV\textsubscript{1}}"
 %format INDEAV2 = "\F{IND-EAV\textsubscript{2}}"
 \begin{code}
@@ -586,13 +551,25 @@ INDEAVp enc adv = do
 As such, this really is a generalisation of the notion of games we had
 considered up to this point.
 
+\section{Summary}
+
 This concludes our exploration of the problem space.  We have seen that to
 express game-based proofs we need to be able to represent games, and need some
 set of rules specifying when two games are $\epsilon$-indistinguishable.  If we
 wish to express stronger security guarantees then our system must support the
 use of oracles, while expressing weaker guarantees requires a way of imposing
 constraints on the class of adversaries.  In the next two chapters we will lay
-out the groundwork of our system, and in the rest of this thesis we will show
-various ways in which it can be refined.
+out the groundwork of our system, in \autoref{chp:interpretation} we will
+discuss how we can show that our system is correct, and finally in
+chapters~\ref{chp:command-structures} and \ref{chp:indexed-monads} we will show
+some techniques that can aid in the implementation of the system.
 
-%}
+We are not the first to approach this problem.   Several systems already exist
+for the formalisation of cryptographical proofs,
+EasyCrypt\footnote{\url{http://www.easycrypt.info}} and FCF~\cite{fcf} being
+two notable examples.  In this work, we have focused in particular on how we can
+leverage the power of dependent types to simplify the problem.  The primary
+difficulty of building such a proof system is the verbosity of the resulting
+proofs: steps that were trivial on paper may nevertheless require extensive
+proof in a formal setting.  We will discuss these aspects of our approach, and
+what can be done to improve on this point, in \autoref{chp:language}.

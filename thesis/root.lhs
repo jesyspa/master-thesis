@@ -36,22 +36,25 @@ Swierstra, and Victor Cacciari Miraldo}
     \maketitle
 
     \begin{abstract}
-        When we use cryptographic algorithms, we rely that they provide the
-        security guarantees they claim.  We develop a system for reasoning about
-        such guarantees in the Agda programming language.
-        \todo[inline]{Extend}
+        The game-based style of proofs~\cite{codebasedgames, gameexamples} is
+        often used in cryptography to prove properties of cryptographic
+        primitives, such as the security of an encryption scheme.  Given the
+        importance of cryptography in the modern world, there is considerable
+        value in being able to verify these proofs automatically.  In this
+        thesis, we develop a system for expressing proofs of this form in the
+        Agda programming language.
     \end{abstract}
 
     \tableofcontents
 
-    %%include chapters/foreword.lhs
+    %include chapters/foreword.lhs
     %include chapters/01-introduction.lhs
     %include chapters/02-games.lhs
     %include chapters/03-proofs.lhs
-    %include chapters/04-command-structures.lhs
-    %include chapters/05-interpretation.lhs
+    %include chapters/04-interpretation.lhs
+    %include chapters/05-command-structures.lhs
     %include chapters/06-indexed-monads.lhs
-    %include chapters/08-crypto-language.lhs
+    %include chapters/07-crypto-language.lhs
 
     \begin{appendices}
         %include chapters/ap01-notation.lhs
