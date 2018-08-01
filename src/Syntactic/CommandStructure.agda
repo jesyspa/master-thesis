@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module Synthetic.CommandStructure where
+module Syntactic.CommandStructure where
 
 open import ThesisPrelude
 

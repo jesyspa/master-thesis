@@ -1,14 +1,15 @@
 {-# OPTIONS --type-in-type #-}
-open import Synthetic.OracleData
-module Synthetic.OracleEval (OD : OracleData) where
+open import Syntactic.OracleData
+module Syntactic.OracleEval (OD : OracleData) where
 
 open OracleData OD
 
 open import ThesisPrelude
-open import Synthetic.CryptoExpr
-open import Synthetic.CommandStructure
+open import Syntactic.CryptoExpr
+open import Syntactic.CryptoExprHelpers
+open import Syntactic.CommandStructure
 open FMBegin
-open import Synthetic.OracleExpr OD
+open import Syntactic.OracleExpr OD
 
 open OracleExprCmd
 

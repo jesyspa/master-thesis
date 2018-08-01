@@ -1,4 +1,4 @@
-module Synthetic.OracleData where
+module Syntactic.OracleData where
 
 open import ThesisPrelude
 

@@ -1,4 +1,4 @@
-module Synthetic.Enumeration where
+module Syntactic.Enumeration where
 
 open import ThesisPrelude
 open import Utility.List.Elem.Definition

@@ -1,13 +1,13 @@
 {-# OPTIONS --type-in-type #-}
-module Synthetic.Logic (ST : Set) where
+module Syntactic.Logic (ST : Set) where
 
 open import ThesisPrelude
-open import Synthetic.Enumeration
-open import Synthetic.CommandStructure
+open import Syntactic.Enumeration
+open import Syntactic.CommandStructure
 open FM
-open import Synthetic.CryptoExpr ST
-open import Synthetic.CryptoExprHelpers
-open import Synthetic.StateBounds ST
+open import Syntactic.CryptoExpr ST
+open import Syntactic.CryptoExprHelpers
+open import Syntactic.StateBounds ST
 open import Utility.Vector.Definition
 open import Utility.Vector.Functions
 open import Algebra.Function

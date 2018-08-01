@@ -1,9 +1,9 @@
 {-# OPTIONS --type-in-type #-}
-module Synthetic.CryptoExpr ST where
+module Syntactic.CryptoExpr ST where
 
 open import ThesisPrelude
-open import Synthetic.Enumeration
-open import Synthetic.CommandStructure
+open import Syntactic.Enumeration
+open import Syntactic.CommandStructure
 open import Utility.Vector.Definition
 
 open CommandStructure
@@ -20,3 +20,4 @@ Response CryptoExprCS GetState      = ST
 Response CryptoExprCS (SetState st) = ⊤
 
 open FM CryptoExprCS public using () renaming (FreeMonad to CryptoExpr)
+

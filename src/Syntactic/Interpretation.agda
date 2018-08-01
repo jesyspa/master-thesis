@@ -2,10 +2,10 @@
 open import Probability.Class
 open import Probability.PropsClass
 open import ThesisPrelude
-module Synthetic.Interpretation ST Q {{_ : Probability Q}}{{_ : Eq ST}} where
+module Syntactic.Interpretation ST Q {{_ : Probability Q}}{{_ : Eq ST}} where
 
-open import Synthetic.CommandStructure
-open import Synthetic.CryptoExpr ST
+open import Syntactic.CommandStructure
+open import Syntactic.CryptoExpr ST
 open import Utility.Vector.Definition
 
 open FM CryptoExprCS

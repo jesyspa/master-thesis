@@ -1,11 +1,11 @@
 {-# OPTIONS --type-in-type #-}
-module Synthetic.StateBounds (ST : Set) where
+module Syntactic.StateBounds (ST : Set) where
 
 open import ThesisPrelude
-open import Synthetic.Enumeration
-open import Synthetic.CommandStructure
+open import Syntactic.Enumeration
+open import Syntactic.CommandStructure
 open FM
-open import Synthetic.CryptoExpr ST
+open import Syntactic.CryptoExpr ST
 open import Utility.Vector.Definition
 
 open CommandStructure

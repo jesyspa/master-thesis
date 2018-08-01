@@ -1,16 +1,16 @@
 {-# OPTIONS --type-in-type #-}
-open import Synthetic.Enumeration
-module Synthetic.Reorder (ST : Set){{EST : Enumeration ST}} where
+open import Syntactic.Enumeration
+module Syntactic.Reorder (ST : Set){{EST : Enumeration ST}} where
 
 open import ThesisPrelude
 open import Algebra.FunExt
-open import Synthetic.CommandStructure
-open import Synthetic.EnumerationInstances
-open import Synthetic.CryptoExpr ST
+open import Syntactic.CommandStructure
+open import Syntactic.EnumerationInstances
+open import Syntactic.CryptoExpr ST
 open FM CryptoExprCS
-open import Synthetic.StateBounds ST
-open import Synthetic.Logic ST
-open import Synthetic.LogicDerived ST
+open import Syntactic.StateBounds ST
+open import Syntactic.Logic ST
+open import Syntactic.LogicDerived ST
 open import Utility.Vector.Definition
 open import Utility.Vector.Functions
 open import Utility.Vector.Props

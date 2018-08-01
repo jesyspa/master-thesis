@@ -1,10 +1,10 @@
 {-# OPTIONS --type-in-type #-}
-module Synthetic.CSConstructs where
+module Syntactic.CSConstructs where
 
 open import ThesisPrelude
 open import Algebra.FunExt
 open import Algebra.Function
-open import Synthetic.CommandStructure 
+open import Syntactic.CommandStructure 
 
 open CommandStructure
 open CmdMorphism

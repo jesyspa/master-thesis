@@ -1,25 +1,17 @@
 {-# OPTIONS --type-in-type #-}
-module Synthetic.BoundedOracleUseExample where
+module Syntactic.BoundedOracleUseExample where
 
 open import ThesisPrelude
-open import Synthetic.CryptoState
-open import Synthetic.Enumeration
+open import Syntactic.Enumeration
 open import Utility.Vector.Definition
 open import Utility.Vector.BitVec
 open import Utility.List.Elem.Definition
 
-open CryptoState
 open Enumeration
 
-CS : CryptoState
-AdvState     CS = ⊤
-OracleInit   CS = ⊤
-OracleArg    CS = ⊤
-OracleResult CS = ⊤
-
-open import Synthetic.CommandStructure
-open import Synthetic.CryptoExpr CS
-open import Synthetic.BoundedOracleUse CS
+open import Syntactic.CommandStructure
+open import Syntactic.CryptoExpr
+open import Syntactic.BoundedOracleUse
 
 instance
   EnumerationBitVec : ∀ n → Enumeration (BitVec n)

@@ -1,17 +1,17 @@
 {-# OPTIONS --type-in-type #-}
 open import Probability.Class
 open import Probability.PropsClass
-open import Synthetic.Enumeration
-module Synthetic.EpsilonLogic (ST Q : Set){{PQ : Probability Q}}{{EST : Enumeration ST}} where
+open import Syntactic.Enumeration
+module Syntactic.EpsilonLogic (ST Q : Set){{PQ : Probability Q}}{{EST : Enumeration ST}} where
 
 open import ThesisPrelude
-open import Synthetic.CommandStructure
+open import Syntactic.CommandStructure
 open FM
-open import Synthetic.EnumerationInstances
-open import Synthetic.CryptoExpr ST
-open import Synthetic.CryptoExprHelpers
-open import Synthetic.StateBounds ST
-open import Synthetic.Logic ST
+open import Syntactic.EnumerationInstances
+open import Syntactic.CryptoExpr ST
+open import Syntactic.CryptoExprHelpers
+open import Syntactic.StateBounds ST
+open import Syntactic.Logic ST
 open import Utility.Vector.Definition
 open import Utility.Vector.Functions
 

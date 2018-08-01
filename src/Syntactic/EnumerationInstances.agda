@@ -1,8 +1,8 @@
 {-# OPTIONS --type-in-type #-}
-module Synthetic.EnumerationInstances where
+module Syntactic.EnumerationInstances where
 
 open import ThesisPrelude
-open import Synthetic.Enumeration
+open import Syntactic.Enumeration
 open import Utility.Vector.Definition
 open import Utility.Vector.BitVec
 open import Utility.List.Elem.Definition

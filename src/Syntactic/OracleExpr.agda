@@ -1,14 +1,14 @@
 {-# OPTIONS --type-in-type #-}
-open import Synthetic.OracleData
-module Synthetic.OracleExpr (OD : OracleData) where
+open import Syntactic.OracleData
+module Syntactic.OracleExpr (OD : OracleData) where
 
 open OracleData OD
 
 open import ThesisPrelude
-open import Synthetic.Enumeration
-open import Synthetic.CommandStructure
-open import Synthetic.CSConstructs
-open import Synthetic.CryptoExpr
+open import Syntactic.Enumeration
+open import Syntactic.CommandStructure
+open import Syntactic.CSConstructs
+open import Syntactic.CryptoExpr
 open import Utility.Vector.Definition
 open import Probability.Class
 

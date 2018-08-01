@@ -1,10 +1,10 @@
 {-# OPTIONS --type-in-type #-}
-module Synthetic.CryptoExprHelpers {ST} where
+module Syntactic.CryptoExprHelpers {ST} where
 
 open import ThesisPrelude
-open import Synthetic.Enumeration
-open import Synthetic.CommandStructure
-open import Synthetic.CryptoExpr ST
+open import Syntactic.Enumeration
+open import Syntactic.CommandStructure
+open import Syntactic.CryptoExpr ST
 open import Utility.Vector.Definition
 
 open CommandStructure
