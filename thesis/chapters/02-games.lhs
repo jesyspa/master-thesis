@@ -87,9 +87,9 @@ fmapCE f (SetState st cont)  = SetState st  \ t -> fmapCE f (cont t)
 
 _>>=_ : CryptoExpr ST A -> (A -> CryptoExpr ST B) -> CryptoExpr ST B
 Return a          >>= f  = f a
-Uniform n cont    >>= f  = Uniform n    \ v -> bindCE (cont v) f
-GetState cont     >>= f  = GetState     \ st -> bindCE (cont st) f
-SetState st cont  >>= f  = SetState st  \ t -> bindCE (cont t) f
+Uniform n cont    >>= f  = Uniform n    \ v ->   cont v >>= f
+GetState cont     >>= f  = GetState     \ st ->  cont st >>= f
+SetState st cont  >>= f  = SetState st  \ t ->   cont t >>= f
 \end{code}
 
 We will see how we can avoid the repetitiveness of these definitions in
@@ -150,7 +150,7 @@ As in the case of |CryptoExpr|, we can define |uniform|, |getState|, and
 way.  Similarly, the definitions of |fmap| and |>>=| are straightforward
 extensions of those for |CryptoExpr|.
 
-We can now specify games such as |IND-CPA| from
+We can now specify games such as |INDCPA| from
 \autoref{sec:intro-oracles}, but we must also be able to define the
 behaviour of the oracles themselves.  We do this much the same way we specify
 adversaries, by defining a record that has interpretations for the operations.
@@ -279,8 +279,8 @@ can construct a corresponding proof term using |ReturnS| and |UniformS| by
 following the recursive structure.  However, if the game uses |GetState| or
 |SetState|, then no proof can exist, since |Stateless (GetState cont)| and
 |Stateless (SetState st cont)| can be shown to be empty.  We can thus use the
-type |Sigma (CryptoExpr ST A) Stateless| to represent the type of games that use
-no state within Agda itself.
+type |Sigma (CryptoExpr ST A) Stateless| to represent, within Agda, the type of
+games that use no state.
 
 We can also use this technique to bound the number of times an adversary queries
 the oracle, and restrict the adversary from reinitialising the oracle.  We can
@@ -310,14 +310,15 @@ data BoundedOracleUse : Bool -> Nat -> OracleExpr A -> Set1 where
                  -> BoundedOracleUse b (suc k) (CallOracle arg cont)
 \end{code}
 
-Note that in the |InitOracleBOU| case we require the continuation to have no
-|InitOracleBOU| calls, thus forcing initialisation to happen at most once, and
-in |CallOracleBOU|, we decrease the number of allowed calls to the oracle by
-one.  It is worth mentioning that this is only a restriction on what the game is
-\emph{allowed} to do: since the |ReturnBOU| case does not restrict |b| or |k|,
-we do not \emph{require} the game to perform any actions.  If we wanted to, we
-could achieve the latter effect by changing the |ReturnBOU| constructor to
-have type |forall a -> BoundedOracleUse false 0 (Return a)|.
+Note that in the |InitOracleBOU| case we prohibit the continuation from
+performing any further |InitOracleBOU| calls, thus forcing initialisation to
+happen at most once, and in |CallOracleBOU|, we decrease the number of allowed
+calls to the oracle by one.  It is worth mentioning that this is only a
+restriction on what the game is \emph{allowed} to do: since the |ReturnBOU| case
+does not restrict |b| or |k|, we do not \emph{require} the game to perform any
+actions.  If we wanted to, we could achieve the latter effect by changing the
+|ReturnBOU| constructor to have type |forall a -> BoundedOracleUse false 0
+(Return a)|.
 
 This approach works very well when we want to restrict some property of a |ce :
 CryptoExpr ST A| (or |OracleExpr|) we receive as an input, since we can add an

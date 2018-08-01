@@ -8,11 +8,11 @@ our online activity, banking information, and whatever else we wish to keep
 private.  As such, it is important to be able to verify that such primitives
 provide the guarantees they promise.
 
-These guarantees are typically phrased as stating that no program can
-distinguish between two possibilities.  The standard example, which we will
-return to often, is that a good encryption scheme should not allow an attacker
-to tell what message had been encrypted, even if the set of possible messages is
-very small.
+These guarantees are typically phrased as statements that no program can
+distinguish between two given possibilities.  The standard example, which we
+will return to often, is that a good encryption scheme should not allow an
+attacker to tell what message had been encrypted, even if the set of possible
+messages is very small.
 
 Following Bellare and Rogaway~\cite{codebasedgames}, we will frame questions of
 this form as games between a challenger and an adversary.  The challenger
@@ -23,36 +23,29 @@ can reliably win the game, we conclude that our system is secure.  On the other
 hand, we can prove a system to be vulnerable by exhibiting an adversary that
 has a winning strategy.
 
-In our presentation, we will often return to the following example: if an
-adversary can choose two messages and the challenger encrypts one of them, can
-the adversary tell which message was encrypted?  In the simplest form, this is
-known as IND-EAV, indistinguishability against an eavesdropper.  Whether the
-adversary can tell which message was encrypted tells us something about the
-security of the encryption scheme used.  This example expresses confidentiality;
-similar games can be made to express other properties, such as unforgeability.
-
-In order to reason about the above game, we need to describe it somewhat more
-formally.  Let Alice be the challenger and Eve be the adversary.  The protocol
+To apply this to the aforementioned example, let us specify it in a more formal
+manner.  Let Alice be the challenger and Eve be the adversary.  The protocol
 they follow to play the game is as follows: Eve gives Alice two messages, |m1|
 and |m2|.  Alice generates an encryption key and uses it to encrypt one of the
 messages, chosen at random.  Alice gives Eve the resulting ciphertext and poses
 the challenge: did she encrypt |m1| or |m2|?  Eve wins if her answer is correct.
+This game is known as IND-EAV, indistinguishability in the presence of an
+eavesdropper.
 
 Eve can definitely win half of her games, just by choosing an answer at random.
-How much better Eve can do is called his \emph{advantage}.  In order to show
+How much better Eve can do is called her \emph{advantage}.  In order to show
 that an encryption scheme is secure, we must show that any adversary's advantage
 is close to zero.  In order to show that a scheme is not secure, we must show
 that there exists some adversary that has high advantage.
 
 When we want to put an upper bound on the advantage, we could analyse the game
-and attempt to derive this bound directly.  However, an approach that is often
-simpler is to modify the game slightly and show that this change does not change
-the advantage considerably.  We say that two games between which the difference
-in advantage is at most $\epsilon$ are $\epsilon$-indistinguishable.  By
+and attempt to derive this bound directly.  However, it is often simpler to
+modify the game slightly and show that this modification does not change the
+advantage considerably.  We say that two games between which the difference in
+advantage is at most $\epsilon$ are $\epsilon$-indistinguishable.  By
 constructing a sequence of $\epsilon$-indistinguishable games, we can relate our
-initial (complicated) game to a much simpler one, simplifying our analysis.
-
-\todo[inline]{Remove this split?}
+initial (complicated) game to a much simpler one, where computing the advantage
+of the adversary is trivial.
 
 \section{Games as Programs}
 \label{sec:intro-programs}
@@ -68,8 +61,8 @@ problem~\cite{monadsforfp}, and can be solved using a monad that has operations
 corresponding to the imperative instructions.  We will show how this monad can
 be constructed explicitly in \autoref{chp:games}.  For now, we will assume that
 there is a monad |CryptoExpr ST| that supports the following operations, where
-|ST| is the type of the state that the players may
-store:\footnote{\cf{Syntactic/CryptoExpr}.  Note that our implementation uses
+|ST| is the type of the state that the players have access
+to:\footnote{\cf{Syntactic/CryptoExpr}.  Note that our implementation uses
 techniques discussed in \autoref{chp:command-structures} for this definition.
 For a more direct implementation, but without support for state,
 \cf{Crypto/Syntax}.}
@@ -85,9 +78,9 @@ random bits and store and retrieve values of type |ST|, and that has a result of
 type |A|.  We include both |uniform| and |coin| for the sake of convenience,
 although one could be defined in terms of the other.
 
-We would like to use this monad to formally specify an encryption scheme and a
-game between a challenger and an adversary that expresses a security property of
-this scheme.  We use the same example as above, indistinguishability in the
+We will now use this monad to formally specify an encryption scheme, as well as
+a game between a challenger and an adversary that expresses a security property
+of this scheme.  We use the same example as above, indistinguishability in the
 presence of an eavesdropper.
 
 Let us begin by assuming that we have some type |K| for our keys, |PT| for our
@@ -108,7 +101,7 @@ that it work for \emph{any} state type.  This allows us to let the adversary
 choose the state type, as we will see shortly.
 
 The adversary is given the chance to act twice during the game, first to
-generate two plaintext messages, and then to guess which message had been
+generate two plaintext messages, and then to guess which message has been
 encrypted.  We again represent this as a record, parametrised by the type of
 state |ST| that the adversary uses.\footnote{\cf{Crypto/EAV}.}
 
@@ -130,7 +123,7 @@ Now we can introduce the game itself.  As before, we let the adversary pick two
 messages, generate a key, encrypt one of the messages based on a coin flip,
 and then let the adversary guess which one it was.  Altogether, this is a
 probabilistic computation that returns |true| iff the adversary
-wins.\footnote{\cf{Crypto/EAV}.}
+wins.\footnote{\cf{Crypto/EAV} again.}
 
 \begin{code}
 INDEAV  : EncScheme -> Adversary ST -> CryptoExpr ST Bool
@@ -156,11 +149,13 @@ conclude that the scheme is vulnerable against this attack.
 \label{sec:intro-otp-eav}
 
 Let us see how we can reason about a game like the one demonstrated in the
-previous section.  We start by introducing our encryption scheme.  Fix an |n :
-Nat|.  The scheme we use is known as the One-Time Pad, and it allows us
-to encrypt $n$-bit messages using an $n$-bit key.  To generate the key, we take
-an $n$-bit vector uniformly at random.  To encrypt some message $m$ with a key
-$k$, we take the bitwise XOR.
+previous section.  For this example, we will use the One-Time Pad encryption
+scheme, which works by XORing the message with a pre-determined key of the same
+length. Formally, this can be described as follows.  Fix an |n :
+Nat|.  To generate the key, we take
+an $n$-bit vector uniformly at random.  To encrypt some message $m$ of length
+$n$ with a key $k$, take the bitwise XOR of $m$ and $n$.  In Agda, this can be
+expressed as follows.\footnote{\cf{Crypto/OTP}.}
 
 \begin{code}
 OTP : EncScheme
@@ -224,7 +219,7 @@ INDEAVOTP4 adv = do
   fmap (\ b -> (eq b b')) coin
 \end{code}
 
-Finally, we can show that |\ b -> (eq b b'))| to be a bijection as well,
+Finally, we can show that |\ b -> (eq b b')| to be a bijection as well,
 giving us the last game in the sequence:
 \begin{code}
 INDEAVOTP5 adv = do
@@ -264,8 +259,8 @@ A function provided to the adversary in this opaque way is called an
 have: they may generate random bitstrings and have access to mutable state.
 However, the other players cannot inspect the code or state of the oracle.  This
 lets us precisely control the power of the adversary by adjusting the
-information provided by the oracle.  As such, a flexible and easy-to-use system
-for oracles has been central to this work.
+information provided by the oracle.  Given the importance of this, a flexible
+and easy-to-use system for oracles has been a central focus of this work.
 
 For the moment, we will assume that there are two operations provided by the
 oracle: a way to initialise the oracle state with some value of type
@@ -289,9 +284,9 @@ for the challenger to encrypt, but could not perform the encryption.  If the
 adversary also has the power to encrypt messages of its choice, the game is
 known as indistinguishability under a chosen plaintext attack, abbreviated
 IND-CPA.  The name comes from the fact that the adversary is allowed to choose
-one or more plaintext to be encrypted by the oracle.  Apart from the fact that
-the challenger has to initialise the oracle and the adversary may query it, the
-game is identical.
+one or more plaintext messages to be encrypted by the oracle.  Apart from the
+fact that the challenger has to initialise the oracle and the adversary may
+query it, the game is identical.
 
 Let us now look at the code.  Since the oracle must have the key to encrypt
 messages, |OracleState = K|.  The query takes a plaintext and yields a
@@ -340,7 +335,7 @@ If an adversary wins the IND-EAV game against some encryption scheme |enc|, the
 same adversary can win the IND-CPA game against |enc| by ignoring the oracle.
 Conversely, any game that is secure against IND-CPA is also secure against
 IND-EAV.  We can thus regard IND-CPA as a stronger claim about an encryption
-scheme, and we will see that it is strictly stronger by showing that our
+scheme, and we will see that it is strictly stronger by showing that the
 One-Time Pad scheme is not secure against it.
 
 Before we go on, let us note that we have not specified how the implementation
@@ -391,7 +386,7 @@ It may seem strange to go to such lengths to define the oracle separately, only
 to immediately inline it when we begin with the proof.  However, recall that the
 purpose of the separation was to prevent the adversary from accessing the oracle
 state.  Since we have chosen an adversary that does not does this, the
-separation does not play any further role in this case.
+separation does not play any further role in this example.
 
 The resulting code is as follows:
 %format INDCPAOTP1 = "\F{IND-CPA-OTP\textsubscript{1}}"

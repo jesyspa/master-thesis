@@ -2,15 +2,15 @@
 \label{chp:proofs}
 
 Throughout \autoref{chp:introduction}, we argued that rewrite steps were valid
-because the games they produced did not significantly differ from the games we
-started with.  In this chapter, we will define the notion of
+because the games they produced did not significantly differ from the games they
+were performed on.  In this chapter, we will define the notion of
 $\epsilon$-indistinguishable to formalise this concept of `not significantly
 different', thereby specifying the logic that can be used to reason about games.
 Keeping with the style of the previous chapter, our definition of
 $\epsilon$-indistinguishability will be purely syntactic, with no reference to
 an interpretation, which we will discuss in \autoref{chp:interpretation}.
 
-Before we dive in to the technical details, let us consider what relation we
+Before we dive into the technical details, let us consider what relation we
 would like to capture.  Two games with result type |A| being
 $\epsilon$-indistinguishable means that up to some error term $\epsilon$, the
 probability of sampling any |a : A| from one is close to the probability of
@@ -203,13 +203,12 @@ them out in full.
 
 As a final preparation, let us introduce two abbreviations that will be useful
 in the (recursive) definition of |==eE| itself.  Let |A| and |B| be arbitrary
-types.  Firstly, given two games |G| and |H|\footnote{That is, terms of type
-|CryptoExpr ST A|.}, we will say ``|G| and |H| are
-$\epsilon$-indistinguishable'' to mean |G ==eE H|.  Secondly, given two
-|B|-indexed families of games |f| and |g|\footnote{That is, terms of type |B ->
-CryptoExpr ST A|.} and a function |h : A -> Q|, we say ``|f| and |g| are
-|h|-indistinguishable'' to mean that for every |a : A|, |f a| and |g a| are (|h
-a|)-indistinguishable.
+types.  Firstly, given two games\footnote{That is, terms of type |CryptoExpr ST
+A|.} |G| and |H|, we will say ``|G| and |H| are $\epsilon$-indistinguishable''
+to mean |G ==eE H|.  Secondly, given two |B|-indexed families of
+games\footnote{That is, terms of type |B -> CryptoExpr ST A|.} |f| and |g| and a
+function |h : A -> Q|, we say ``|f| and |g| are |h|-indistinguishable'' to mean
+that for every |a : A|, |f a| and |g a| are (|h a|)-indistinguishable.
 
 Without further ado: for every non-negative |epsilon : Q| and every two types
 |A| and |ST|, let |==eE| be the least binary relation on |CryptoExpr ST A| such
@@ -421,40 +420,41 @@ As we have already remarked in \autoref{sec:intro-weaker}, in practice we
 often want to show security only against adversaries that are restricted in
 the resources they may use.  The prime example of this is a restriction to
 adversaries that run in polynomial time.  Restricting the problem in this way
-allows us to use assumptions about what a polynomial-time algorithm cannot do.
-This allows us to reason about the security of systems that depend on problems
-like integer factorisation being hard; without such an assumption, since integer
-factorisation can be performed in Agda, we cannot rule out that the adversary
-performs the factorisation and thereby defeats our security scheme.
+allows us to use assumptions about what a polynomial-time algorithm can and
+cannot do.  This allows us to reason about the security of systems that depend
+on problems like integer factorisation being hard; without such an assumption,
+since integer factorisation can be performed in Agda, we cannot rule out that
+the adversary performs the factorisation and thereby defeats our security
+scheme.
 
 Within our system, we cannot create a type of polynomial-time adversaries, and
-so we cannot allow a game to restrict its inputs to be polynomial-time
-adversaries.  However, we can still achieve the desired effect by assuming that
-certain operations cannot be performed by any adversary.  We do this by assuming
-that certain games are unwinnable, using the generalised notion of games
-described in \autoref{sec:intro-general-games}.
+so we cannot express this restriction directly. However, we can still achieve
+the desired effect by assuming that certain operations cannot be performed by
+any adversary.  We do this by assuming that certain games are unwinnable, using
+the generalised notion of games described in \autoref{sec:intro-general-games}.
 
 For example, let us consider the discrete logarithm problem.  Given a cyclic
 group $G$ and a generator $g$, the Decisional Diffie-Hellman assumption states
 that it is hard to distinguish the triple $(g^a, g^b, g^c)$ with $a, b, c$ all
-uniformly random (with $0 \le a < |G|$) from $(g^a, g^b, g^{ab})$, with $a, b$
-uniformly random.  We can phrase this as follows: let |G| be the uniform
+uniformly random (with $0 \le a < \abs{G}$) from $(g^a, g^b, g^{ab})$, with $a,
+%format UG = "\F{U\textsubscript{G}}"
+b$ uniformly random.  We can phrase this as follows: let |UG| be the uniform
 distribution over $G$.  Then there is some $\epsilon$ such that the following
 two games are $\epsilon$-indistinguishable for
 any adversary |adv|:
 \begin{code}
 do
     st <- getState
-    a <- G
-    b <- G
-    c <- G
+    a <- UG
+    b <- UG
+    c <- UG
     adv (pow g a , pow g b , pow g c)
     setState st
 
 do
     st <- getState
-    a <- G
-    b <- G
+    a <- UG
+    b <- UG
     adv (pow g a , pow g b , pow g (times a b))
     setState st
 \end{code}
@@ -463,7 +463,7 @@ Notice that we need to explicitly preserve the state due to our lack of a proper
 notion of result-indistinguishability.
 
 Nevertheless, we can then use this assumption to replace the usage of |pow g
-(times a b)| in a proof with |pow g c|.  For example, this is a key step in
+((times a b))| in a proof with |pow g c|.  For example, this is a key step in
 proving the security of the ElGamal encryption scheme~\cite{gameexamples}.  By
 introducing this assumption we show that no adversary can find |a| given |pow g
 a|, since otherwise they could take |pow (pow g b) a| and compare it to the
@@ -492,8 +492,6 @@ Instead of attempting to prove that games |G| and |H| are
 $\epsilon$-indistinguishable, we can instead look at families of games |G| and
 |H| parametrised by a security paraeter, and show that they are
 $f$-indistinguishable for some vanishing function $f$.  
-
-\todo[inline]{This section still needs some cleanup.}
 
 \section{Future Work}
 

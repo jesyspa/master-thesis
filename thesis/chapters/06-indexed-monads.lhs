@@ -56,7 +56,7 @@ A ~> B = forall {s} -> A s -> B s
 Given a function |(S -> Set) -> (S -> Set)|, we can regard it as a functor if it
 has a corresponding action on morphisms.  This gives rise to the notion of an
 |S|-indexed functor on |Set|, or endofunctor on |SetS|, as
-follows:\footnote{\cf{Algebra/Indexed/Fuctor}.}
+follows:\footnote{\cf{Algebra/Indexed/Functor}.}
 \begin{code}
 record IxFunctor {S : Set}(F : (S -> Set) -> (S -> Set)) : Set1 where
   field
@@ -272,7 +272,10 @@ new message type, the new message, and give as result the new message wrapped in
 an Atkey.  The definitions of |get| and |set| can, fortunately, be derived from
 this, and the definitions of bind and return are straightforward.
 
-\todo[inline]{conclusion?}
+With this development in place, we believe that the interpretations described in
+\autoref{chp:interpretation} can be replicated in this context, while resolving
+entirely the question of result-indistinguishability in a straightforward
+manner.
 
 \section{Interaction Structures}
 % backported

@@ -186,7 +186,7 @@ the following type:
 %format parimpl = "\F{parallel-impl}"
 \begin{code}
 parimpl  : Implementation C1 C2
-         -> Implementaion D1 D2
+         -> Implementation D1 D2
          -> Implementation (C1 +CS D1) (C2 +CS D2)
 \end{code}
 

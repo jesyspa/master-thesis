@@ -34,8 +34,38 @@
 \author{By Anton Golov,\\under the supervision of\\Jaap van Oosten, Wouter
 Swierstra, and Victor Cacciari Miraldo}
 
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
 \begin{document}
-    \maketitle
+    % Thanks to Sven for providing the title page code.
+    \begin{titlepage}
+        \begin{center}
+            \includegraphics[width=0.6\textwidth]{./logo.png}~\\[2.5cm]
+            \textsc{\Large Department of Mathematics}\\[0.5cm]
+            \textsc{\Large Master Thesis}\\[0.5cm]
+            \HRule \\[0.4cm]
+            { \huge \bfseries Formalisation of Cryptographic Proofs in Agda \\[0.4cm] }
+            \HRule \\[1.5cm]
+            \noindent
+            \begin{minipage}[t]{0.4\textwidth}
+            \begin{flushleft} \large
+            \emph{Author:}\\
+            Anton \textsc{Golov}
+            \end{flushleft}
+            \end{minipage}%
+            \begin{minipage}[t]{0.4\textwidth}
+            \begin{flushright} \large
+            \emph{Supervisors:} \\
+            Dr.~Jaap \textsc{van Oosten}
+            Dr.~Wouter \textsc{Swierstra}\\
+            Victor \textsc{Cacciari Miraldo}
+            \end{flushright}
+            \end{minipage}
+
+            \vspace{+100pt}
+            {\large December 2017-August 2018}
+        \end{center}
+    \end{titlepage}
 
     \begin{abstract}
         The game-based style of proofs~\cite{codebasedgames, gameexamples} is
