@@ -32,15 +32,15 @@ or ``the adversary finds a hash collision.''  Instrumenting the game code to
 state when |F| occurs can be a non-trivial problem even in concrete cases; a
 general solution would be of great value.
 
-In \autoref{chp:command-structures}, we developed the telescope construction and
-showed how we can systematically fold a telescope into a single game.  If an
-$\epsilon$-relation like indistinguishability was defined on this game, then
-this fold gave rise to an $\epsilon$-relation on the whole telescope.  However,
-this induced relation is inconvenient to work with: we would like to be able to
-express our indistinguishability proofs in terms of the telescopes themselves,
-and then show via a lemma that the indistinguishability of their folds follows.
-The difficulty lies in striking a balance between what can be shown and how much
-bookkeeping this requires.
+In \autoref{chp:command-structures}, we developed the $N$-player implementation
+construction and showed how we can systematically fold such an implementation
+into a single game.  If an $\epsilon$-relation like indistinguishability was
+defined on this game, then this fold gave rise to an $\epsilon$-relation on the
+whole implementation.  However, this induced relation is inconvenient to work
+with: we would like to be able to express our indistinguishability proofs in
+terms of the implementations themselves, and then show via a lemma that the
+indistinguishability of their folds follows.  The difficulty lies in striking a
+balance between what can be shown and how much bookkeeping this requires.
 
 In \autoref{chp:interpretation}, we present a list-based model of game logic.
 We have constructed the carrier of this model in Agda, but we have not verified
@@ -85,11 +85,11 @@ not clear whether this can be done without considerable loss of expressive
 power.
 
 The use of command and interaction structures to simplify the defintion of games
-also induces some syntactic burden.  In particular, specifying telescopes and
-their folds is done in a style that is unfriendly to the user.  A language
-with dedicated syntactic constructs for defining telescopes could make the
-process significantly easier, while still benefiting from our abstract approach
-under the hood.
+also induces some syntactic burden.  In particular, specifying implementations
+and their folds is done in a style that is unfriendly to the user.  A language
+with dedicated syntactic constructs for defining an $N$-player implementation
+could make the process significantly easier, while still benefiting from our
+abstract approach under the hood.
 
 Such a language would benefit from the development of appropriate tooling.  In
 our experiments in Agda, we found ourselves repeating the game we were operating
@@ -102,9 +102,28 @@ but do want to display this index if the user asks for it.
 \section{Conclusions}
 
 In this thesis, we have laid a foundation for a system for reasoning about
-cryptography.  There is still considerable engineering work required for the
-expression of most cryptographic proofs to be possible, but we consider this a
-successful proof of concept that shows the applicability of tools from
-functional and dependently typed programming to this problem domain.
+indistinguishability in cryptography.  There is still considerable engineerign
+work to be done before practical proofs can be expressed, but we nevertheless
+consider this a successful proof of concept that shows the viability of a
+syntactic approach to this problem.
 
+The primary drawback we have discovered when using Agda is that automating even
+very simple proofs is difficult.  In particular, it is not sufficient to specify
+what rewrite step we wish to apply, but also precisely where.  This causes
+significant duplication, since often almost the entire game has to be written
+out as part of the rewrite step.
 
+Another problem arises when we introduce indexing to our games: the correctness
+of the code with respect to indices must be specified inline with the code
+itself.  For example, if we want to pass a |BitVec n| to a function that takes a
+|BitVec k|, we must first provide a proof that |n == k| and then use a rewrite
+rule or transport.  This obscures the primary logic of the code; in an ideal
+system, we could write the code first and then prove it correct separately.
+
+However, we feel that these issues are primarily ones of presentation, and not
+inherent to the approach we are taking.  The usage of $N$-player implementations
+to represent the interactions between the challenger, adversary, and oracle
+makes it possible to statically enforce constraints on what the players can do,
+that are hard to express otherwise.  As far as we know, this usage of command
+and interaction structures is novel, and we consider this the primary
+contribution of this work.

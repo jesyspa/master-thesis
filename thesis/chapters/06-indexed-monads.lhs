@@ -399,17 +399,17 @@ next      (qoplus IS1 IS2) {s1 , s2} (right c) r = s1 , next IS2 c r
 QSum = foldr _qoplus_ TensorUnitIS
 \end{code}
 
-With these choices in place, we can construct the telescopes as before.  The
-Agda formulation is not enlightening, so we will not present it here.  The
-essential point is that just as we could use an implementation of |C1| in terms
-of |D1| and |SumCS CS| and an implementation of |SumCS CS| in terms of |SumCS
-DS| to obtain an implementation of |C1 +CS SumCS CS| in terms of |D1 +CS SumCS
-DS| in the command structure case, here we achieve the same result, with the
-important distinction that we now have two ways of combining interaction
-structures.  The choice that has worked for our purposes is as follows: an
-implementatino of |C1| in terms of |oplus D1 (QSum CS)| and an implementation
-of |QSum CS| in terms of |TSum DS| gives an implementation of |qoplus C1 (QSum
-CS)| in terms of |oplus D1 (TSum DS)|.
+With these choices in place, we can construct $N$-player implementations as we
+did before.  The Agda formulation is not enlightening, so we will not present it
+here.  The essential point is that just as we could use an implementation of
+|C1| in terms of |D1| and |SumCS CS| and an implementation of |SumCS CS| in
+terms of |SumCS DS| to obtain an implementation of |C1 +CS SumCS CS| in terms of
+|D1 +CS SumCS DS| in the command structure case, here we achieve the same
+result, with the important distinction that we now have two ways of combining
+interaction structures.  The choice that has worked for our purposes is as
+follows: an implementatino of |C1| in terms of |oplus D1 (QSum CS)| and an
+implementation of |QSum CS| in terms of |TSum DS| gives an implementation of
+|qoplus C1 (QSum CS)| in terms of |oplus D1 (TSum DS)|.
 
 This gives rise to the same kind of $N$-player implementation that we already
 discussed in the case of command structures in \autoref{chp:command-structures}.
