@@ -68,7 +68,11 @@ problem~\cite{monadsforfp}, and can be solved using a monad that has operations
 corresponding to the imperative instructions.  We will show how this monad can
 be constructed explicitly in \autoref{chp:games}.  For now, we will assume that
 there is a monad |CryptoExpr ST| that supports the following operations, where
-|ST| is the type of the state that the players may store:
+|ST| is the type of the state that the players may
+store:\footnote{\cf{Syntactic/CryptoExpr}.  Note that our implementation uses
+techniques discussed in \autoref{chp:command-structures} for this definition.
+For a more direct implementation, but without support for state,
+\cf{Crypto/Syntax}.}
 \begin{code}
 uniform    : (n : Nat)  ->  CryptoExpr ST (BitVec n)
 coin       :                CryptoExpr ST Bool
@@ -89,7 +93,8 @@ presence of an eavesdropper.
 Let us begin by assuming that we have some type |K| for our keys, |PT| for our
 plaintext messages, and |CT| for our ciphertext messages.  To define an
 encryption scheme, we must give the algorithm for generating a new key and for
-encrypting a message with a given key.  We can express this in Agda as a record.
+encrypting a message with a given key.  We can express this in Agda as a
+record.\footnote{\cf{Crypto/Schemes}}
 
 \begin{code}
 record EncScheme : Set1 where
@@ -105,7 +110,7 @@ choose the state type, as we will see shortly.
 The adversary is given the chance to act twice during the game, first to
 generate two plaintext messages, and then to guess which message had been
 encrypted.  We again represent this as a record, parametrised by the type of
-state |ST| that the adversary uses.
+state |ST| that the adversary uses.\footnote{\cf{Crypto/EAV}.}
 
 \begin{code}
 record Adversary (ST : Set) : Set where
@@ -124,7 +129,8 @@ this approach feels more natural.
 Now we can introduce the game itself.  As before, we let the adversary pick two
 messages, generate a key, encrypt one of the messages based on a coin flip,
 and then let the adversary guess which one it was.  Altogether, this is a
-probabilistic computation that returns |true| iff the adversary wins.
+probabilistic computation that returns |true| iff the adversary
+wins.\footnote{\cf{Crypto/EAV}.}
 
 \begin{code}
 INDEAV  : EncScheme -> Adversary ST -> CryptoExpr ST Bool
@@ -233,7 +239,8 @@ indistinguishable from |coin|.  Since the games are indistinguishable, the
 probability of drawing |true| from |INDEAVOTP1| is the same as from
 |INDEAVOTP5|.  Since the advantage of any adversary against |INDEAVOTP5| is 0,
 it follows that it has advantage 0 against |INDEAVOTP1| as well, and thus we
-have shown that |OTP| is secure against an eavesdropper attack.
+have shown that |OTP| is secure against an eavesdropper
+attack.\footnote{\cf{Crypto/OTP}.}
 
 \section{Oracles}
 \label{sec:intro-oracles}
@@ -265,7 +272,8 @@ oracle: a way to initialise the oracle state with some value of type
 |OracleState|, and a way to query the oracle function using an |OracleArg|
 argument to get an  |OracleResult| response.  The types in question will depend
 on the game being played.  We can represent this in code by assumpting that
-|CryptoExpr| supports an additional two operations:
+|CryptoExpr| supports an additional two
+operations:\footnote{\cf{Syntactic/OracleExpr} and \clink{Syntactic/OracleEval}.}
 \begin{code}
 initOracle  : OracleState  -> CryptoExpr ST top
 callOracle  : OracleArg    -> CryptoExpr ST OracleResult
@@ -570,6 +578,7 @@ EasyCrypt\footnote{\url{http://www.easycrypt.info}} and FCF~\cite{fcf} being
 two notable examples.  In this work, we have focused in particular on how we can
 leverage the power of dependent types to simplify the problem.  The primary
 difficulty of building such a proof system is the verbosity of the resulting
-proofs: steps that were trivial on paper may nevertheless require extensive
-proof in a formal setting.  We will discuss these aspects of our approach, and
-what can be done to improve on this point, in \autoref{chp:language}.
+proofs:\footnote{\cf{Crypto/OTP}.} steps that were trivial on paper may
+nevertheless require extensive proof in a formal setting.  We will discuss these
+aspects of our approach, and what can be done to improve on this point, in
+\autoref{chp:language}.

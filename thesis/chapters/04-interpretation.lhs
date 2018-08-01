@@ -171,11 +171,12 @@ monad~\cite{probfunproghaskell}, in which we can compute whether two games over
 a type |A| with decidable equality are $\epsilon$-indistinguishable.  This
 material has not been fully worked out in Agda, but the claims we make pertain
 to finite objects (lists of rational numbers) and, as such, can be shown to hold
-constructively.  Furthermore, the construction relies in several places on
-equality being decidable.  This is a serious issue.  However, we think that the
-results we present here are worth stating despite this. For now, we will assume
-that all types involved have decidable equality, and analyse this assumption at
-the end of this section.
+constructively.\footnote{For a partial implementation, \cf{Distribution/List}
+and the modules it exports.}  Furthermore, the construction relies in several
+places on equality being decidable.  This is a serious issue.  However, we think
+that the results we present here are worth stating despite this. For now, we
+will assume that all types involved have decidable equality, and analyse this
+assumption at the end of this section.
 
 We represent a probability distribution over a type |A| as a list of pairs of
 elements of |A| and their corresponding probabilities.  Our two basic
@@ -258,7 +259,8 @@ nor |support xs| provided enough structure to carry through the argument.
 
 The monad |Dist| provides us with a suitable interpretation of probability, but
 it does not allow us to interpret stateful computations.  For this last
-functionality, we use the |StateT ST| monad transformer.  Since this is a monad
+functionality, we use the |StateT ST| monad
+transformer.\footnote{\cf{Utility/State/Normal}.}  Since this is a monad
 transformer, |coin| lifts into it, and we use the usual |getState| and
 |setState| to interpret the corresponding operations.  As we have seen in
 \autoref{chp:command-structures}, specifying these there base operations extends
@@ -272,7 +274,7 @@ We can now define a notion of distance between distributions.  We make use of a
 |union| function that merges two lists and removes duplicates.
 \begin{code}
 distance : (xs ys : Dist A) -> Q
-distance xs ys = times half (sum (map f sup))
+distance xs ys = (times half (sum (map f sup)))
   where sup = union (support xs) (support ys)
         f a = sample xs a - sample ys a
 \end{code}

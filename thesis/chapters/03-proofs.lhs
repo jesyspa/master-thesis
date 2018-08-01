@@ -213,7 +213,10 @@ a|)-indistinguishable.
 
 Without further ado: for every non-negative |epsilon : Q| and every two types
 |A| and |ST|, let |==eE| be the least binary relation on |CryptoExpr ST A| such
-that the following properties hold:
+that the following properties hold:\footnote{\cf{Syntactic/Logic} and
+\clink{Syntactic/EpsilonLogic}.  We define the case where $\epsilon = 0$
+separately as that makes the proofs easier to work with, but this is not an
+essential difference.}
 \begin{enumerate}
     \item |==eE| is reflexive and symmetric.
     \item If |G ==e1E H| and |H ==e2E I| then |G ==eeE I|.
@@ -268,7 +271,8 @@ The other rules are similarly simple in meaning and obscure in formal statement.
 
 Let us now go through a number of results that highlight the similarity of
 |==eE| to the notion of $\epsilon$-indistinguishability we defined on
-probability distributions in \autoref{sec:proofs-dists}.
+probability distributions in
+\autoref{sec:proofs-dists}.\footnote{\cf{Syntactic/LogicDerived}.}
 
 \begin{theorem}
     |==e1E| is a subrelation of |==e2E| if $\epsilon_1 \le \epsilon_2$.
@@ -312,7 +316,8 @@ at once.  This will be particularly important when we look at games that make
 use of an oracle.
 
 Now that we have investigated the basic properties of this logic, let us look at
-our first useful result: that every game can be rewritten into a canonical form.
+our first useful result: that every game can be rewritten into a canonical
+form.\footnote{\cf{Syntactic/Reorder}.}
 
 \begin{definition}
     We say that a game |G : CryptoExpr ST A| is in canonical form if there exist
@@ -375,7 +380,8 @@ purposes, even if we can distinguish between them based on the effect they have
 on the state.  As such, we want a weaker notion of indistinguishability which we
 will call result-indistinguishability.
 
-We do not have an axiomatisation of this relation, like we do of the
+We do not have an axiomatisation of this relation,\footnote{For one possible
+approach, \cf{Syntactic/ResultLogic}.} like we do of the
 $\epsilon$-indistinguishability relation, but we present a way of achieving a
 similar result in \autoref{chp:indexed-monads}.
 

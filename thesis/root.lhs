@@ -5,10 +5,10 @@
 \usepackage{amsfonts}
 \usepackage{amsthm}
 \usepackage{array}
-\usepackage{hyperref}
 \usepackage{todonotes}
 \usepackage[margin=4cm]{geometry}
 \usepackage{appendix}
+\usepackage{hyperref}
 \newcommand*{\Appendixautorefname}{appendix}
 
 %include polycode.fmt
@@ -17,6 +17,8 @@
 
 \newcommand{\abs}[1]{\left|| #1 \right||}
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\clink}[1]{\href{http://github.com/jesyspa/master-thesis/tree/master/src/#1.agda}{\nolinkurl{#1}}}
+\newcommand{\cf}[1]{c.f.~\clink{#1}}
 
 \DeclareMathOperator{\PreMGL}{\mathbf{Pre-MGL}}
 \DeclareMathOperator{\MGL}{\mathbf{MGL}}

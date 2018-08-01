@@ -19,7 +19,8 @@ serves as a good introduction to the more general case we will consider in
 We have seen the following pattern in |CryptoExpr| and |OracleExpr|: one
 constructor is a |Return|, while the others take a command and then a
 continuation to handle a response to that command.  We start by capturing the
-structure of commands and responses:
+structure of commands and responses:\footnote{\cf{Syntactic/CommandStructure}
+and \clink{Interpretation/Complete/InteractionStructure}.}
 
 \begin{code}
 record CmdStruct : Set1 where
@@ -32,7 +33,9 @@ record CmdStruct : Set1 where
 
 Given a command structure |C|, the corresponding free monad should have a
 constructor for |Return| and a constructor for each command, taking a
-continuation for its response.  We can encode this structure directly in Agda.
+continuation for its response.  We can encode this structure directly in
+Agda.\footnote{\cf{Syntactic/CommandStrcuture} again, as well as
+\clink{Interaction/Complete/FreeMonad}.}
 \begin{code}
 data FreeMonad : Set -> Set where
   ReturnFM : A -> FreeMonad A
@@ -77,7 +80,7 @@ Let us now consider how we can express our constructions from
 but straightforward approach, and then refine it in \autoref{sec:cs-oracles} to
 allow for greater flexibility.  To begin, we can define the type of commands a
 |CryptoExpr| supports, and the corresponding responses, to get the |CryptoExpr|
-monad:
+monad:\footnote{\cf{Syntactic/CryptoExpr}.}
 \begin{code}
 data CryptoCmd : Set where
   Uniform   : Nat  ->  CryptoCmd
@@ -96,7 +99,8 @@ CryptoExpr = FreeMonad CryptoCS
 
 Defined this way, we get the functor and monad instances of |CryptoExpr| for
 free.  We can repeat this construction for |OracleExpr| by adding two new
-commands:
+commands:\footnote{\cf{Syntactic/OracleExpr}, but note that this is not the
+approach taken there.}
 \begin{code}
 data OracleCmd : Set where
   Uniform    : Nat          ->  OracleCmd
@@ -133,7 +137,9 @@ can we express the implementation of one command structure in another?
 
 We define a binary operation |+CS| on command structures that represents taking
 the disjoint union of their commands, with the responses to each command staying
-unchanged.  We can express this directly in Agda:
+unchanged.  We can express this directly in
+Agda:\footnote{\cf{Syntactic/CSConstructs} and
+\clink{Interaction/Complete/InteractionStructure}.}
 \begin{code}
 _+CS_ : (C1 C2 : CmdStruct) -> CmdStruct
 Command   (C1 +CS C2) = Command C1 + Command C2
@@ -163,7 +169,10 @@ way.} but this would be too restrictive: an implementation could consist of only
 a single command, rather than an arbitrary monadic term.  Instead, to implement
 a command structure |C1| in terms of a command structure |C2|, we send every
 command |c| of |C1| with response type |R c| to a term in the free monad of |C2|
-with result |R c|.  In code, this is given as
+with result |R c|.  In code, this is given
+as\footnote{\cf{Syntactic/CommandStructure} and
+\clink{Interaction/Complete/Implementation}.  The latter is more faithful to
+this presentation.}
 \begin{code}
 Implementation : (C1 C2 : CmdStruct) -> Set
 Implementation C1 C2 = (c : Command C1) -> FreeMonad C2 (Response C1 c)
@@ -190,7 +199,8 @@ section, we will make this explicit.
 
 Previously, we defined |CryptoCS| and |OracleCS| entirely independently.
 However, the latter is an extension of the former.  Using the |_+CS_| operation
-defined above, we can make this explicit in our Agda code:
+defined above, we can make this explicit in our Agda
+code:\footnote{\cf{Syntactic/OracleExpr}.}
 \begin{code}
 data OracleCmd : Set where
   InitOracle  : OracleState  -> OracleCmd
@@ -255,7 +265,7 @@ perform all the gluing of players at once, simplifying the system as a whole.
 Each of the four players has the basic core language |CryptoCS|, parametrised by
 their state type.  The challenger and encryption scheme are stateless, while the
 adversary has state |AST| and the oracle has state |OST|.  The interfaces are as
-follows:
+follows:\footnote{\cf{Interaction/Complete/Example}.}
 %format ChallengerCS = "\D{ChallengerCS}"
 %format EncSchemeCmd = "\D{EncSchemeCmd}"
 %format EncSchemeCS  = "\D{EncSchemeCS}"
@@ -340,7 +350,9 @@ corresponding base languages, represents a list of implementations like
 the above.  Such an ``$N$-player implementation'' is either an empty list, or an
 implementation of the first interface in terms of the first base language and
 the other interfaces, together with an $N$-player\footnote{Or, perhaps more
-correctly, $(N-1)$-player.} implementation of the tails.
+correctly, $(N-1)$-player.} implementation of the tails.\footnote{The full
+implementation of this can be found in \clink{Interaction/Complete/Combine}.
+Due to the verbosity, we only present the key ideas here.}
 \begin{code}
 SumCS : List CmdStruct -> CmdStruct
 SumCS = foldr _+CS_ initCS
@@ -358,8 +370,7 @@ DS)|, exactly as we wanted: in the recursive case, when |CS| is of the form |C1
 :: CS'| and |DS| is of the form |D1 :: DS'|, this can be done by implementing
 |C1 +CS CS'| in terms of |D1 +CS CS' +CS CS'| using the first implementation,
 then merging the two occurences of |CS'|, and finally implementing |CS'| in
-terms of |DS'| by recursion.  A full implementation is available in the
-accompanying code.
+terms of |DS'| by recursion.
 
 With this result, we have developed a general method of constructing types such
 as |EncScheme|, |Adversary|, and |Oracle| in a manner that is independent of the
@@ -385,4 +396,3 @@ implementation of the latter compound.  As we have seen in
 used is possible but involves constructing appropriate proof terms, which would
 make the proofs even more verbose.
 
-\todo[inline]{I had another thought here but forgot}

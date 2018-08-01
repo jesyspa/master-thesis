@@ -13,7 +13,9 @@ boundary on the adversary is that we must explicitly construct the proof,
 despite its structure being determined by the structure of the game it refers
 to.  We can avoid this by encoding the same proof information in the
 |OracleExpr| type itself.  Fixing an |ST| type for the (adversary) state, we may
-imagine the following datatype to work:
+imagine the following datatype to work:\footnote{We have not expressed this type
+explicitly, but \clink{Interaction/Indexed/Memory} gives a simpler example based
+on these ideas.}
 \begin{code}
 data OracleExpr : Nat -> Set -> Set where
   Return      : A                                      -> OracleExpr k        A
@@ -37,7 +39,8 @@ In functional programming, we are used to the term monad referring specifically
 to monads on the category of types and terms of the language we are using.
 However, the mathematical definition of monad can refer to endofunctors on any
 category.  The following is simply a specialisation of this definition to the
-category of types and terms indexed by some type |S|.
+category of types and terms indexed by some type
+|S|.
 
 \begin{definition}
   Given any type |S|, the category |SetS| is the category with functions |S ->
@@ -52,7 +55,8 @@ A ~> B = forall {s} -> A s -> B s
 
 Given a function |(S -> Set) -> (S -> Set)|, we can regard it as a functor if it
 has a corresponding action on morphisms.  This gives rise to the notion of an
-|S|-indexed functor on |Set|, or endofunctor on |SetS|, as follows:
+|S|-indexed functor on |Set|, or endofunctor on |SetS|, as
+follows:\footnote{\cf{Algebra/Indexed/Fuctor}.}
 \begin{code}
 record IxFunctor {S : Set}(F : (S -> Set) -> (S -> Set)) : Set1 where
   field
@@ -61,7 +65,7 @@ record IxFunctor {S : Set}(F : (S -> Set) -> (S -> Set)) : Set1 where
 
 Together with the usual notion of a natural transformation, this gives rise to
 the category of endofunctors and natural transformations between them.  The
-notion of an indexed monad now arises naturally:
+notion of an indexed monad now arises naturally:\footnote{\cf{Algebra/Indexed/Monad}.}
 \begin{code}
 record IxMonad {S : Set}(M : (S -> Set) -> (S -> Set)) : Set1 where
   field
@@ -103,7 +107,7 @@ depends on the index at which it is used.
 
 The original Atkey construction~\cite{indexedmonads} makes use of this by
 constructing a type that is empty except at one selected index.  This can be
-defined as follows:
+defined as follows:\footnote{\cf{Algebra/Indexed/Atkey}.}
 \begin{code}
 data Atkey (A : Set) : S -> S -> Set where
   V : A -> Atkey A s s
@@ -234,7 +238,9 @@ A natural question to ask is whether the state monad transformer we used in
 order to define the list interpretation can be generalised to this context.
 This is indeed the case: although it has the same universe size issues as
 |CryptoExpr|, fixing an |S|-indexed monad |M|, some custom universe |U|, and a
-function |eval : U -> Set| we can define:
+function |eval : U -> Set| we can
+define:\footnote{\cf{Utility/State/Indexed/FromUniverseTransformer} and other
+files in that directory.}
 \begin{code}
 IxStateT : (U * S -> Set) -> U * S -> Set
 IxStateT A (u , s) = eval u -> M (\ s' -> Sigma U \ u' -> eval u' * A (u' , s')) s
@@ -281,8 +287,9 @@ Let |S| be our index type.  An interaction structure consists of a type of
 commands |Command s| for each |s : S|, a type of responses |Response c| for each
 command |c : Command s|, and a next state |next c r| for each |c : Command s|
 and |r : Response c|.
-We can implement this in Agda:
 
+We can implement this in
+Agda:\footnote{\cf{Interaction/Indexed/InteractionStructure}.}
 \begin{code}
 record IStruct (S : Set) : Set where
   field
@@ -292,7 +299,7 @@ record IStruct (S : Set) : Set where
 \end{code}
 
 An interaction structure over a state type |S| gives rise to a free indexed
-monad over |S| as follows:
+monad over |S| as follows:\footnote{\cf{Interaction/Indexed/FreeMonad}.}
 \begin{code}
 data FreeMonad (IS : IStruct S) : (S -> Set) -> (S -> Set) where
   ReturnFM  : A s -> FreeMonad IS A s
@@ -329,7 +336,8 @@ For the definition of |Implementation|, we need the |DepAtkey| construction we
 defined earlier.  An important note here is that the structure we are
 interpreting may be indexed over a different set than the structure we are
 interpreting it in.  For this purpose we take the |Sf| map, which relates states
-in the one to states in the other.
+in the one to states in the
+other.\footnote{\cf{Interaction/Indexed/Implementation}.}
 \begin{code}
 Implementation  : (IS : IStruct S1)(M : (S2 -> Set) -> S2 -> Set)(Sf : S1 -> S2)
                 -> Set
@@ -348,12 +356,11 @@ not carry over into the indexed case.  This can be resolved by defining two
 different constructions on interaction structures, one of which is used for
 combining interfaces and the other for combining base languages.
 
-%format QSum = 
-
 Let us start with the construction for base languages.  The essential property
 we use is that our base languages do not in any way influence each other's
 state.  This allows us to use the following definition, which appears to be a
-straightforward generalisation of |+CS|:
+straightforward generalisation of
+|+CS|:\footnote{\cf{Interaction/Indexed/InteractionStructure}.}
 \begin{code}
 _oplus_ : IStruct S1 -> IStruct S2 -> IStruct (S1 * S2)
 Command   (oplus IS1 IS2) (s1 , s2) = Command IS1 s1 + Command IS2 s2
@@ -386,8 +393,8 @@ Essentially, the state of every player must include the state of all
 players that they can issue commands to.  To capture this notion, we introduce a
 second operation on interaction structures denoted |_qoplus_|.  It can be seen
 as the |_oplus_| operation from above with a quotient applied to the state
-space.  Again, we define a fold over this operation as well.
-
+space.  Again, we define a fold over this operation as
+well.\footnote{\cf{Interaction/Indexed/QuotientTensor}.}
 \begin{code}
 _qoplus_ : IStruct (S1 * S2) -> IStruct S2 -> IStruct (S1 * S2)
 Command   (qoplus IS1 IS2) (s1 , s2) = Command IS1 (s1 , s2) + Command IS2 s2
@@ -401,15 +408,16 @@ QSum = foldr _qoplus_ TensorUnitIS
 
 With these choices in place, we can construct $N$-player implementations as we
 did before.  The Agda formulation is not enlightening, so we will not present it
-here.  The essential point is that just as we could use an implementation of
-|C1| in terms of |D1| and |SumCS CS| and an implementation of |SumCS CS| in
-terms of |SumCS DS| to obtain an implementation of |C1 +CS SumCS CS| in terms of
-|D1 +CS SumCS DS| in the command structure case, here we achieve the same
-result, with the important distinction that we now have two ways of combining
-interaction structures.  The choice that has worked for our purposes is as
-follows: an implementatino of |C1| in terms of |oplus D1 (QSum CS)| and an
-implementation of |QSum CS| in terms of |TSum DS| gives an implementation of
-|qoplus C1 (QSum CS)| in terms of |oplus D1 (TSum DS)|.
+here.\footnote{\cf{Interaction/Indexed/Telescope}.}  The essential point is that
+just as we could use an implementation of |C1| in terms of |D1| and |SumCS CS|
+and an implementation of |SumCS CS| in terms of |SumCS DS| to obtain an
+implementation of |C1 +CS SumCS CS| in terms of |D1 +CS SumCS DS| in the command
+structure case, here we achieve the same result, with the important distinction
+that we now have two ways of combining interaction structures.  The choice that
+has worked for our purposes is as follows: an implementatino of |C1| in terms of
+|oplus D1 (QSum CS)| and an implementation of |QSum CS| in terms of |TSum DS|
+gives an implementation of |qoplus C1 (QSum CS)| in terms of |oplus D1 (TSum
+DS)|.
 
 This gives rise to the same kind of $N$-player implementation that we already
 discussed in the case of command structures in \autoref{chp:command-structures}.

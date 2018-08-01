@@ -35,7 +35,9 @@ things: immediately yield a value of type |A|, or execute some command and then
 map the response to another game with result type |A|.  Treating this as an
 inductive definition is the key insight of the free monad
 construction~\cite{tctotallyfree}.  For our three commands, the free monad can
-be defined as follows:
+be defined as follows:\footnote{\cf{Syntactic/CryptoExpr}; again, note that in
+the code, these are defined using techniques from
+\autoref{chp:command-structures}.}
 \begin{code}
 data CryptoExpr (ST : Set) : Set -> Set where
   Return    : A                                               -> CryptoExpr ST A
@@ -59,7 +61,8 @@ represents a write to the state.  We will only define this interpretation in
 constructions we do in this chapter and the next.
 
 We can define the monadic actions |uniform|, |setState| and |getState| as terms
-in the |CryptoExpr ST| monad by passing |Return| as the response handler:
+in the |CryptoExpr ST| monad by passing |Return| as the response
+handler:\footnote{\cf{Syntactic/CryptoExprHelpers}.}
 \begin{code}
 uniform : (n : Nat) -> CryptoExpr ST (BitVec n)
 uniform n = Uniform n Return
@@ -72,7 +75,9 @@ setState st = SetState st Return
 \end{code}
 
 In order to show that |CryptoExpr ST| is indeed a monad, we take |return =
-Return| and define |fmap| and |>>=| as follows:
+Return| and define |fmap| and |>>=| as follows:\footnote{Since we use the
+techniques outlined in \autoref{chp:command-structures}, these functions are
+generated for us; \cf{Syntactic/CommandStructure}.}
 \begin{code}
 fmapCE : (A -> B) -> CryptoExpr ST A -> CryptoExpr ST B
 fmapCE f (Return a)          = Return (f a)
@@ -80,11 +85,11 @@ fmapCE f (Uniform n cont)    = Uniform n    \ v -> fmapCE f (cont v)
 fmapCE f (GetState cont)     = GetState     \ st -> fmapCE f (cont st)
 fmapCE f (SetState st cont)  = SetState st  \ t -> fmapCE f (cont t)
 
-bindCE : CryptoExpr ST A -> (A -> CryptoExpr ST B) -> CryptoExpr ST B
-bindCE (Return a)          f  = f a
-bindCE (Uniform n cont)    f  = Uniform n    \ v -> bindCE (cont v) f
-bindCE (GetState cont)     f  = GetState     \ st -> bindCE (cont st) f
-bindCE (SetState st cont)  f  = SetState st  \ t -> bindCE (cont t) f
+_>>=_ : CryptoExpr ST A -> (A -> CryptoExpr ST B) -> CryptoExpr ST B
+Return a          >>= f  = f a
+Uniform n cont    >>= f  = Uniform n    \ v -> bindCE (cont v) f
+GetState cont     >>= f  = GetState     \ st -> bindCE (cont st) f
+SetState st cont  >>= f  = SetState st  \ t -> bindCE (cont t) f
 \end{code}
 
 We will see how we can avoid the repetitiveness of these definitions in
@@ -125,7 +130,7 @@ be extended in \autoref{chp:command-structures}.
 Recall that |initOracle| takes an |OracleState| value to initialise the oracle
 with and gives no response, while |callOracle| takes an |OracleArg| and responds
 with an |OracleResult|.  We define |OracleExpr ST|, the type of games that use
-an oracle, as follows:
+an oracle, as follows:\footnote{\cf{Syntactic/OracleExpr}.}
 \begin{code}
 data OracleExpr (ST : Set) : Set -> Set where
   Return      : A                                                     -> OracleExpr ST A
@@ -151,7 +156,9 @@ behaviour of the oracles themselves.  We do this much the same way we specify
 adversaries, by defining a record that has interpretations for the operations.
 Note that we define oracles using the |CryptoExpr| monad, not |OracleExpr|: the
 latter would allow an oracle to call itself, potentially leading to a
-non-terminating game.  The definition of an oracle implementation is as follows:
+non-terminating game.  The definition of an oracle implementation is as
+%format OracleImpl = "\F{OracleImpl}"
+follows:\footnote{\cf{Syntactic/OracleEval}, where this is called |OracleImpl|.}
 \begin{code}
 record Oracle (OST : Set) : Set where
   field
@@ -175,7 +182,8 @@ this approach.
 
 We start by defining the operations |getOracleState|, |setOracleState|,
 |getAdvState|, and |setAdvState|, which we use for operating on the oracle and
-adversary components of the state respectively.  The definitions are as follows:
+adversary components of the state respectively.  The definitions are as
+follows:
 \begin{code}
 getOracleState : CryptoExpr (AST * OST) OST
 getOracleState = fmap snd getState
@@ -199,7 +207,7 @@ the terms that implement the oracle, which have type |CryptoExpr OST A|, into
 the game as a whole, which has type |CryptoExpr (AST * OST) A|.  Fortunately,
 this is straightforward given the functions we defined above, since we can
 replace all uses of |GetState| by |getOracleState| and |setState| by
-|setOracleState|:
+|setOracleState|:\footnote{\cf{Syntactic/OracleEval} again.}
 %format embed = "\F{embed}"
 \begin{code}
 embed : CryptoExpr OST A -> CryptoExpr (AST * OST) A
@@ -254,7 +262,9 @@ this by removing state from the games entirely, or by setting its type to |top|,
 but both of these are big changes that affect the system as a whole.
 Instead, we can define a |Stateless| predicate on terms |ce : CryptoExpr ST A|
 that holds only if |ce| does not use the |GetState| or |SetState| constructors.
-We can define this as follows:
+We can define this as follows:\footnote{\cf{Syntactic/StateBounds}; note that in
+the code we separate the property of not writing to the state and not reading
+from the state, but the difference is not significant.}
 \begin{code}
 data Stateless : CryptoExpr ST A -> Set where
   ReturnS   : forall a -> Stateless (Return a)
@@ -278,7 +288,8 @@ make a predicate |BoundedOracleUse k b| on terms |ce : OracleExpr ST A| that
 expresses that |ce| uses |CallOracle| at most |k| times, and only uses
 |InitOracle| if |b| is |true|.   Just like with |Stateless|, we represent this
 in Agda by creating a datatype that mimics the recursive structure of
-|OracleExpr|.
+|OracleExpr|.\footnote{\cf{Syntactic/BoundedOracleUse} and
+\clink{Syntactic/BoundedOracleUseExample}.}
 \begin{code}
 data BoundedOracleUse : Bool -> Nat -> OracleExpr A -> Set1 where
   ReturnBOU      : forall a -> BoundedOracleUse b k (Return a)
@@ -314,7 +325,8 @@ extra parameter that represents a proof that |ce| satisfies some property.
 However, a drawback of this approach is that when \emph{we} construct a |ce :
 CryptoExpr ST A|, we must also construct the corresponding proof.  This is not
 difficult, since the proof term is completely determined by |ce| itself, but it
-the kind of work we would like to automate.
+the kind of work we would like to automate.\footnote{A partial implementation of
+these ideas can be found in \clink{Syntactic/BoundedOracleUseExample}.}
 
 The straightforward way to do this in Agda would be to traverse the |CryptoExpr
 ST A| structure and check that the conditions we impose are satisfied.  In the
