@@ -17,21 +17,16 @@
 
 \begin{frame}
 \frametitle{The Plan}
-\begin{itemize}
-    \item The Problem
-    \item Code-Based Games
-    \item Logic and Agda
-    \item Our Work: Formalisation of Indistinguishability
-    \item Soundness
-    \item Future Work
-\end{itemize}
+\tableofcontents
 \end{frame}
+
+\section{The Problem}
 
 \begin{frame}
 \frametitle{The Problem}
-Interesting cryptographic properties:
 \begin{itemize}
-    \item TODO: Come up with some
+    \item Cryptographic Proofs are Hard
+    \item TODO
 \end{itemize}
 \end{frame}
 
@@ -56,24 +51,54 @@ Question: How can we express that this scheme is secure?
 \end{frame}
 
 \begin{frame}
-\frametitle{Security}
+\frametitle{Games}
 
 \end{frame}
 %}
 
 \begin{frame}
 \frametitle{Code-Based Games}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{}
+\end{frame}
+
+\section{Formalising $\epsilon$-Indistinguishability}
+
+\begin{frame}
+\frametitle{Expressing Games}
 \begin{code}
+data CryptoExpr : 
 \end{code}
 \end{frame}
 
 \begin{frame}
-\frametitle{}
+\frametitle{Expressing Games}
 \end{frame}
 
 \begin{frame}
-\frametitle{}
+\frametitle{Expressing }
 \end{frame}
+
+\begin{frame}
+\frametitle{Soundness}
+\end{frame}
+
+\section{Bonus Material}
+
+\begin{frame}
+\frametitle{Command Structures}
+\begin{code}
+record CmdStruct : Set1 where
+  field
+    Command : Set
+    Response : Command -> Set
+\end{code}
+\end{frame}
+
+\section{Conclusions}
 
 \begin{frame}
 \frametitle{}
