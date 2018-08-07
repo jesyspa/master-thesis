@@ -24,66 +24,84 @@
 
 \begin{frame}
 \frametitle{The Problem}
+Guaranteeing properties of cryptographic primitives is important.
+\pause
+
+How can we check their proofs automatically?
+\pause
+
+What does a proof look like?
+\end{frame}
+
+\begin{frame}
+\frametitle{Game-Based Proofs}
+
+We can express properties as games between a challenger and an adversary.\pause
+
+Two ways of looking at this:
 \begin{itemize}
-    \item Cryptographic Proofs are Hard
-    \item TODO
+  \item A system of players communicating with each other; \pause and
+  \item Two situations that the adversary has to distinguish.
+\end{itemize}\pause
+
+The challenge is to capture both in one system!
+\end{frame}
+
+\begin{frame}
+\frametitle{Agda}
+
+Agda is a dependently type programming language.
+\pause
+
+Why Agda?
+\pause
+\begin{itemize}
+  \item Fairly similar to $\lambda\Pi$.\pause
+  \item Encourages programming with dependent types.\pause
+  \item Fairly similar to Haskell.
 \end{itemize}
 \end{frame}
 
-%{
 \begin{frame}
-\frametitle{One-Time Pad}
-%format keygen = "\F{keygen}"
-%format encrypt = "\F{encrypt}"
-%format decrypt = "\F{decrypt}"
-Consider the following encryption scheme:
-\begin{code}
-keygen : (n : Nat) -> Rand (BitVec n)
-keygen n = uniform n
-
-encrypt : (FORALL n) -> BitVec n -> BitVec n -> BitVec n
-encrypt v w = (xor v w)
-
-decrypt = encrypt
-\end{code}
-\pause
-Question: How can we express that this scheme is secure?
-\end{frame}
-
-\begin{frame}
-\frametitle{Games}
-
-\end{frame}
-%}
-
-\begin{frame}
-\frametitle{Code-Based Games}
-
-\end{frame}
-
-\begin{frame}
-\frametitle{}
+\frametitle{The Problem}
+So, our goals:
+\begin{itemize}
+  \item Express cryptographic primitives in Agda.\pause
+  \item Express an indistinguishability relation.\pause
+  \item Express multiplayer systems.
+\end{itemize}
 \end{frame}
 
 \section{Formalising $\epsilon$-Indistinguishability}
 
 \begin{frame}
-\frametitle{Expressing Games}
+\frametitle{Expressing Computations}
+
+How can we express computations that have access to extra commands?\pause
+
+\begin{block}{Command Structures}
 \begin{code}
-data CryptoExpr : 
+TODO
 \end{code}
+\end{block}
 \end{frame}
 
 \begin{frame}
 \frametitle{Expressing Games}
+
+Free monads
 \end{frame}
 
 \begin{frame}
-\frametitle{Expressing }
+\frametitle{Expressing Indistinguishability}
+
+Syntactic relation
 \end{frame}
 
 \begin{frame}
 \frametitle{Soundness}
+
+
 \end{frame}
 
 \section{Bonus Material}
