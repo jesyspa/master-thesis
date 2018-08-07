@@ -1,0 +1,14 @@
+I want to cover the following topics:
+* Games in cryptography
+* Curry-Howard, BHK, and propositions-as-types
+* Dependent types
+* Free monads as a syntax for games
+* A syntactic relation on games
+* As an aside: models for this relation
+* Indexed monads for stricter control
+* As another aside: command structures
+* Interesting but not very relevant:
+    - Command structures form a category
+    - So do indexed monads, in many ways
+    - The category of indexed monads has some cool structure.
+

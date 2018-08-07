@@ -13,4 +13,7 @@ sources/
 *.out
 *.ptb
 *.toc
+*.nav
+*.snm
 thesis.tex
+presentation.tex
