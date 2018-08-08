@@ -1,5 +1,7 @@
 presentation.pdf: presentation.tex
 	pdflatex presentation.tex
+	bibtex presentation
+	pdflatex presentation.tex
 	pdflatex presentation.tex
 
 presentation.tex: presentation.lhs agda.lhs localdefs.lhs
